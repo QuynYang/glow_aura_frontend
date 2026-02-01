@@ -1,16 +1,15 @@
 import { Facebook, Instagram, Twitter, Rabbit, Leaf, Wheat, Recycle, ArrowUp } from 'lucide-react';
 
 export const Footer = () => {
-  // Hàm cuộn lên đầu trang mượt mà
+  // Hàm cuộn lên đầu trang
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <footer>
-      {/* 1. Dải cam kết (Trust Badges) */}
-      {/* Tối ưu: Dùng bg-secondary thay vì mã màu cứng */}
-      <div className="bg-secondary py-8 border-t border-gray-100">
+      {/* 1. Dải cam kết */}
+      <div className="bg-[#F9F1F0] py-8 border-t border-gray-100">
         <div className="container mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
           <div className="flex flex-col items-center gap-2 group">
             <Rabbit className="w-8 h-8 text-primary group-hover:scale-110 transition-transform" strokeWidth={1.5} />
@@ -87,7 +86,6 @@ export const Footer = () => {
             <p className="mb-1">Gmail: vungocquynhgiang0408@gmail.com</p>
             <p className="mb-4">SDT: 0123456789</p>
             
-            {/* THÊM: Các icon mạng xã hội bạn đã import mà chưa dùng */}
             <div className="flex gap-4">
                 <a href="#" className="hover:text-accent transition-colors"><Facebook className="w-5 h-5" /></a>
                 <a href="#" className="hover:text-accent transition-colors"><Instagram className="w-5 h-5" /></a>
@@ -96,7 +94,6 @@ export const Footer = () => {
           </div>
           
           <div className="flex items-center gap-4">
-             {/* THÊM: Chức năng click để cuộn lên đầu trang */}
              <button 
                 onClick={scrollToTop}
                 className="p-2 bg-white text-primary rounded-sm hover:bg-gray-200 transition-colors"

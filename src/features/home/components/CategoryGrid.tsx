@@ -1,7 +1,7 @@
 const categories = [
-  { id: 1, title: "Women Make Up", image: "https://images.unsplash.com/photo-1596462502278-27bfdd403348?q=80&w=800" },
-  { id: 2, title: "Women Skincare", image: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=800" },
-  { id: 3, title: "Gifts & Sets", image: "https://images.unsplash.com/photo-1612817288484-969160d0d419?q=80&w=800" },
+  { id: 1, title: "Women Make Up", image: "https://images2.thanhnien.vn/thumb_w/640/528068263637045248/2023/8/16/snapinstaapp3336509811900460769868192880823254101155453n1080-16921721867051793767174.jpg" },
+  { id: 2, title: "Women Skincare", image: "https://hips.hearstapps.com/hmg-prod/images/korean-skincare-explained-1574778012.jpg?crop=0.661xw:1.00xh;0.103xw,0&resize=1200:*" },
+  { id: 3, title: "Gifts & Sets", image: "https://media.self.com/photos/635fbc03e9291730a33a4b42/3:4/w_748%2Cc_limit/necessaire%2520set.jpeg" },
 ];
 
 export const CategoryGrid = () => {
