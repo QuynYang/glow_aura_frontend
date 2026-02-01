@@ -1,43 +1,75 @@
-// Interface tạm thời (Sau này sẽ lấy từ folder types chung)
-interface Product {
+import { ShoppingCart, Heart } from 'lucide-react';
+import { Button } from '../../../components/ui/Button';
+
+// 1. Định nghĩa kiểu dữ liệu chuẩn cho toàn dự án
+export interface Product {
   id: number;
   name: string;
-  brand: string;
   price: number;
   image: string;
-  tag?: string;
+  brand?: string;       // Thêm dấu ? để không bắt buộc
+  description?: string; // Thêm dấu ? (Dùng cho trang danh sách)
+  tag?: string;         // Thêm dấu ?
 }
 
-export const ProductCard = ({ product }: { product: Product }) => {
+interface ProductCardProps {
+  product: Product;
+}
+
+export const ProductCard = ({ product }: ProductCardProps) => {
   return (
-    <div className="group relative">
-      {/* 1. Ảnh sản phẩm */}
-      <div className="relative aspect-[3/4] bg-secondary overflow-hidden mb-4">
-        {product.tag && (
-          <span className="absolute top-2 left-2 bg-primary text-white text-[10px] uppercase font-bold px-2 py-1 z-10">
-            {product.tag}
-          </span>
-        )}
-        
+    <div className="group cursor-pointer flex flex-col h-full">
+      {/* Image Section */}
+      <div className="relative overflow-hidden mb-3 aspect-[3/4] bg-gray-100">
         <img 
           src={product.image} 
-          alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          alt={product.name} 
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
         
-        {/* Nút Add to Cart trượt lên */}
-        <button className="absolute bottom-0 left-0 right-0 bg-black text-white py-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 font-medium text-sm hover:bg-accent">
-          ADD TO CART
-        </button>
+        {/* Tag (New/Hot) */}
+        {product.tag && (
+            <span className="absolute top-2 left-2 bg-white/90 text-[10px] font-bold px-2 py-1 uppercase tracking-wider">
+                {product.tag}
+            </span>
+        )}
+
+        {/* Action Buttons (Hiện khi hover) */}
+        <div className="absolute bottom-4 left-0 right-0 px-4 flex gap-2 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+             <Button className="flex-1 bg-white text-gray-900 hover:bg-primary hover:text-white text-xs py-2 shadow-lg">
+                Add To Cart
+             </Button>
+             <button className="bg-white p-2 text-gray-900 hover:bg-primary hover:text-white shadow-lg transition-colors">
+                <Heart className="w-4 h-4" />
+             </button>
+        </div>
       </div>
 
-      {/* 2. Thông tin */}
-      <div className="text-center space-y-1">
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{product.brand}</h3>
-        <h2 className="text-base font-medium text-gray-900 line-clamp-1 group-hover:text-primary transition-colors">
-          {product.name}
-        </h2>
-        <p className="text-sm font-semibold text-gray-900">${product.price.toFixed(2)}</p>
+      {/* Content Section */}
+      <div className="flex flex-col flex-grow space-y-1">
+        {/* Nếu có Brand thì hiện, không có thì ẩn đi */}
+        {product.brand && (
+            <p className="text-xs font-bold text-accent uppercase tracking-wide">
+                {product.brand}
+            </p>
+        )}
+
+        <h3 className="text-sm font-bold text-gray-900 leading-snug group-hover:text-primary transition-colors">
+            {product.name}
+        </h3>
+
+        {/* Nếu có Description thì hiện (Dành cho trang List) */}
+        {product.description && (
+            <p className="text-[11px] text-gray-500 line-clamp-2 leading-relaxed">
+                {product.description}
+            </p>
+        )}
+        
+        <div className="mt-auto pt-2">
+            <p className="text-sm font-medium text-gray-900">
+                ${product.price.toFixed(2)}
+            </p>
+        </div>
       </div>
     </div>
   );

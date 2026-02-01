@@ -5,6 +5,9 @@ import { PromoSection } from '../features/home/components/PromoSection';
 import { ProductCard } from '../features/products/components/ProductCard';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { Button } from '../components/ui/Button';
+import { FeaturedCollection } from '../features/home/components/FeaturedCollection';
+import { BrandPhilosophy } from '../features/home/components/BrandPhilosophy';
+import { NewArrivals } from '../features/home/components/NewArrivals';
 
 // Mock data
 const bestSellers = [
@@ -23,6 +26,9 @@ export const HomePage = () => {
       {/* 2. Danh mục sản phẩm */}
       <CategoryGrid />
 
+      <BrandPhilosophy />
+      <FeaturedCollection />
+      <NewArrivals />
       {/* 3. Promo Section */}
       <PromoSection />
 
@@ -37,7 +43,7 @@ export const HomePage = () => {
       </section>
 
       {/* 5. Special Offers */}
-      <section className="bg-[#F9F1F0] py-16">
+      <section className="container mx-auto px-4 py-20">
         <div className="container mx-auto px-4 flex flex-col md:flex-row items-center gap-10">
            <div className="w-full md:w-1/2">
               <img src="https://i0.wp.com/www.breastofus.com/wp-content/uploads/2020/05/baddiemakeup2.jpg?fit=512%2C512&ssl=1" alt="Special Offer" className="rounded shadow-lg" />
