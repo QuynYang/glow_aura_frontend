@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import { HomePage } from './pages/HomePage';
 import { ProductListPage } from './pages/ProductListPage';
+import { ProductDetailPage } from './pages/ProductDetailPage';
 
 function App() {
   return (
@@ -11,8 +12,8 @@ function App() {
       {/* 2. Trang Best Sellers (Khi bấm menu) */}
       <Route path="/best-sellers" element={<ProductListPage />} />
       
-      {/* Sau này thêm trang chi tiết: /product/123 */}
-      {/* <Route path="/product/:id" element={<ProductDetail />} /> */}
+      {/* trang chi tiết: /product/123 */}
+      <Route path="/product/:id" element={<ProductDetailPage />} />
     </Routes>
   );
 }

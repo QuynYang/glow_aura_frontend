@@ -42,3 +42,24 @@ export const filters = {
   categories: ["Cleansers", "Exfoliators", "Toners", "Retinols", "Peels And Masques", "Moisturiser", "Night Cream", "Facial Oil", "Sunscreen", "Eye Care"],
   prices: ["$50.00 - $150.00", "$150.00 - $250.00", "$250.00 - $350.00", "$350.00 - $450.00", "$450.00 - $550.00"]
 };
+
+
+//detail product
+export const singleProduct = {
+  id: 1,
+  brand: "Beautya Prestige",
+  name: "LA MICRO-HUILE DE ROSE ADVANCED SERUM",
+  subtitle: "Anti-Aging Face Serum",
+  tags: ["All Types Of Skin", "Am Or Pm", "Brightening"],
+  description: "Formulated With 92% Natural-Origin Ingredients",
+  price: 520.00,
+  sizes: ["30 ML", "50 ML", "75 ML"],
+  images: [
+    "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=800", // Main
+    "https://images.unsplash.com/photo-1629198688000-71f23e745b6e?q=80&w=800", // Thumb 1
+    "https://www.faces.eg/dw/image/v2/BJSM_PRD/on/demandware.static/-/Sites-faces-master-catalog/default/dwef43da2b/product/3348901552905_3/3348901552905_3.jpg?sw=800&sh=800", // Thumb 2
+    "https://cdn.vuahanghieu.com/unsafe/0x0/left/top/smart/filters:quality(90)/https://admin.vuahanghieu.com/upload/news/content/2021/01/sua-rua-matui-jpg-1611645507-26012021141827.jpg", // Thumb 3
+  ],
+  reviews: 142,
+  rating: 4.8
+};
