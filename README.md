@@ -34,20 +34,24 @@ Mở Terminal (cửa sổ dòng lệnh) tại thư mục `client_web` và chạy
 npm install
 ```
 
-**Bước 2.2: Cài đặt React Router (Quan trọng) Bắt buộc để chuyển từ Trang Chủ sang trang Best Sellers.
+
+**Bước 2.2: Cài đặt React Router (Quan trọng) Bắt buộc để chuyển từ Trang Chủ sang trang Best Sellers.**
 ```bash
 npm install react-router-dom
 ```
 
-**Bước 2.3: Cài đặt chuẩn phiên bản Tailwind CSS Khắc phục lỗi màn hình đen do xung đột Tailwind v4.
+
+**Bước 2.3: Cài đặt chuẩn phiên bản Tailwind CSS Khắc phục lỗi màn hình đen do xung đột Tailwind v4.**
 ```bash
 npm install -D tailwindcss@3.4.1 postcss autoprefixer
 ```
 
-**Bước 2.4: Cài đặt Type Definitions Khắc phục lỗi báo đỏ gạch chân trong VS Code.
+
+**Bước 2.4: Cài đặt Type Definitions Khắc phục lỗi báo đỏ gạch chân trong VS Code.**
 ```bash
 npm install -D @types/react @types/react-dom
 ```
+
 
 ### 3. Chạy server
 Sau khi cài đặt xong các bước trên, khởi chạy dự án bằng lệnh:
@@ -84,3 +88,15 @@ client_web/
 │   │   └── ProductListPage.tsx   # Trang Best Sellers
 │   ├── App.tsx          # Cấu hình Routing (Đường dẫn)
 │   └── main.tsx         # Entry point
+```
+
+
+---
+
+## 👨‍💻 Tác giả
+
+- **Họ tên**: Vũ Ngọc Quỳnh Giang
+- **MSSV**: 22DH114506
+- **Môn học**: Mẫu thiết kế phần mềm
+
+---
