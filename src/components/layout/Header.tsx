@@ -2,7 +2,7 @@ import { Search, ShoppingCart, User } from 'lucide-react';
 import { useState } from 'react'; // Thêm useState
 import { SearchOverlay } from './SearchOverlay'; // Import component vừa tạo
 import { Link } from 'react-router-dom';
-// --- Dữ liệu Mega Menu (Giữ nguyên) ---
+// --- Dữ liệu Mega Menu ---
 const megaMenuData = {
   columns: [
     {
@@ -50,9 +50,9 @@ export const Header = () => {
         <div className="container mx-auto px-4 h-20 flex items-center justify-between">
             
             {/* Logo */}
-            <div className="text-2xl font-serif font-bold tracking-tighter cursor-pointer">
-            Glow Aura
-            </div>
+            <Link to="/" className="text-2xl font-serif font-bold tracking-tighter cursor-pointer hover:text-primary transition-colors">
+              Glow Aura
+            </Link>
 
             {/* Navigation Menu */}
             <nav className="hidden md:flex space-x-6 h-full items-center">
