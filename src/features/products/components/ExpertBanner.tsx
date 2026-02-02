@@ -10,7 +10,7 @@ export const ExpertBanner = () => {
            Take Some Time To Feel Uplifted With A Complimentary, Bespoke Beauty Service. Our Team Of Experts Are Here To Help In Person.
         </p>
         <img 
-            src="https://images.unsplash.com/photo-1551269901-5c5e14548437?q=80&w=400" 
+            src="https://grazia.wwmindia.com/content/2023/nov/pashamalwanigraziabeauty21700124294.jpg" 
             alt="Expert" 
             className="w-full h-48 object-cover object-top opacity-90 rounded-sm mt-4 grayscale group-hover:grayscale-0 transition-all duration-500"
         />

@@ -3,7 +3,7 @@ export const AwardedBanner = () => {
     <div className="relative h-full min-h-[400px] bg-black text-white overflow-hidden group">
       {/* Ảnh nền tím */}
       <img 
-        src="https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?q=80&w=800" 
+        src="https://img.freepik.com/free-vector/gradient-burgundy-gold-background_52683-149616.jpg?semt=ais_hybrid&w=740&q=80" 
         alt="Awarded Background" 
         className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700"
       />
@@ -21,7 +21,7 @@ export const AwardedBanner = () => {
       {/* Ảnh chai serum góc phải (Trang trí) */}
       <div className="absolute bottom-0 right-0 w-1/2 h-3/4 translate-x-10 translate-y-10">
          <img 
-            src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=400" 
+            src="https://s3.eu-north-1.amazonaws.com/cdn-site.mediaplanet.com/app/uploads/sites/151/2022/09/08084638/Philosophy-Cleanser.jpg" 
             alt="Product" 
             className="w-full h-full object-contain drop-shadow-2xl"
          />

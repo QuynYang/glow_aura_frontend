@@ -12,7 +12,7 @@ export const products = [
     name: "Beautya Prestige La Mousse Micellaire",
     price: 520.00,
     description: "Anti-Aging Face Serum, With Purifying French Water Lily",
-    image: "https://images.unsplash.com/photo-1596462502278-27bfdd403348?q=80&w=600",
+    image: "https://cdn.vuahanghieu.com/unsafe/0x900/left/top/smart/filters:quality(90)/https://admin.vuahanghieu.com/upload/product/2023/05/sua-rua-mat-ket-hop-tay-trang-dior-prestige-la-mousse-micellaire-nettoyant-120g-646acb5b0aa85-22052023085435.jpg",
   },
   // Lưu ý: Vị trí số 3 sẽ là Banner Expert, nên ta không cần data sản phẩm cho vị trí đó
   {
@@ -20,7 +20,7 @@ export const products = [
     name: "Beautya Prestige La Mousse Micellaire",
     price: 520.00,
     description: "Anti-Aging Face Serum, With Purifying French Water Lily",
-    image: "https://images.unsplash.com/photo-1556228720-1987ebba7a9c?q=80&w=600",
+    image: "https://media3.scdn.vn/img4/2021/04_08/5l6E91nWxzfhnAzGcZNz_simg_de2fe0_500x500_maxb.jpg",
   },
   {
     id: 4,

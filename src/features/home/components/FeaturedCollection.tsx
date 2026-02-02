@@ -45,8 +45,7 @@ export const FeaturedCollection = () => {
             {/* Tạo khung ảnh có bo góc nhẹ và bóng đổ tinh tế */}
             <div className="relative aspect-square md:aspect-[4/3] rounded-lg overflow-hidden shadow-xl ring-1 ring-black/5">
               <img 
-                // Ảnh placeholder chất lượng cao giống mẫu (sản phẩm trên bục trưng bày)
-                src="https://images.unsplash.com/photo-1616167417384-254979638977?q=80&w=1000" 
+                src="https://media.allure.com/photos/5f500d022c86ce03f56bb85a/master/w_1600%2Cc_limit/target-beauty-ageless-beauty-skin-care-40s.jpg" 
                 alt="Autumn Skincare Collection" 
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
               />

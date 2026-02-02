@@ -31,7 +31,7 @@ export const PromoSection = () => {
           {/* Cột ảnh (Image) - Tràn viền */}
           <div className="w-full md:w-1/2 h-[500px]">
             <img 
-              src="https://images.unsplash.com/photo-1552693673-1bf958298935?q=80&w=1600" 
+              src="https://shaunstore.com.vn/wp-content/uploads/2023/07/z4543200294754_f652e9cc028952b5481707928cd63543.jpg" 
               alt="Skincare Models" 
               className="w-full h-full object-cover"
             />

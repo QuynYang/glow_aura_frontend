@@ -11,8 +11,7 @@ export const BrandPhilosophy = () => {
             {/* Sử dụng aspect-ratio để giữ khung ảnh đẹp */}
             <div className="aspect-[4/5] md:aspect-[3/4] relative rounded-sm overflow-hidden shadow-lg">
               <img
-                // Ảnh mẫu giống với vibe của thiết kế (da căng bóng, tự nhiên)
-                src="https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=800"
+                src="https://philosophy.com/cdn/shop/files/best_sellers_hero.jpg?crop=center&height=650&v=1763135438&width=1200"
                 alt="Clean Beauty Philosophy"
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
               />

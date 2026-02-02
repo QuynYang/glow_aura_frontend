@@ -28,7 +28,7 @@ export const VirtualAnalysisCard = () => {
          <div className="absolute top-1/2 left-0 w-full h-0.5 bg-accent shadow-[0_0_10px_#C75B7A] animate-[scan_2s_ease-in-out_infinite]"></div>
          
          <img 
-            src="https://img.freepik.com/free-photo/beauty-portrait-ginger-woman-with-perfect-skin_176420-5026.jpg" 
+            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqXA1n6Pgtpw4arL1esgP5wPfw93fKXiAAXQ&s" 
             alt="Face Scan" 
             className="w-full h-full object-cover object-top mask-image-gradient"
             style={{ maskImage: 'linear-gradient(to bottom, black 80%, transparent 100%)' }}

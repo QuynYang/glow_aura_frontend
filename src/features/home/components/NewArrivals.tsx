@@ -9,7 +9,7 @@ const newArrivals = [
     brand: 'Dior', 
     name: 'Beautya Prestige La Mousse Micellaire', 
     price: 520.00, 
-    image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=600', // Thay bằng ảnh lọ vàng nếu có
+    image: 'https://cdn.vuahanghieu.com/unsafe/0x900/left/top/smart/filters:quality(90)/https://admin.vuahanghieu.com/upload/product/2023/05/sua-rua-mat-ket-hop-tay-trang-dior-prestige-la-mousse-micellaire-nettoyant-120g-646acb5b0aa85-22052023085435.jpg', // Thay bằng ảnh lọ vàng nếu có
     description: 'Anti-Aging Face Serum, With Purifying French Water Lily'
   },
   { 
@@ -17,7 +17,7 @@ const newArrivals = [
     brand: 'Dior', 
     name: 'Beautya La Mousse Off/On Foaming Cleaner', 
     price: 65.00, 
-    image: 'https://images.unsplash.com/photo-1629198688000-71f23e745b6e?q=80&w=600', // Thay bằng ảnh lọ trắng nếu có
+    image: 'https://cdn.vuahanghieu.com/unsafe/0x0/left/top/smart/filters:quality(90)/https://admin.vuahanghieu.com/upload/news/content/2024/03/sua-rua-mat-tao-bot-dior-la-mousse-off-on-foaming-cleanser-01-jpg-1710754526-18032024163526.jpg', // Thay bằng ảnh lọ trắng nếu có
     description: 'Anti-Pollution Foaming Cleanser With Purifying French Water Lily'
   }
 ];

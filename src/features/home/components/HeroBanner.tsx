@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/Button';
 export const HeroBanner = () => {
   return (
     <div className="relative h-[600px] w-full bg-cover bg-center" 
-         // Tôi đổi sang link ảnh nhóm người mẫu cho giống thiết kế
          style={{ backgroundImage: "url('https://es.lorealparisusa.com/-/media/project/loreal/brand-sites/oap/americas/us/beauty-magazine/articles/korean-skin-care-routine-steps/loreal-paris-bmag-article-your-10-step-korean-skin-care-routine-d.jpg?cx=0.49&cy=0.54&cw=2000&ch=815&hash=5CE5855BD95CAD838855E67AAB67C751')" }}>
       
       {/* 1. Overlay: Pha trộn màu đen và màu đỏ rượu (primary) để ảnh sang hơn */}
