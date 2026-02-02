@@ -27,7 +27,7 @@ export const ProductGallery = ({ images }: ProductGalleryProps) => {
       <div className="flex-1 bg-[#F9F9F9] aspect-[4/5] relative overflow-hidden group">
         <img 
           src={activeImage} 
-          alt="Main Product" 
+          alt="Sản phẩm chính" 
           className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110"
         />
       </div>

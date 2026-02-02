@@ -8,25 +8,25 @@ export const FilterSidebar = () => {
 
   return (
     <div className="w-full pr-8 hidden md:block">
-      <h3 className="text-xl font-bold font-serif mb-6">Filter</h3>
+      <h3 className="text-xl font-bold font-serif mb-6">Lọc</h3>
 
       {/* Applied Filters (Demo) */}
       <div className="mb-8">
-        <h4 className="font-bold text-sm mb-3">Applied Filters</h4>
+        <h4 className="font-bold text-sm mb-3">Bộ lọc đã áp dụng</h4>
         <div className="flex flex-wrap gap-2 mb-3">
            <span className="inline-flex items-center text-xs border border-gray-300 px-3 py-1 rounded-full">
-              Cleansers <X className="w-3 h-3 ml-2 cursor-pointer"/>
+              Sữa rửa mặt <X className="w-3 h-3 ml-2 cursor-pointer"/>
            </span>
            <span className="inline-flex items-center text-xs border border-gray-300 px-3 py-1 rounded-full">
-              Peels And Masques <X className="w-3 h-3 ml-2 cursor-pointer"/>
+              Mặt nạ và tẩy tế bào chết <X className="w-3 h-3 ml-2 cursor-pointer"/>
            </span>
         </div>
-        <button className="text-xs text-accent hover:underline">Clear All Filters</button>
+        <button className="text-xs text-accent hover:underline">Xóa tất cả bộ lọc</button>
       </div>
 
       {/* Toggle Out Of Stock */}
       <div className="flex items-center justify-between mb-8 pb-8 border-b border-gray-200">
-         <span className="font-bold text-sm">Out Of Stock Items</span>
+         <span className="font-bold text-sm">Hàng hết hàng</span>
          <label className="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" value="" className="sr-only peer" />
             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
@@ -36,7 +36,7 @@ export const FilterSidebar = () => {
       {/* Category Accordion */}
       <div className="mb-6">
         <button onClick={() => setOpenCategory(!openCategory)} className="flex items-center justify-between w-full mb-4">
-            <span className="font-bold text-accent text-sm">Category</span>
+            <span className="font-bold text-accent text-sm">Loại</span>
             {openCategory ? <ChevronUp className="w-4 h-4 text-accent"/> : <ChevronDown className="w-4 h-4"/>}
         </button>
         
@@ -57,7 +57,7 @@ export const FilterSidebar = () => {
       {/* Price Accordion */}
       <div className="mb-6 pt-6 border-t border-gray-200">
         <button onClick={() => setOpenPrice(!openPrice)} className="flex items-center justify-between w-full mb-4">
-            <span className="font-bold text-accent text-sm">Price</span>
+            <span className="font-bold text-accent text-sm">Giá</span>
             {openPrice ? <ChevronUp className="w-4 h-4 text-accent"/> : <ChevronDown className="w-4 h-4"/>}
         </button>
         

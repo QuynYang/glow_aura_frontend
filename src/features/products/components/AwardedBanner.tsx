@@ -11,10 +11,10 @@ export const AwardedBanner = () => {
       {/* Nội dung */}
       <div className="relative z-10 p-8 flex flex-col justify-center h-full max-w-md">
         <span className="font-bold text-sm tracking-widest mb-2">#AWARDED</span>
-        <h3 className="text-2xl font-serif font-bold mb-4">Capture Totale Super Potent Rich Cream</h3>
+        <h3 className="text-2xl font-serif font-bold mb-4">Kem dưỡng da Capture Totale Super Potent Rich Cream</h3>
         <ul className="space-y-2 text-sm text-gray-200 mb-8">
-            <li>• Global Age-Defying Rich Cream - Intense Nourishment & Revitalisation</li>
-            <li>• Formulated With 88% Natural-Origin Ingredients</li>
+            <li>• Kem dưỡng da chống lão hóa toàn cầu - Dưỡng chất chuyên sâu và phục hồi sức sống</li>
+            <li>• Được bào chế với 88% thành phần có nguồn gốc tự nhiên.</li>
         </ul>
       </div>
 

@@ -22,13 +22,13 @@ export const HeroBanner = () => {
 
         {/* Nội dung chính */}
         <h1 className="text-4xl md:text-6xl font-serif font-bold mb-6 drop-shadow-lg">
-          Unlock Your <br className="hidden md:block" /> Natural Glow
+          Khám phá <br className="hidden md:block" /> vẻ đẹp tự nhiên của bạn
         </h1>
         
         {/* Nút bấm chuẩn thiết kế (Know More) */}
         <div className="mt-4">
             <Button variant="white" className="px-10 py-3 text-base">
-                Know More
+                Tìm hiểu thêm
             </Button>
         </div>
 

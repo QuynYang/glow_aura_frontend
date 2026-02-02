@@ -9,10 +9,10 @@ import { FeaturedCollection } from '../features/home/components/FeaturedCollecti
 import { BrandPhilosophy } from '../features/home/components/BrandPhilosophy';
 import { NewArrivals } from '../features/home/components/NewArrivals';
 
-// Mock data
+// Mock data (Đã Việt hóa tag)
 const bestSellers = [
   { id: 1, brand: 'Dior', name: 'Capture Totale Dream Skin', price: 76.00, image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=600' },
-  { id: 2, brand: 'Chanel', name: 'N°5 Eau de Parfum', price: 135.00, image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=600', tag: 'Hot' },
+  { id: 2, brand: 'Chanel', name: 'N°5 Eau de Parfum', price: 135.00, image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=600', tag: 'Bán Chạy' },
   { id: 3, brand: 'Estee Lauder', name: 'Advanced Night Repair', price: 110.00, image: 'https://product.hstatic.net/1000209952/product/z4930630178742_89d5ef0e650d66386b039f40c5cf5892_b7b4388486564c3b8f5581bfb30fa499_grande.jpg' },
   { id: 4, brand: 'YSL', name: 'Libre Eau de Parfum', price: 95.00, image: 'https://cdn.vuahanghieu.com/unsafe/0x900/left/top/smart/filters:quality(90)/https://admin.vuahanghieu.com/upload/product/2024/06/nuoc-hoa-nu-yves-saint-laurent-ysl-libre-edp-90ml-66696f319f3fd-12062024164937.jpg' },
 ];
@@ -34,7 +34,7 @@ export const HomePage = () => {
 
       {/* 4. Best Sellers */}
       <section className="container mx-auto px-4 py-20">
-        <SectionHeading title="Our Best Sellers" />
+        <SectionHeading title="Sản Phẩm Bán Chạy" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {bestSellers.map((product) => (
             <ProductCard key={product.id} product={product} />
@@ -49,10 +49,14 @@ export const HomePage = () => {
               <img src="https://i0.wp.com/www.breastofus.com/wp-content/uploads/2020/05/baddiemakeup2.jpg?fit=512%2C512&ssl=1" alt="Special Offer" className="rounded shadow-lg" />
            </div>
            <div className="w-full md:w-1/2 space-y-4">
-              <h4 className="font-bold text-gray-500">Special Offers</h4>
-              <h2 className="text-4xl font-serif font-bold text-primary">Save Up To 50%</h2>
-              <p className="text-gray-600">Mother's Day Is Coming! For Everything She's Given You, It's Time To Give Back.</p>
-              <Button className="bg-accent text-white hover:bg-primary mt-4">Find Branches</Button>
+              <h4 className="font-bold text-gray-500">Ưu Đãi Đặc Biệt</h4>
+              <h2 className="text-4xl font-serif font-bold text-primary">Giảm Giá Tới 50%</h2>
+              <p className="text-gray-600">
+                Mừng Ngày của Mẹ! Hãy dành tặng sự chăm sóc tốt nhất để tri ân người phụ nữ tuyệt vời nhất của bạn.
+              </p>
+              <Button className="bg-accent text-white hover:bg-primary mt-4">
+                Tìm Cửa Hàng
+              </Button>
            </div>
         </div>
       </section>
@@ -60,12 +64,12 @@ export const HomePage = () => {
       {/* 6. Our Brand */}
       <section className="grid grid-cols-1 md:grid-cols-2">
          <div className="bg-primary text-white p-16 flex flex-col justify-center items-start">
-            <h2 className="text-3xl font-serif font-bold mb-4">Our Brand</h2>
+            <h2 className="text-3xl font-serif font-bold mb-4">Về Thương Hiệu</h2>
             <p className="mb-8 text-gray-300 leading-relaxed">
-               We Believe That Beauty Thrives In Diversity And Discovery. Our Purpose Is To Expand The Way The World Sees Beauty.
+               Chúng tôi tin rằng vẻ đẹp thăng hoa từ sự đa dạng và khám phá. Sứ mệnh của chúng tôi là mở rộng góc nhìn của thế giới về cái đẹp.
             </p>
             <Button variant="outline" className="border-white text-white hover:bg-white hover:text-primary">
-               Discover More
+               Khám Phá Thêm
             </Button>
          </div>
          <div className="h-[400px]">

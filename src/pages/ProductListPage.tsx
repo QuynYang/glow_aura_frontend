@@ -35,8 +35,8 @@ export const ProductListPage = () => {
                         <span className="text-sm font-bold text-gray-600">Sort:</span>
                         <select className="text-sm border-none bg-transparent font-medium focus:ring-0 cursor-pointer outline-none">
                             <option>Recommended</option>
-                            <option>Price: Low to High</option>
-                            <option>Price: High to Low</option>
+                            <option>Giá: Từ thấp đến cao</option>
+                            <option>Giá: Từ cao đến thấp</option>
                         </select>
                     </div>
                 </div>

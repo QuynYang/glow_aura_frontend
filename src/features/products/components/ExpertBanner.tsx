@@ -5,9 +5,9 @@ export const ExpertBanner = () => {
       <div className="absolute inset-0 bg-black/10"></div>
       
       <div className="relative z-10 space-y-6">
-        <h3 className="text-2xl font-serif font-bold">1-2-1 expert advice</h3>
+        <h3 className="text-2xl font-serif font-bold">Tư vấn chuyên gia trực tiếp 1-2-1</h3>
         <p className="text-sm leading-relaxed text-gray-200">
-           Take Some Time To Feel Uplifted With A Complimentary, Bespoke Beauty Service. Our Team Of Experts Are Here To Help In Person.
+           Hãy dành chút thời gian để thư giãn và cảm thấy sảng khoái với dịch vụ làm đẹp cá nhân hóa hoàn toàn miễn phí. Đội ngũ chuyên gia của chúng tôi luôn sẵn sàng hỗ trợ bạn trực tiếp.
         </p>
         <img 
             src="https://grazia.wwmindia.com/content/2023/nov/pashamalwanigraziabeauty21700124294.jpg" 

@@ -1,7 +1,8 @@
 import { Search, ShoppingCart, User } from 'lucide-react';
-import { useState } from 'react'; // Thêm useState
-import { SearchOverlay } from './SearchOverlay'; // Import component vừa tạo
+import { useState } from 'react';
+import { SearchOverlay } from './SearchOverlay';
 import { Link } from 'react-router-dom';
+
 // --- Dữ liệu Mega Menu ---
 const megaMenuData = {
   columns: [
@@ -46,7 +47,7 @@ export const Header = () => {
 
   return (
     <>
-        <header className="sticky top-0 z-50 bg-white shadow-sm font-sans relative">
+      <header className="sticky top-0 z-50 bg-white shadow-sm font-sans relative">
         <div className="container mx-auto px-4 h-20 flex items-center justify-between">
             
             {/* Logo */}
@@ -57,15 +58,22 @@ export const Header = () => {
             {/* Navigation Menu */}
             <nav className="hidden md:flex space-x-6 h-full items-center">
             {navItems.map((item) => (
-  <div key={item.label} className="group h-full flex items-center">
-    {/* Dùng Link thay cho a href */}
-    <Link 
-      to={item.label === "BEST-SELLERS" ? "/best-sellers" : "/"} 
-      className={`text-sm font-medium ... (giữ nguyên class cũ)`}
-    >
-      {item.label}
-      {/* ... giữ nguyên phần gạch chân animation */}
-    </Link>
+                <div key={item.label} className="group h-full flex items-center">
+                
+                {/* Dùng Link thay cho a href */}
+                <Link 
+                    to={item.label === "BEST-SELLERS" ? "/best-sellers" : "/"} 
+                    className={`text-sm font-medium tracking-wide uppercase px-3 py-1 transition-colors relative
+                    ${item.label === 'ALL' 
+                        ? 'bg-accent text-white hover:bg-primary'
+                        : 'text-gray-700 hover:text-primary group-hover:text-primary'
+                    }`}
+                >
+                    {item.label}
+                    {item.label !== 'ALL' && (
+                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+                    )}
+                </Link>
 
                 {/* Mega Menu Logic */}
                 {item.hasMegaMenu && (
@@ -108,28 +116,33 @@ export const Header = () => {
             {/* Icons */}
             <div className="flex items-center space-x-6">
             
-            {/* 1. Nút Search: Bấm vào thì set isSearchOpen = true */}
-            <Search 
-                className="w-5 h-5 cursor-pointer hover:text-primary transition-colors" 
-                onClick={() => setIsSearchOpen(true)}
-            />
+                {/* 1. Nút Search */}
+                <Search 
+                    className="w-5 h-5 cursor-pointer hover:text-primary transition-colors" 
+                    onClick={() => setIsSearchOpen(true)}
+                />
 
-            <User className="w-5 h-5 cursor-pointer hover:text-primary transition-colors" />
-            <div className="relative cursor-pointer">
-                <ShoppingCart className="w-5 h-5 hover:text-primary transition-colors" />
-                <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-                0
-                </span>
-            </div>
+                {/* 2. Nút User: Đã thêm Link trỏ về trang Login */}
+                <Link to="/login">
+                    <User className="w-5 h-5 cursor-pointer hover:text-primary transition-colors" />
+                </Link>
+
+                {/* 3. Giỏ hàng */}
+                <div className="relative cursor-pointer">
+                    <ShoppingCart className="w-5 h-5 hover:text-primary transition-colors" />
+                    <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
+                    0
+                    </span>
+                </div>
             </div>
         </div>
-        </header>
+      </header>
 
-        {/* 2. Component Overlay Search */}
-        <SearchOverlay 
-            isOpen={isSearchOpen} 
-            onClose={() => setIsSearchOpen(false)} 
-        />
+      {/* Component Overlay Search */}
+      <SearchOverlay 
+        isOpen={isSearchOpen} 
+        onClose={() => setIsSearchOpen(false)} 
+      />
     </>
   );
 };

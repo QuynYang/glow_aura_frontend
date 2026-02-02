@@ -9,7 +9,7 @@ export const PromoSection = () => {
           {/* Cột nội dung (Text) */}
           <div className="w-full md:w-1/2 py-16 px-8 md:pl-12 text-white">
             <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">
-              NEW Virtual Skincare Analysis
+              AI phân tích chăm sóc da
             </h2>
             <p className="text-gray-300 mb-8 leading-relaxed max-w-lg">
               Bạn đang tìm kiếm quy trình dưỡng da hoàn hảo? Công cụ phân tích da ảo AI của chúng tôi sẽ đánh giá làn da và đưa ra gợi ý cá nhân hóa nhất.

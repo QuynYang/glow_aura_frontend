@@ -7,16 +7,16 @@ export const VirtualAnalysisCard = () => {
       {/* Nội dung text */}
       <div className="relative z-10 space-y-4">
         <h3 className="text-2xl font-serif font-bold leading-tight">
-          NEW Virtual Skincare Analysis
+          AI phân tích chăm sóc da
         </h3>
         <p className="text-sm text-gray-200 leading-relaxed opacity-90">
-          Looking For A Full Skincare Routine? Our NEW Virtual Skincare Analysis Tool Evaluates Your Skin And Provides The Most Personalized Recommendations.
+          Bạn đang tìm kiếm một quy trình chăm sóc da hoàn chỉnh? Công cụ phân tích da ảo MỚI của chúng tôi sẽ đánh giá làn da của bạn và đưa ra những khuyến nghị cá nhân hóa nhất.
         </p>
         
         <ul className="text-sm space-y-2 mt-2">
             <li className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-accent"></span>
-                Available exclusively for mobile
+                Chỉ có sẵn trên thiết bị di động
             </li>
         </ul>
       </div>
@@ -29,7 +29,7 @@ export const VirtualAnalysisCard = () => {
          
          <img 
             src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqXA1n6Pgtpw4arL1esgP5wPfw93fKXiAAXQ&s" 
-            alt="Face Scan" 
+            alt="Quét khuôn mặt" 
             className="w-full h-full object-cover object-top mask-image-gradient"
             style={{ maskImage: 'linear-gradient(to bottom, black 80%, transparent 100%)' }}
          />
@@ -38,7 +38,7 @@ export const VirtualAnalysisCard = () => {
       {/* QR Code & Call to Action ở dưới cùng */}
       <div className="relative z-10 mt-auto flex items-end justify-between">
          <span className="font-bold text-sm border-b border-transparent group-hover:border-white transition-all flex items-center gap-2">
-            Scan To Get Started <ArrowRight className="w-4 h-4"/>
+            Quét để bắt đầu <ArrowRight className="w-4 h-4"/>
          </span>
          <div className="bg-white p-1 rounded-sm">
             {/* Ảnh QR Code mẫu */}

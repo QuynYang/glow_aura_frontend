@@ -62,7 +62,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                 className="flex-1 text-xs py-2 shadow-lg"
                 onClick={handleActionClick} // 7. Gắn hàm chặn click
              >
-                Add To Cart
+                Thêm vào giỏ hàng
              </Button>
 
              {/* Nút Wishlist */}

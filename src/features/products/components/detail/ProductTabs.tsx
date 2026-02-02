@@ -27,13 +27,13 @@ export const ProductTabs = () => {
       {/* Tab Content (Mock text) */}
       <div className="py-8 text-gray-600 leading-relaxed text-sm space-y-4 max-w-4xl">
         <p>
-            Beautya's 1st Revitalizing Serum That Concentrates The Double Power Of The Rose De Granville From The Stem To The Flower To Revitalize The Skin Twice As Fast And Visibly Rejuvenate.
+            Tinh chất phục hồi đầu tiên của Beautya, cô đọng sức mạnh gấp đôi của hoa hồng De Granville từ thân đến hoa, giúp phục hồi làn da nhanh gấp đôi và trẻ hóa rõ rệt.
         </p>
         <p>
-            Created After 20 Years Of Research, The 10,000 Micro-Pearls Rich In Revitalizing Rose Micro-Nutrients Are Now Completed By The Power Of The Rose Sap.
+            Được tạo ra sau 20 năm nghiên cứu, 10.000 hạt vi ngọc giàu dưỡng chất hoa hồng giúp phục hồi sức sống nay được hoàn thiện nhờ sức mạnh của nhựa hoa hồng.
         </p>
         <button className="text-primary font-bold text-xs uppercase mt-4 flex items-center">
-            Read Less <span className="ml-1">‹</span>
+            Đọc ít hơn <span className="ml-1">‹</span>
         </button>
       </div>
     </div>

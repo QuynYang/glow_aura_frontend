@@ -18,7 +18,7 @@ export const Button = ({ variant = 'primary', className = '', children, ...props
     // 3. Nút trong suốt viền trắng (Dùng trên nền đen/ảnh tối)
     white: "border border-white text-white hover:bg-white hover:text-primary",
     
-    // 4. MỚI! Nút nền trắng đặc (Dùng cho Add To Cart, chữ sẽ màu đỏ rượu)
+    // 4. Nút nền trắng đặc (Dùng cho Add To Cart, chữ sẽ màu đỏ rượu)
     'solid-white': "bg-white text-primary border border-transparent hover:bg-primary hover:text-white shadow-md",
   };
 

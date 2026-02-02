@@ -12,30 +12,30 @@ export const FeaturedCollection = () => {
             
             {/* Dòng chữ nhỏ trên cùng */}
             <span className="text-sm uppercase tracking-[0.2em] text-gray-500 font-medium block mb-2">
-              The new 2023 collection
+              Bộ sưu tập mới 2024
             </span>
             
             {/* Tiêu đề chính */}
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-primary leading-tight">
-              Discover Our <br />
+              Khám Phá Dưỡng Da <br />
               {/* Xử lý chữ Autumn: màu accent, in nghiêng, font serif */}
               <span className="text-accent italic font-serif relative pr-2">
-                Autumn
+                Mùa Thu
                 {/* (Tùy chọn) Thêm một nét gạch chân trang trí nhẹ nếu muốn */}
                 {/* <span className="absolute bottom-1 left-0 w-full h-px bg-accent opacity-30"></span> */}
               </span> 
-              Skincare
+              
             </h2>
             
             {/* Đoạn văn mô tả */}
             <p className="text-gray-600 leading-relaxed max-w-md mx-auto md:mx-0">
-              We Believe That Beauty Thrives In Diversity And Discovery. Our Purpose Is To Expand The Way The World Sees Beauty. Discover The New Collection.
+              Chúng tôi tin rằng vẻ đẹp thăng hoa từ sự đa dạng và không ngừng khám phá. Sứ mệnh của chúng tôi là mở rộng góc nhìn của thế giới về cái đẹp. Hãy trải nghiệm bộ sưu tập mới ngay hôm nay.
             </p>
             
             {/* Nút bấm */}
             <div className="pt-4">
               <Button className="px-8 py-3 text-sm tracking-wider">
-                Explore More
+                Khám Phá Ngay
               </Button>
             </div>
           </div>
