@@ -2,8 +2,9 @@ import { Search, ShoppingCart, User } from 'lucide-react';
 import { useState } from 'react';
 import { SearchOverlay } from './SearchOverlay';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext'; // 1. Import Auth Hook
 
-// --- Dữ liệu Mega Menu ---
+// --- Dữ liệu Mega Menu (Giữ nguyên) ---
 const megaMenuData = {
   columns: [
     {
@@ -42,8 +43,17 @@ const navItems = [
 ];
 
 export const Header = () => {
-  // State quản lý việc đóng/mở Search
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  
+  // 2. Lấy trạng thái đăng nhập từ Context
+  const { isAuthenticated, user } = useAuth();
+
+  // 3. Hàm tính toán đường dẫn dựa trên Role
+  const getUserLink = () => {
+    if (!isAuthenticated) return '/login';
+    if (user?.role === 'admin') return '/admin';
+    return '/profile';
+  };
 
   return (
     <>
@@ -59,8 +69,6 @@ export const Header = () => {
             <nav className="hidden md:flex space-x-6 h-full items-center">
             {navItems.map((item) => (
                 <div key={item.label} className="group h-full flex items-center">
-                
-                {/* Dùng Link thay cho a href */}
                 <Link 
                     to={item.label === "BEST-SELLERS" ? "/best-sellers" : "/"} 
                     className={`text-sm font-medium tracking-wide uppercase px-3 py-1 transition-colors relative
@@ -115,19 +123,22 @@ export const Header = () => {
 
             {/* Icons */}
             <div className="flex items-center space-x-6">
-            
-                {/* 1. Nút Search */}
+                {/* Search */}
                 <Search 
                     className="w-5 h-5 cursor-pointer hover:text-primary transition-colors" 
                     onClick={() => setIsSearchOpen(true)}
                 />
 
-                {/* 2. Nút User: Đã thêm Link trỏ về trang Login */}
-                <Link to="/login">
-                    <User className="w-5 h-5 cursor-pointer hover:text-primary transition-colors" />
+                {/* User Icon: Sử dụng getUserLink() để điều hướng thông minh */}
+                <Link to={getUserLink()} className="relative">
+                    <User className={`w-5 h-5 cursor-pointer transition-colors ${isAuthenticated ? 'text-primary' : 'hover:text-primary'}`} />
+                    {/* Chấm xanh báo hiệu đã đăng nhập */}
+                    {isAuthenticated && (
+                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full border border-white"></span>
+                    )}
                 </Link>
 
-                {/* 3. Giỏ hàng */}
+                {/* Cart */}
                 <div className="relative cursor-pointer">
                     <ShoppingCart className="w-5 h-5 hover:text-primary transition-colors" />
                     <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
@@ -138,7 +149,6 @@ export const Header = () => {
         </div>
       </header>
 
-      {/* Component Overlay Search */}
       <SearchOverlay 
         isOpen={isSearchOpen} 
         onClose={() => setIsSearchOpen(false)} 
