@@ -8,7 +8,9 @@ import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { ProfilePage } from './pages/ProfilePage';
 import { OrderHistoryPage } from './pages/OrderHistoryPage';
-
+import { WishlistPage } from './pages/WishlistPage';
+import { ChangePasswordPage } from './pages/ChangePasswordPage';
+import { AddressPage } from './pages/AddressPage';
 
 
 function App() {
@@ -27,7 +29,10 @@ function App() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="/profile" element={<ProfilePage />} />
-<Route path="/profile/orders" element={<OrderHistoryPage />} />
+      <Route path="/profile/orders" element={<OrderHistoryPage />} />
+      <Route path="/profile/wishlist" element={<WishlistPage />} />
+      <Route path="/profile/change-password" element={<ChangePasswordPage />} />
+      <Route path="/profile/address" element={<AddressPage />} />
 
 
     </Routes>

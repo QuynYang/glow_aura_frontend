@@ -1,8 +1,12 @@
-import { MapPin, Package, Truck, ShieldCheck } from 'lucide-react';
-import { Button } from '../../../../components/ui/Button'; // Import button tái sử dụng của bạn
+import { useState } from 'react'; // 1. Import useState để xử lý click
+import { MapPin, Package, Truck, ShieldCheck, Heart } from 'lucide-react'; // 2. Import icon Heart
+import { Button } from '../../../../components/ui/Button';
 import { singleProduct } from '../../../../data/mockData';
 
 export const ProductInfo = () => {
+  // 3. State quản lý trạng thái yêu thích
+  const [isWishlist, setIsWishlist] = useState(false);
+
   return (
     <div className="space-y-6">
       {/* Brand & Title */}
@@ -36,12 +40,28 @@ export const ProductInfo = () => {
         </div>
       </div>
 
-      {/* Action Button */}
-      <div className="space-y-3">
-        <Button className="w-full py-4 text-sm font-bold bg-[#A41C4E] hover:bg-[#8a1640]"> {/* Màu đỏ đậm theo mẫu */}
+      {/* 4. Action Buttons: Gồm nút Kiểm tra kho + Nút Tim */}
+      <div className="flex gap-4">
+        {/* Nút chính */}
+        <Button className="flex-1 py-4 text-sm font-bold bg-[#A41C4E] hover:bg-[#8a1640]">
             <MapPin className="w-4 h-4 mr-2" />
             Kiểm tra kho hàng tại các chi nhánh
         </Button>
+
+        {/* Nút Trái tim Yêu thích */}
+        <button 
+            onClick={() => setIsWishlist(!isWishlist)}
+            className={`w-14 flex items-center justify-center border transition-all duration-300 rounded-sm
+                ${isWishlist 
+                    ? 'border-[#A41C4E] bg-[#A41C4E] text-white' // Khi đã thích: Nền đỏ đậm, tim trắng
+                    : 'border-gray-300 text-gray-400 hover:border-[#A41C4E] hover:text-[#A41C4E]' // Khi chưa thích: Viền xám
+                }
+            `}
+            title={isWishlist ? "Bỏ yêu thích" : "Thêm vào yêu thích"}
+        >
+            {/* fill-current giúp icon tô màu đặc khi class cha có text-white */}
+            <Heart className={`w-6 h-6 ${isWishlist ? 'fill-current' : ''}`} />
+        </button>
       </div>
 
       {/* Benefits (Các dòng hồng nhạt) */}
