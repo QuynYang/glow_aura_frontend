@@ -26,7 +26,7 @@ export const BrandPhilosophy = () => {
               </h4>
               {/* Tiêu đề lớn */}
               <h2 className="text-4xl lg:text-5xl font-serif font-bold text-primary leading-tight">
-                Chế Tác Thủ Công Từ 100% Nguyên Liệu Thiên Nhiên
+                Chế tác thủ công từ 100% nguyên liệu thiên nhiên
               </h2>
             </div>
             
@@ -37,7 +37,7 @@ export const BrandPhilosophy = () => {
 
             {/* Nút bấm */}
             <Button className="px-8 py-3 text-sm uppercase tracking-wider">
-              Tìm Hiểu Thêm Về Chúng Tôi
+              Tìm hiểu thêm về chúng tôi
             </Button>
           </div>
 

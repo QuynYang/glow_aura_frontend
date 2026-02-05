@@ -17,7 +17,7 @@ export const FeaturedCollection = () => {
             
             {/* Tiêu đề chính */}
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-primary leading-tight">
-              Khám Phá Dưỡng Da <br />
+              Khám phá dưỡng da <br />
               {/* Xử lý chữ Autumn: màu accent, in nghiêng, font serif */}
               <span className="text-accent italic font-serif relative pr-2">
                 Mùa Thu
@@ -35,7 +35,7 @@ export const FeaturedCollection = () => {
             {/* Nút bấm */}
             <div className="pt-4">
               <Button className="px-8 py-3 text-sm tracking-wider">
-                Khám Phá Ngay
+                Khám phá ngay
               </Button>
             </div>
           </div>

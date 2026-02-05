@@ -49,13 +49,13 @@ export const HomePage = () => {
               <img src="https://i0.wp.com/www.breastofus.com/wp-content/uploads/2020/05/baddiemakeup2.jpg?fit=512%2C512&ssl=1" alt="Special Offer" className="rounded shadow-lg" />
            </div>
            <div className="w-full md:w-1/2 space-y-4">
-              <h4 className="font-bold text-gray-500">Ưu Đãi Đặc Biệt</h4>
-              <h2 className="text-4xl font-serif font-bold text-primary">Giảm Giá Tới 50%</h2>
+              <h4 className="font-bold text-gray-500">Ưu đãi đặc biệt</h4>
+              <h2 className="text-4xl font-serif font-bold text-primary">Giảm giá tới 50%</h2>
               <p className="text-gray-600">
                 Mừng Ngày của Mẹ! Hãy dành tặng sự chăm sóc tốt nhất để tri ân người phụ nữ tuyệt vời nhất của bạn.
               </p>
               <Button className="bg-accent text-white hover:bg-primary mt-4">
-                Tìm Cửa Hàng
+                Tìm hiểu thêm
               </Button>
            </div>
         </div>
@@ -64,12 +64,12 @@ export const HomePage = () => {
       {/* 6. Our Brand */}
       <section className="grid grid-cols-1 md:grid-cols-2">
          <div className="bg-primary text-white p-16 flex flex-col justify-center items-start">
-            <h2 className="text-3xl font-serif font-bold mb-4">Về Thương Hiệu</h2>
+            <h2 className="text-3xl font-serif font-bold mb-4">Về chúng tôi</h2>
             <p className="mb-8 text-gray-300 leading-relaxed">
                Chúng tôi tin rằng vẻ đẹp thăng hoa từ sự đa dạng và khám phá. Sứ mệnh của chúng tôi là mở rộng góc nhìn của thế giới về cái đẹp.
             </p>
             <Button variant="outline" className="border-white text-white hover:bg-white hover:text-primary">
-               Khám Phá Thêm
+               Khám phá thêm
             </Button>
          </div>
          <div className="h-[400px]">

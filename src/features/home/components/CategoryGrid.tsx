@@ -1,7 +1,7 @@
 const categories = [
-  { id: 1, title: "Women Make Up", image: "https://images2.thanhnien.vn/thumb_w/640/528068263637045248/2023/8/16/snapinstaapp3336509811900460769868192880823254101155453n1080-16921721867051793767174.jpg" },
-  { id: 2, title: "Women Skincare", image: "https://hips.hearstapps.com/hmg-prod/images/korean-skincare-explained-1574778012.jpg?crop=0.661xw:1.00xh;0.103xw,0&resize=1200:*" },
-  { id: 3, title: "Gifts & Sets", image: "https://media.self.com/photos/635fbc03e9291730a33a4b42/3:4/w_748%2Cc_limit/necessaire%2520set.jpeg" },
+  { id: 1, title: "Đồ trang điểm", image: "https://images2.thanhnien.vn/thumb_w/640/528068263637045248/2023/8/16/snapinstaapp3336509811900460769868192880823254101155453n1080-16921721867051793767174.jpg" },
+  { id: 2, title: "Sản phẩm dưỡng da", image: "https://hips.hearstapps.com/hmg-prod/images/korean-skincare-explained-1574778012.jpg?crop=0.661xw:1.00xh;0.103xw,0&resize=1200:*" },
+  { id: 3, title: "Quà tặng & Sets", image: "https://media.self.com/photos/635fbc03e9291730a33a4b42/3:4/w_748%2Cc_limit/necessaire%2520set.jpeg" },
 ];
 
 export const CategoryGrid = () => {
@@ -25,7 +25,7 @@ export const CategoryGrid = () => {
                 {cat.title}
               </h3>
               <span className="text-white text-sm uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 border-b border-white pb-1">
-                Shop Now
+                Xem thêm
               </span>
             </div>
           </div>
