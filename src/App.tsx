@@ -11,18 +11,15 @@ import { OrderHistoryPage } from './pages/OrderHistoryPage';
 import { WishlistPage } from './pages/WishlistPage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import { AddressPage } from './pages/AddressPage';
+import { LipsPage } from './pages/LipsPage';
+
 
 
 function App() {
   return (
     <Routes>
-      {/* 1. Trang Chủ (Mặc định) */}
       <Route path="/" element={<HomePage />} />
-
-      {/* 2. Trang Best Sellers (Khi bấm menu) */}
       <Route path="/best-sellers" element={<ProductListPage />} />
-      
-      {/* trang chi tiết: /product/123 */}
       <Route path="/product/:id" element={<ProductDetailPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
@@ -33,7 +30,7 @@ function App() {
       <Route path="/profile/wishlist" element={<WishlistPage />} />
       <Route path="/profile/change-password" element={<ChangePasswordPage />} />
       <Route path="/profile/address" element={<AddressPage />} />
-
+      <Route path="/moi" element={<LipsPage />} />
 
     </Routes>
   );

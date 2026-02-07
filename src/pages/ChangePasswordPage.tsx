@@ -26,7 +26,7 @@ export const ChangePasswordPage = () => {
                 
                 {/* --- CỘT TRÁI: FORM ĐỔI MẬT KHẨU --- */}
                 <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center">
-                    <h2 className="text-2xl font-serif font-bold text-[#3D021E] mb-6">Đổi Mật Khẩu</h2>
+                    <h2 className="text-2xl font-serif font-bold text-[#3D021E] mb-6">Đổi mật khẩu</h2>
                     
                     <form className="space-y-5">
                         {/* Mật khẩu hiện tại */}

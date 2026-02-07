@@ -97,10 +97,9 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         )}
         
         {/* Price */}
-        <div className="mt-auto pt-2">
-            <p className="text-sm font-medium text-gray-900">
-                ${product.price.toFixed(2)}
-            </p>
+        <div className="text-sm font-medium text-gray-900">
+            {/* Sử dụng toLocaleString('vi-VN') để hiển thị dạng 1.000.000 */}
+            {product.price.toLocaleString('vi-VN')}đ
         </div>
       </div>
     </div>

@@ -1,8 +1,8 @@
 import { Search, ShoppingCart, User } from 'lucide-react';
 import { useState } from 'react';
 import { SearchOverlay } from './SearchOverlay';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext'; // 1. Import Auth Hook
+import { Link, useLocation } from 'react-router-dom'; // 1. Import useLocation
+import { useAuth } from '../../context/AuthContext';
 
 // --- Dữ liệu Mega Menu (Giữ nguyên) ---
 const megaMenuData = {
@@ -32,23 +32,23 @@ const megaMenuData = {
 };
 
 const navItems = [
-  { label: "Mới", hasMegaMenu: false },
-  { label: "BEST-SELLERS", hasMegaMenu: false },
-  { label: "MÔI", hasMegaMenu: false },
-  { label: "MẶT", hasMegaMenu: false },
-  { label: "MẮT", hasMegaMenu: false },
-  { label: "DA", hasMegaMenu: false },
-  { label: "ALL", hasMegaMenu: true }, 
-  { label: "ĐANG SALE SỐC", hasMegaMenu: false }
+  { label: "Mới", hasMegaMenu: false, path: "/" }, // Thêm thuộc tính path để dễ so sánh
+  { label: "BEST-SELLERS", hasMegaMenu: false, path: "/best-sellers" },
+  { label: "MÔI", hasMegaMenu: false, path: "/moi" },
+  { label: "MẶT", hasMegaMenu: false, path: "/mat" },
+  { label: "MẮT", hasMegaMenu: false, path: "/mat-1" },
+  { label: "DA", hasMegaMenu: false, path: "/da" },
+  { label: "ALL", hasMegaMenu: true, path: "/all" }, 
+  { label: "ĐANG SALE SỐC", hasMegaMenu: false, path: "/sale" }
 ];
 
 export const Header = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  
-  // 2. Lấy trạng thái đăng nhập từ Context
   const { isAuthenticated, user } = useAuth();
+  
+  // 2. Lấy đường dẫn hiện tại
+  const location = useLocation();
 
-  // 3. Hàm tính toán đường dẫn dựa trên Role
   const getUserLink = () => {
     if (!isAuthenticated) return '/login';
     if (user?.role === 'admin') return '/admin';
@@ -67,78 +67,90 @@ export const Header = () => {
 
             {/* Navigation Menu */}
             <nav className="hidden md:flex space-x-6 h-full items-center">
-            {navItems.map((item) => (
-                <div key={item.label} className="group h-full flex items-center">
-                <Link 
-                    to={item.label === "BEST-SELLERS" ? "/best-sellers" : "/"} 
-                    className={`text-sm font-medium tracking-wide uppercase px-3 py-1 transition-colors relative
-                    ${item.label === 'ALL' 
-                        ? 'bg-accent text-white hover:bg-primary'
-                        : 'text-gray-700 hover:text-primary group-hover:text-primary'
-                    }`}
-                >
-                    {item.label}
-                    {item.label !== 'ALL' && (
-                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
-                    )}
-                </Link>
+            {navItems.map((item) => {
+                // 3. Logic kiểm tra Active
+                // Active khi: đường dẫn hiện tại TRÙNG KHỚP với path của item
+                const isActive = location.pathname === item.path;
 
-                {/* Mega Menu Logic */}
-                {item.hasMegaMenu && (
-                    <div className="absolute left-0 top-full w-full bg-white shadow-xl border-t border-gray-100 hidden group-hover:block transition-all duration-300 z-50 animate-in fade-in slide-in-from-top-2">
-                    <div className="container mx-auto px-4 py-8">
-                        <div className="grid grid-cols-5 gap-8">
-                        {megaMenuData.columns.map((col, index) => (
-                            <div key={index}>
-                            <h4 className="font-bold text-gray-900 mb-4 text-sm">{col.title}</h4>
-                            <ul className="space-y-2">
-                                {col.items.map((subItem) => (
-                                <li key={subItem}>
-                                    <a href="#" className="text-xs text-gray-500 hover:text-accent transition-colors block">
-                                    {subItem}
-                                    </a>
-                                </li>
-                                ))}
-                            </ul>
+                return (
+                    <div key={item.label} className="group h-full flex items-center">
+                    <Link 
+                        to={item.path} 
+                        className={`text-sm font-medium tracking-wide uppercase px-3 py-1 transition-colors relative
+                        ${item.label === 'ALL' 
+                            ? 'bg-accent text-white hover:bg-primary'
+                            : isActive 
+                                ? 'text-primary font-bold' // Nếu Active thì đậm và màu chính
+                                : 'text-gray-700 hover:text-primary group-hover:text-primary'
+                        }`}
+                    >
+                        {item.label}
+                        
+                        {/* 4. Logic Gạch chân (Underline) */}
+                        {item.label !== 'ALL' && (
+                            <span className={`absolute bottom-0 left-0 h-0.5 bg-primary transition-all duration-300
+                                ${isActive ? 'w-full' : 'w-0 group-hover:w-full'} 
+                            `}></span>
+                        )}
+                        {/* Giải thích: 
+                            - isActive ? 'w-full' : Luôn hiển thị gạch chân nếu đang ở trang đó.
+                            - 'w-0 group-hover:w-full': Nếu không ở trang đó, thì ẩn đi, chỉ hiện khi hover.
+                        */}
+                    </Link>
+
+                    {/* Mega Menu Logic */}
+                    {item.hasMegaMenu && (
+                        <div className="absolute left-0 top-full w-full bg-white shadow-xl border-t border-gray-100 hidden group-hover:block transition-all duration-300 z-50 animate-in fade-in slide-in-from-top-2">
+                        <div className="container mx-auto px-4 py-8">
+                            <div className="grid grid-cols-5 gap-8">
+                            {megaMenuData.columns.map((col, index) => (
+                                <div key={index}>
+                                <h4 className="font-bold text-gray-900 mb-4 text-sm">{col.title}</h4>
+                                <ul className="space-y-2">
+                                    {col.items.map((subItem) => (
+                                    <li key={subItem}>
+                                        <a href="#" className="text-xs text-gray-500 hover:text-accent transition-colors block">
+                                        {subItem}
+                                        </a>
+                                    </li>
+                                    ))}
+                                </ul>
+                                </div>
+                            ))}
+                            <div className="col-span-1">
+                                <div className="aspect-[4/5] overflow-hidden mb-3 bg-gray-100 relative group/img">
+                                <img 
+                                    src={megaMenuData.featured.image} 
+                                    alt="Featured" 
+                                    className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500"
+                                />
+                                </div>
+                                <h5 className="font-bold text-xs uppercase mb-1">{megaMenuData.featured.name}</h5>
+                                <p className="text-[10px] text-gray-500 leading-relaxed">{megaMenuData.featured.description}</p>
                             </div>
-                        ))}
-                        <div className="col-span-1">
-                            <div className="aspect-[4/5] overflow-hidden mb-3 bg-gray-100 relative group/img">
-                            <img 
-                                src={megaMenuData.featured.image} 
-                                alt="Featured" 
-                                className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500"
-                            />
                             </div>
-                            <h5 className="font-bold text-xs uppercase mb-1">{megaMenuData.featured.name}</h5>
-                            <p className="text-[10px] text-gray-500 leading-relaxed">{megaMenuData.featured.description}</p>
                         </div>
                         </div>
+                    )}
                     </div>
-                    </div>
-                )}
-                </div>
-            ))}
+                );
+            })}
             </nav>
 
             {/* Icons */}
             <div className="flex items-center space-x-6">
-                {/* Search */}
                 <Search 
                     className="w-5 h-5 cursor-pointer hover:text-primary transition-colors" 
                     onClick={() => setIsSearchOpen(true)}
                 />
 
-                {/* User Icon: Sử dụng getUserLink() để điều hướng thông minh */}
                 <Link to={getUserLink()} className="relative">
                     <User className={`w-5 h-5 cursor-pointer transition-colors ${isAuthenticated ? 'text-primary' : 'hover:text-primary'}`} />
-                    {/* Chấm xanh báo hiệu đã đăng nhập */}
                     {isAuthenticated && (
                         <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full border border-white"></span>
                     )}
                 </Link>
 
-                {/* Cart */}
                 <div className="relative cursor-pointer">
                     <ShoppingCart className="w-5 h-5 hover:text-primary transition-colors" />
                     <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
