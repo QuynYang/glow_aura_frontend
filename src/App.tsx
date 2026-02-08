@@ -12,6 +12,8 @@ import { WishlistPage } from './pages/WishlistPage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import { AddressPage } from './pages/AddressPage';
 import { LipsPage } from './pages/LipsPage';
+import { FacePage } from './pages/FacePage';
+import { EyesPage } from './pages/EyesPage';
 
 
 
@@ -31,7 +33,8 @@ function App() {
       <Route path="/profile/change-password" element={<ChangePasswordPage />} />
       <Route path="/profile/address" element={<AddressPage />} />
       <Route path="/moi" element={<LipsPage />} />
-
+      <Route path="/mat" element={<FacePage />} />
+      <Route path="/mat-1" element={<EyesPage />} />
     </Routes>
   );
 }

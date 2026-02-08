@@ -170,10 +170,11 @@ export const LipsPage = () => {
                 
                 <div className="relative group">
                     <button className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider hover:text-[#3D021E]">
-                        Sắp xếp: Phổ biến nhất <ChevronDown className="w-3 h-3" />
+                        Sắp xếp: Tất cả sản phẩm <ChevronDown className="w-3 h-3" />
                     </button>
                     {/* Dropdown menu giả lập */}
                     <div className="absolute right-0 top-full mt-2 w-48 bg-white shadow-lg border border-gray-100 py-2 hidden group-hover:block z-10 animate-in fade-in zoom-in-95">
+                        <a href="#" className="block px-4 py-2 text-xs hover:bg-gray-50 hover:text-[#3D021E]">Tất cả sản phẩm</a>
                         <a href="#" className="block px-4 py-2 text-xs hover:bg-gray-50 hover:text-[#3D021E]">Giá thấp đến cao</a>
                         <a href="#" className="block px-4 py-2 text-xs hover:bg-gray-50 hover:text-[#3D021E]">Giá cao đến thấp</a>
                         <a href="#" className="block px-4 py-2 text-xs hover:bg-gray-50 hover:text-[#3D021E]">Mới nhất</a>
