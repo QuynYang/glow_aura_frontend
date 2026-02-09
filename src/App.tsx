@@ -15,6 +15,7 @@ import { LipsPage } from './pages/LipsPage';
 import { FacePage } from './pages/FacePage';
 import { EyesPage } from './pages/EyesPage';
 import { FlashSalePage } from './pages/FlashSalePage';
+import { SkinCarePage } from './pages/SkinCarePage';
 
 
 
@@ -37,6 +38,7 @@ function App() {
       <Route path="/mat" element={<FacePage />} />
       <Route path="/mat-1" element={<EyesPage />} />
       <Route path="/sale" element={<FlashSalePage />} />
+      <Route path="/da" element={<SkinCarePage />} />
     </Routes>
   );
 }
