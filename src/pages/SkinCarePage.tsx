@@ -110,7 +110,7 @@ export const SkinCarePage = () => {
                 Chăm Sóc Da
             </h1>
             <p className="text-white text-xs md:text-sm uppercase tracking-[0.3em] font-medium drop-shadow-sm">
-                Khám phá vẻ đẹp tự nhiên của bạn
+                Khám phá vẻ đẹp tự nhiên của bạn ngay
             </p>
         </div>
       </section>
