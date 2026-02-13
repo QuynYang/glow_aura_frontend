@@ -1,7 +1,7 @@
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-// --- Mock Data cho Biểu đồ (Đã sửa thành T1, T2 cho gọn trục X) ---
+// --- Mock Data cho Biểu đồ ---
 const data = [
   { name: 'T1', value: 4000 },
   { name: 'T2', value: 3000 },
@@ -12,13 +12,13 @@ const data = [
   { name: 'T7', value: 3490 },
 ];
 
-// --- Mock Data cho Bảng đơn hàng (Đã Việt hóa trạng thái) ---
+// --- Mock Data cho Bảng đơn hàng (Đã đổi total thành kiểu số) ---
 const recentOrders = [
-    { id: '#1001', user: 'Sophia Clark', date: '2024-07-20', status: 'Đang giao', total: '$75.00' },
-    { id: '#1002', user: 'Liam Carter', date: '2024-07-19', status: 'Hoàn tất', total: '$120.00' },
-    { id: '#1003', user: 'Olivia Bennett', date: '2024-07-18', status: 'Đang xử lý', total: '$55.00' },
-    { id: '#1004', user: 'Noah Turner', date: '2024-07-17', status: 'Đang giao', total: '$90.00' },
-    { id: '#1005', user: 'Ava Harper', date: '2024-07-16', status: 'Hoàn tất', total: '$150.00' },
+    { id: '#1001', user: 'Sophia Clark', date: '2024-07-20', status: 'Đang giao', total: 750000 },
+    { id: '#1002', user: 'Liam Carter', date: '2024-07-19', status: 'Hoàn tất', total: 1200000 },
+    { id: '#1003', user: 'Olivia Bennett', date: '2024-07-18', status: 'Đang xử lý', total: 550000 },
+    { id: '#1004', user: 'Noah Turner', date: '2024-07-17', status: 'Đang giao', total: 900000 },
+    { id: '#1005', user: 'Ava Harper', date: '2024-07-16', status: 'Hoàn tất', total: 1500000 },
 ];
 
 export const AdminDashboard = () => {
@@ -28,25 +28,26 @@ export const AdminDashboard = () => {
 
       {/* 1. Stats Cards (4 ô vuông trên cùng) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-         {/* Card 1 */}
+         {/* Card 1: Tổng Doanh Thu */}
          <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
             <h3 className="text-gray-500 text-sm font-medium mb-2">Tổng Doanh Thu</h3>
-            <div className="text-2xl font-bold mb-1">$125,450</div>
+            {/* Đã format sang VND */}
+            <div className="text-2xl font-bold mb-1">{(125450000).toLocaleString('vi-VN')}đ</div>
             <span className="text-green-500 text-xs font-bold">+15%</span>
          </div>
-         {/* Card 2 */}
+         {/* Card 2: Tổng Đơn Hàng */}
          <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
             <h3 className="text-gray-500 text-sm font-medium mb-2">Tổng Đơn Hàng</h3>
-            <div className="text-2xl font-bold mb-1">3,200</div>
+            <div className="text-2xl font-bold mb-1">{(3200).toLocaleString('vi-VN')}</div>
             <span className="text-green-500 text-xs font-bold">+10%</span>
          </div>
-         {/* Card 3 */}
+         {/* Card 3: Khách Hàng Mới */}
          <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
             <h3 className="text-gray-500 text-sm font-medium mb-2">Khách Hàng Mới</h3>
             <div className="text-2xl font-bold mb-1">850</div>
             <span className="text-green-500 text-xs font-bold">+8%</span>
          </div>
-         {/* Card 4 */}
+         {/* Card 4: Tỷ Lệ Chuyển Đổi */}
          <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
             <h3 className="text-gray-500 text-sm font-medium mb-2">Tỷ Lệ Chuyển Đổi</h3>
             <div className="text-2xl font-bold mb-1">4.5%</div>
@@ -56,12 +57,13 @@ export const AdminDashboard = () => {
 
       {/* 2. Charts Section (2 Biểu đồ sóng) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-         {/* Chart Trái: Revenue Trend */}
+         {/* Chart Trái: Xu Hướng Doanh Thu */}
          <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
             <div className="mb-6">
                 <h3 className="text-gray-500 text-sm font-medium">Xu Hướng Doanh Thu</h3>
                 <div className="flex items-end gap-2">
-                    <span className="text-2xl font-bold">$125,450</span>
+                    {/* Đã format sang VND */}
+                    <span className="text-2xl font-bold">{(125450000).toLocaleString('vi-VN')}đ</span>
                     <span className="text-gray-400 text-xs mb-1">30 ngày qua <span className="text-green-500 font-bold">+15%</span></span>
                 </div>
             </div>
@@ -70,24 +72,24 @@ export const AdminDashboard = () => {
                     <AreaChart data={data}>
                         <defs>
                             <linearGradient id="colorVal" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#884d58" stopOpacity={0.1}/> {/* Màu đỏ rượu nhạt */}
-                                <stop offset="95%" stopColor="#884d58" stopOpacity={0}/>
+                                <stop offset="5%" stopColor="#3D021E" stopOpacity={0.1}/> 
+                                <stop offset="95%" stopColor="#3D021E" stopOpacity={0}/>
                             </linearGradient>
                         </defs>
-                        <Tooltip />
-                        <Area type="monotone" dataKey="value" stroke="#884d58" strokeWidth={2} fillOpacity={1} fill="url(#colorVal)" />
+                        <Tooltip formatter={(value: number) => [`${value.toLocaleString('vi-VN')}đ`, 'Doanh thu']} />
+                        <Area type="monotone" dataKey="value" stroke="#3D021E" strokeWidth={2} fillOpacity={1} fill="url(#colorVal)" />
                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#999'}} />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
          </div>
 
-         {/* Chart Phải: Orders Trend */}
+         {/* Chart Phải: Xu Hướng Đơn Hàng */}
          <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
             <div className="mb-6">
                 <h3 className="text-gray-500 text-sm font-medium">Xu Hướng Đơn Hàng</h3>
                 <div className="flex items-end gap-2">
-                    <span className="text-2xl font-bold">3,200</span>
+                    <span className="text-2xl font-bold">{(3200).toLocaleString('vi-VN')}</span>
                     <span className="text-gray-400 text-xs mb-1">30 ngày qua <span className="text-green-500 font-bold">+10%</span></span>
                 </div>
             </div>
@@ -96,12 +98,12 @@ export const AdminDashboard = () => {
                     <AreaChart data={data}>
                          <defs>
                             <linearGradient id="colorOrd" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#884d58" stopOpacity={0.1}/>
-                                <stop offset="95%" stopColor="#884d58" stopOpacity={0}/>
+                                <stop offset="5%" stopColor="#3D021E" stopOpacity={0.1}/>
+                                <stop offset="95%" stopColor="#3D021E" stopOpacity={0}/>
                             </linearGradient>
                         </defs>
-                        <Tooltip />
-                        <Area type="monotone" dataKey="value" stroke="#884d58" strokeWidth={2} fillOpacity={1} fill="url(#colorOrd)" />
+                        <Tooltip formatter={(value: number) => [value, 'Đơn hàng']} />
+                        <Area type="monotone" dataKey="value" stroke="#3D021E" strokeWidth={2} fillOpacity={1} fill="url(#colorOrd)" />
                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#999'}} />
                     </AreaChart>
                 </ResponsiveContainer>
@@ -132,7 +134,6 @@ export const AdminDashboard = () => {
                              <td className="px-6 py-4 text-gray-700">{order.user}</td>
                              <td className="px-6 py-4 text-gray-500 text-xs">{order.date}</td>
                              <td className="px-6 py-4">
-                                 {/* Cập nhật logic kiểm tra status tiếng Việt */}
                                  <span className={`px-3 py-1 rounded-full text-xs font-bold 
                                     ${order.status === 'Hoàn tất' ? 'bg-green-100 text-green-700' : ''}
                                     ${order.status === 'Đang giao' ? 'bg-blue-100 text-blue-700' : ''}
@@ -141,7 +142,10 @@ export const AdminDashboard = () => {
                                      {order.status}
                                  </span>
                              </td>
-                             <td className="px-6 py-4 text-gray-700">{order.total}</td>
+                             {/* Định dạng tiền tệ tự động cho Tổng Tiền */}
+                             <td className="px-6 py-4 text-gray-700 font-medium">
+                                 {order.total.toLocaleString('vi-VN')}đ
+                             </td>
                          </tr>
                      ))}
                  </tbody>
