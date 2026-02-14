@@ -12,7 +12,7 @@ const data = [
   { name: 'T7', value: 3490 },
 ];
 
-// --- Mock Data cho Bảng đơn hàng (Đã đổi total thành kiểu số) ---
+// --- Mock Data cho Bảng đơn hàng ---
 const recentOrders = [
     { id: '#1001', user: 'Sophia Clark', date: '2024-07-20', status: 'Đang giao', total: 750000 },
     { id: '#1002', user: 'Liam Carter', date: '2024-07-19', status: 'Hoàn tất', total: 1200000 },
@@ -26,28 +26,23 @@ export const AdminDashboard = () => {
     <AdminLayout>
       <h1 className="text-2xl font-bold mb-8">Bảng Điều Khiển</h1>
 
-      {/* 1. Stats Cards (4 ô vuông trên cùng) */}
+      {/* 1. Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-         {/* Card 1: Tổng Doanh Thu */}
          <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
             <h3 className="text-gray-500 text-sm font-medium mb-2">Tổng Doanh Thu</h3>
-            {/* Đã format sang VND */}
             <div className="text-2xl font-bold mb-1">{(125450000).toLocaleString('vi-VN')}đ</div>
             <span className="text-green-500 text-xs font-bold">+15%</span>
          </div>
-         {/* Card 2: Tổng Đơn Hàng */}
          <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
             <h3 className="text-gray-500 text-sm font-medium mb-2">Tổng Đơn Hàng</h3>
             <div className="text-2xl font-bold mb-1">{(3200).toLocaleString('vi-VN')}</div>
             <span className="text-green-500 text-xs font-bold">+10%</span>
          </div>
-         {/* Card 3: Khách Hàng Mới */}
          <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
             <h3 className="text-gray-500 text-sm font-medium mb-2">Khách Hàng Mới</h3>
             <div className="text-2xl font-bold mb-1">850</div>
             <span className="text-green-500 text-xs font-bold">+8%</span>
          </div>
-         {/* Card 4: Tỷ Lệ Chuyển Đổi */}
          <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
             <h3 className="text-gray-500 text-sm font-medium mb-2">Tỷ Lệ Chuyển Đổi</h3>
             <div className="text-2xl font-bold mb-1">4.5%</div>
@@ -55,14 +50,13 @@ export const AdminDashboard = () => {
          </div>
       </div>
 
-      {/* 2. Charts Section (2 Biểu đồ sóng) */}
+      {/* 2. Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
          {/* Chart Trái: Xu Hướng Doanh Thu */}
          <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
             <div className="mb-6">
                 <h3 className="text-gray-500 text-sm font-medium">Xu Hướng Doanh Thu</h3>
                 <div className="flex items-end gap-2">
-                    {/* Đã format sang VND */}
                     <span className="text-2xl font-bold">{(125450000).toLocaleString('vi-VN')}đ</span>
                     <span className="text-gray-400 text-xs mb-1">30 ngày qua <span className="text-green-500 font-bold">+15%</span></span>
                 </div>
@@ -76,7 +70,8 @@ export const AdminDashboard = () => {
                                 <stop offset="95%" stopColor="#3D021E" stopOpacity={0}/>
                             </linearGradient>
                         </defs>
-                        <Tooltip formatter={(value: number) => [`${value.toLocaleString('vi-VN')}đ`, 'Doanh thu']} />
+                        {/* ĐÃ SỬA LỖI TẠI ĐÂY: Dùng (value: any) */}
+                        <Tooltip formatter={(value: any) => [`${value.toLocaleString('vi-VN')}đ`, 'Doanh thu']} />
                         <Area type="monotone" dataKey="value" stroke="#3D021E" strokeWidth={2} fillOpacity={1} fill="url(#colorVal)" />
                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#999'}} />
                     </AreaChart>
@@ -102,7 +97,8 @@ export const AdminDashboard = () => {
                                 <stop offset="95%" stopColor="#3D021E" stopOpacity={0}/>
                             </linearGradient>
                         </defs>
-                        <Tooltip formatter={(value: number) => [value, 'Đơn hàng']} />
+                        {/* ĐÃ SỬA LỖI TẠI ĐÂY: Dùng (value: any) */}
+                        <Tooltip formatter={(value: any) => [value, 'Đơn hàng']} />
                         <Area type="monotone" dataKey="value" stroke="#3D021E" strokeWidth={2} fillOpacity={1} fill="url(#colorOrd)" />
                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#999'}} />
                     </AreaChart>
@@ -142,7 +138,6 @@ export const AdminDashboard = () => {
                                      {order.status}
                                  </span>
                              </td>
-                             {/* Định dạng tiền tệ tự động cho Tổng Tiền */}
                              <td className="px-6 py-4 text-gray-700 font-medium">
                                  {order.total.toLocaleString('vi-VN')}đ
                              </td>
