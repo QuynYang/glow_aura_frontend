@@ -17,7 +17,7 @@ import { EyesPage } from './pages/EyesPage';
 import { FlashSalePage } from './pages/FlashSalePage';
 import { SkinCarePage } from './pages/SkinCarePage';
 import { AdminProductPage } from './pages/admin/AdminProductPage';
-
+import { AdminOrderPage } from './pages/admin/AdminOrderPage';
 
 
 
@@ -42,6 +42,7 @@ function App() {
       <Route path="/sale" element={<FlashSalePage />} />
       <Route path="/da" element={<SkinCarePage />} />
       <Route path="/admin/products" element={<AdminProductPage />} />
+      <Route path="/admin/orders" element={<AdminOrderPage />} />
     </Routes>
   );
 }
