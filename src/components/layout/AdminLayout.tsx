@@ -1,6 +1,6 @@
 import { 
-  LayoutDashboard, ShoppingBag, Package, Users, BarChart2, Settings, 
-  Search, Bell, LogOut, User as UserIcon, Menu 
+  LayoutDashboard, ShoppingBag, Package, Users, BarChart2, Settings,
+  Search, Bell, LogOut, User as UserIcon, Menu, Tag // 1. Thêm icon Tag
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -13,7 +13,7 @@ interface AdminLayoutProps {
 export const AdminLayout = ({ children }: AdminLayoutProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation(); // Dùng để active menu
+  const location = useLocation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleLogout = () => {
@@ -27,6 +27,8 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
     { label: 'Đơn hàng', icon: ShoppingBag, path: '/admin/orders' },
     { label: 'Sản phẩm', icon: Package, path: '/admin/products' },
     { label: 'Khách hàng', icon: Users, path: '/admin/customers' },
+    // 2. Bổ sung mục Khuyến mãi vào trước Thống kê
+    { label: 'Khuyến mãi', icon: Tag, path: '/admin/promotions' }, 
     { label: 'Thống kê', icon: BarChart2, path: '/admin/analytics' },
     { label: 'Cài đặt', icon: Settings, path: '/admin/settings' },
   ];
@@ -54,7 +56,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
                         to={item.path}
                         className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all
                             ${isActive 
-                                ? 'bg-[#3D021E] text-white shadow-md' // Active: Nền đỏ đậm
+                                ? 'bg-[#3D021E] text-white shadow-md' 
                                 : 'text-gray-500 hover:bg-gray-50 hover:text-[#3D021E]'
                             }
                         `}
@@ -73,7 +75,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
         {/* TOP BAR (Header) */}
         <header className="h-20 bg-white border-b border-gray-200 sticky top-0 z-10 px-8 flex items-center justify-between">
             
-            {/* Search Bar (Đã khoanh vàng trong ảnh) */}
+            {/* Search Bar */}
             <div className="w-96 relative hidden md:block">
                 <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input 

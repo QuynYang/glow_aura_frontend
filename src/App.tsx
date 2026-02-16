@@ -20,7 +20,8 @@ import { AdminProductPage } from './pages/admin/AdminProductPage';
 import { AdminOrderPage } from './pages/admin/AdminOrderPage';
 import { AdminCustomerPage } from './pages/admin/AdminCustomerPage';
 import { AdminAnalyticsPage } from './pages/admin/AdminAnalyticsPage';
-
+import { AdminPromotionPage } from './pages/admin/AdminPromotionPage';
+import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
 
 
 function App() {
@@ -46,7 +47,9 @@ function App() {
       <Route path="/admin/products" element={<AdminProductPage />} />
       <Route path="/admin/orders" element={<AdminOrderPage />} />
       <Route path="/admin/customers" element={<AdminCustomerPage />} />
+      <Route path="/admin/promotions" element={<AdminPromotionPage />} />
       <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+      <Route path="/admin/settings" element={<AdminSettingsPage />} />
     </Routes>
   );
 }
