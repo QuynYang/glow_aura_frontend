@@ -18,6 +18,8 @@ import { FlashSalePage } from './pages/FlashSalePage';
 import { SkinCarePage } from './pages/SkinCarePage';
 import { AdminProductPage } from './pages/admin/AdminProductPage';
 import { AdminOrderPage } from './pages/admin/AdminOrderPage';
+import { AdminCustomerPage } from './pages/admin/AdminCustomerPage';
+import { AdminAnalyticsPage } from './pages/admin/AdminAnalyticsPage';
 
 
 
@@ -43,6 +45,8 @@ function App() {
       <Route path="/da" element={<SkinCarePage />} />
       <Route path="/admin/products" element={<AdminProductPage />} />
       <Route path="/admin/orders" element={<AdminOrderPage />} />
+      <Route path="/admin/customers" element={<AdminCustomerPage />} />
+      <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
     </Routes>
   );
 }

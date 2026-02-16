@@ -137,7 +137,7 @@ export const AdminOrderPage = () => {
             <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
                 <Download className="w-4 h-4" /> Xuất CSV
             </button>
-            <button className="flex items-center gap-2 px-6 py-2 bg-[#FF3B30] text-white rounded-lg text-sm font-bold hover:bg-red-600 shadow-lg shadow-red-100 transition-all">
+            <button className="flex items-center gap-2 px-6 py-2 bg-[#3D021E] text-white rounded-lg text-sm font-bold hover:bg-red-600 shadow-lg shadow-red-100 transition-all">
                 <Plus className="w-4 h-4" /> Tạo Đơn Hàng Mới
             </button>
         </div>
@@ -155,7 +155,7 @@ export const AdminOrderPage = () => {
                         onClick={() => setActiveTab(tab)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors
                             ${activeTab === tab 
-                                ? 'bg-[#FF3B30] text-white font-bold' 
+                                ? 'bg-[#3D021E] text-white font-bold' 
                                 : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}
                         `}
                      >
@@ -205,7 +205,7 @@ export const AdminOrderPage = () => {
                                     {/* CHECKBOX CHỌN TỪNG DÒNG */}
                                     <input 
                                        type="checkbox" 
-                                       className="rounded border-gray-300 text-[#FF3B30] focus:ring-[#FF3B30] w-4 h-4 cursor-pointer"
+                                       className="rounded border-gray-300 text-[#3D021E] focus:ring-[#3D021E] w-4 h-4 cursor-pointer"
                                        checked={selectedOrders.includes(order.id)}
                                        onChange={() => handleSelectRow(order.id)}
                                     />
@@ -253,7 +253,7 @@ export const AdminOrderPage = () => {
              {/* ...Pagination buttons (Giữ nguyên)... */}
               <div className="flex items-center gap-2">
                  <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"><ChevronLeft className="w-4 h-4" /></button>
-                 <button className="w-8 h-8 flex items-center justify-center bg-[#FF3B30] text-white font-bold rounded-lg shadow-md shadow-red-200">1</button>
+                 <button className="w-8 h-8 flex items-center justify-center bg-[#3D021E] text-white font-bold rounded-lg shadow-md shadow-red-200">1</button>
                  <button className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg hover:bg-gray-50">2</button>
                  <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50"><ChevronRight className="w-4 h-4" /></button>
              </div>

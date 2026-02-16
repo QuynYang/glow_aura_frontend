@@ -1,18 +1,18 @@
 import { useState } from 'react';
 import { 
   Plus, Search, Filter, Edit, Trash2, ChevronLeft, ChevronRight, 
-  MoreHorizontal, AlertCircle, CheckCircle2, XCircle 
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
 
-// --- 1. MOCK DATA (Dữ liệu giả lập ngành mỹ phẩm) ---
+// --- 1. MOCK DATA (Dữ liệu giả lập) ---
+// Lưu ý: Category cần khớp chính xác với tên Tab để lọc được
 const products = [
   {
     id: 1,
     name: "Son Kem Lì Aura Velvet",
     variant: "Màu Đỏ Gạch (01)",
     sku: "SKU-88219",
-    category: "Trang Điểm",
+    category: "Trang điểm", // Khớp với Tab
     price: 299000,
     stock: 82,
     maxStock: 100,
@@ -24,7 +24,7 @@ const products = [
     name: "Serum Vitamin C Glow",
     variant: "30ml - Bản Giới Hạn",
     sku: "SKU-44120",
-    category: "Chăm Sóc Da",
+    category: "Chăm sóc da", // Khớp với Tab
     price: 1450000,
     stock: 4,
     maxStock: 50,
@@ -36,7 +36,7 @@ const products = [
     name: "Kem Dưỡng Ẩm Midnight",
     variant: "Hũ 50g",
     sku: "SKU-11005",
-    category: "Chăm Sóc Da",
+    category: "Chăm sóc da",
     price: 890000,
     stock: 42,
     maxStock: 100,
@@ -48,7 +48,7 @@ const products = [
     name: "Nước Hoa Rose Garden",
     variant: "50ml Spray",
     sku: "SKU-90921",
-    category: "Nước Hoa",
+    category: "Nước hoa", // Khớp với Tab
     price: 2500000,
     stock: 0,
     maxStock: 30,
@@ -60,7 +60,7 @@ const products = [
     name: "Phấn Phủ Kiềm Dầu",
     variant: "Tone Tự Nhiên",
     sku: "SKU-77283",
-    category: "Trang Điểm",
+    category: "Trang điểm",
     price: 420000,
     stock: 156,
     maxStock: 200,
@@ -78,13 +78,31 @@ const StatCard = ({ label, value, colorClass }: any) => (
 );
 
 export const AdminProductPage = () => {
-  const [activeTab, setActiveTab] = useState('all');
+  // State quản lý Tab đang chọn
+  const [activeTab, setActiveTab] = useState('Tất cả');
+  
+  // State quản lý từ khóa tìm kiếm
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // Hàm tính toán màu sắc thanh tiến trình tồn kho
+  // --- LOGIC LỌC SẢN PHẨM ---
+  const filteredProducts = products.filter((product) => {
+    // 1. Điều kiện Danh mục
+    const matchesCategory = activeTab === 'Tất cả' || product.category === activeTab;
+
+    // 2. Điều kiện Tìm kiếm (Tên hoặc SKU)
+    const matchesSearch = 
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        product.sku.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // Trả về true nếu thỏa mãn CẢ HAI
+    return matchesCategory && matchesSearch;
+  });
+
+  // Hàm tính toán màu sắc thanh tiến trình
   const getStockBarColor = (current: number, max: number) => {
     if (current === 0) return 'bg-gray-200';
-    if (current <= 10) return 'bg-red-500'; // Sắp hết
-    return 'bg-[#3D021E]'; // Bình thường
+    if (current <= 10) return 'bg-red-500';
+    return 'bg-[#3D021E]';
   };
 
   const getStockWidth = (current: number, max: number) => {
@@ -123,6 +141,8 @@ export const AdminProductPage = () => {
                     type="text" 
                     placeholder="Tìm kiếm theo tên, SKU..." 
                     className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#3D021E] focus:ring-1 focus:ring-[#3D021E]"
+                    value={searchTerm} // Liên kết với state
+                    onChange={(e) => setSearchTerm(e.target.value)} // Cập nhật state khi gõ
                 />
             </div>
             {/* Filter Button */}
@@ -164,79 +184,86 @@ export const AdminProductPage = () => {
                      </tr>
                  </thead>
                  <tbody className="divide-y divide-gray-100">
-                     {products.map((product) => (
-                         <tr key={product.id} className="hover:bg-gray-50 transition-colors group">
-                             {/* Product Info */}
-                             <td className="px-6 py-4">
-                                 <div className="flex items-center gap-4">
-                                     <div className="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 p-1 flex-shrink-0">
-                                        <img src={product.image} alt="" className="w-full h-full object-cover rounded-md" />
+                     {/* Render danh sách đã lọc */}
+                     {filteredProducts.length > 0 ? (
+                         filteredProducts.map((product) => (
+                             <tr key={product.id} className="hover:bg-gray-50 transition-colors group">
+                                 {/* Product Info */}
+                                 <td className="px-6 py-4">
+                                     <div className="flex items-center gap-4">
+                                         <div className="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 p-1 flex-shrink-0">
+                                            <img src={product.image} alt="" className="w-full h-full object-cover rounded-md" />
+                                         </div>
+                                         <div>
+                                             <h4 className="font-bold text-gray-900 line-clamp-1">{product.name}</h4>
+                                             <p className="text-xs text-gray-500">{product.variant}</p>
+                                         </div>
                                      </div>
-                                     <div>
-                                         <h4 className="font-bold text-gray-900 line-clamp-1">{product.name}</h4>
-                                         <p className="text-xs text-gray-500">{product.variant}</p>
+                                 </td>
+                                 
+                                 {/* SKU */}
+                                 <td className="px-6 py-4">
+                                     <span className="font-mono text-xs font-bold bg-gray-100 px-2 py-1 rounded text-gray-600">
+                                         {product.sku}
+                                     </span>
+                                 </td>
+                                 
+                                 {/* Category */}
+                                 <td className="px-6 py-4 text-gray-600">
+                                     {product.category}
+                                 </td>
+
+                                 {/* Price */}
+                                 <td className="px-6 py-4 font-bold text-gray-900">
+                                     {product.price.toLocaleString('vi-VN')}đ
+                                 </td>
+
+                                 {/* Stock Level */}
+                                 <td className="px-6 py-4">
+                                     <div className="flex items-center justify-between mb-1 text-xs">
+                                         <span className="font-bold text-gray-700">{product.stock} SP</span>
+                                         {product.status === 'Sắp hết' && <span className="text-red-500 font-bold text-[10px] uppercase">Sắp hết</span>}
+                                         {product.status === 'Hết hàng' && <span className="text-gray-400 font-bold text-[10px] uppercase">Hết hàng</span>}
                                      </div>
-                                 </div>
-                             </td>
-                             
-                             {/* SKU */}
-                             <td className="px-6 py-4">
-                                 <span className="font-mono text-xs font-bold bg-gray-100 px-2 py-1 rounded text-gray-600">
-                                     {product.sku}
-                                 </span>
-                             </td>
-                             
-                             {/* Category */}
-                             <td className="px-6 py-4 text-gray-600">
-                                 {product.category}
-                             </td>
+                                     <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                         <div 
+                                            className={`h-full rounded-full ${getStockBarColor(product.stock, product.maxStock)}`} 
+                                            style={{ width: getStockWidth(product.stock, product.maxStock) }}
+                                         ></div>
+                                     </div>
+                                 </td>
 
-                             {/* Price */}
-                             <td className="px-6 py-4 font-bold text-gray-900">
-                                 {product.price.toLocaleString('vi-VN')}đ
-                             </td>
-
-                             {/* Stock Level (Progress Bar) */}
-                             <td className="px-6 py-4">
-                                 <div className="flex items-center justify-between mb-1 text-xs">
-                                     <span className="font-bold text-gray-700">{product.stock} SP</span>
-                                     {product.status === 'Sắp hết' && <span className="text-red-500 font-bold text-[10px] uppercase">Sắp hết</span>}
-                                     {product.status === 'Hết hàng' && <span className="text-gray-400 font-bold text-[10px] uppercase">Hết hàng</span>}
-                                 </div>
-                                 <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                     <div 
-                                        className={`h-full rounded-full ${getStockBarColor(product.stock, product.maxStock)}`} 
-                                        style={{ width: getStockWidth(product.stock, product.maxStock) }}
-                                     ></div>
-                                 </div>
-                             </td>
-
-                             {/* Actions */}
-                             <td className="px-6 py-4 text-right">
-                                 <div className="flex items-center justify-end gap-2">
-                                     <button className="p-2 text-gray-400 hover:text-[#3D021E] hover:bg-purple-50 rounded-lg transition-colors">
-                                         <Edit className="w-4 h-4" />
-                                     </button>
-                                     <button className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                                         <Trash2 className="w-4 h-4" />
-                                     </button>
-                                 </div>
-                             </td>
-                         </tr>
-                     ))}
+                                 {/* Actions */}
+                                 <td className="px-6 py-4 text-right">
+                                     <div className="flex items-center justify-end gap-2">
+                                         <button className="p-2 text-gray-400 hover:text-[#3D021E] hover:bg-purple-50 rounded-lg transition-colors">
+                                             <Edit className="w-4 h-4" />
+                                         </button>
+                                         <button className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                             <Trash2 className="w-4 h-4" />
+                                         </button>
+                                     </div>
+                                 </td>
+                             </tr>
+                         ))
+                     ) : (
+                        <tr>
+                            <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                                Không tìm thấy sản phẩm nào phù hợp.
+                            </td>
+                        </tr>
+                     )}
                  </tbody>
              </table>
          </div>
          
          {/* Footer Pagination */}
          <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-             <span>Hiển thị 1 đến 5 của 1,284 kết quả</span>
+             <span>Hiển thị {filteredProducts.length} kết quả</span>
              <div className="flex items-center gap-2">
+                 {/* ... Pagination Buttons ... */}
                  <button className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50"><ChevronLeft className="w-4 h-4" /></button>
                  <button className="w-8 h-8 flex items-center justify-center bg-[#3D021E] text-white font-bold rounded-lg">1</button>
-                 <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-lg">2</button>
-                 <span className="px-2">...</span>
-                 <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-lg">128</button>
                  <button className="p-2 hover:bg-gray-100 rounded-lg"><ChevronRight className="w-4 h-4" /></button>
              </div>
          </div>
