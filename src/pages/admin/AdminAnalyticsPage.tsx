@@ -25,7 +25,7 @@ const revenueData = [
 // Dữ liệu Danh mục (Bên phải)
 const categoryData = [
   { name: "Trang điểm (Makeup)", value: 42900, max: 60000, color: "bg-[#3D021E]" }, // Màu brand đậm
-  { name: "Chăm sóc da (Skincare)", value: 31200, max: 60000, color: "bg-[#FF3B30]" }, // Màu đỏ tươi
+  { name: "Chăm sóc da (Skincare)", value: 31200, max: 60000, color: "bg-[#3D021E]" }, // Màu đỏ tươi
   { name: "Nước hoa (Fragrance)", value: 24500, max: 60000, color: "bg-[#FDA4AF]" }, // Màu hồng nhạt
   { name: "Phụ kiện (Accessories)", value: 18830, max: 60000, color: "bg-gray-400" },
 ];
@@ -95,13 +95,13 @@ export const AdminAnalyticsPage = () => {
                   <input 
                       type="text" 
                       placeholder="Tìm kiếm dữ liệu phân tích..." 
-                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#FF3B30] focus:ring-1 focus:ring-[#FF3B30]"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#3D021E] focus:ring-1 focus:ring-[#3D021E]"
                   />
               </div>
               <button className="p-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-500">
                   <Bell className="w-5 h-5" />
               </button>
-              <button className="flex items-center gap-2 px-4 py-2.5 bg-[#FF3B30] text-white rounded-xl text-sm font-bold hover:bg-red-600 shadow-lg shadow-red-200">
+              <button className="flex items-center gap-2 px-4 py-2.5 bg-[#3D021E] text-white rounded-xl text-sm font-bold hover:bg-red-600 shadow-lg shadow-red-200">
                   <Download className="w-4 h-4" /> Xuất Báo Cáo
               </button>
           </div>
@@ -128,7 +128,7 @@ export const AdminAnalyticsPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard title="Tổng Doanh Thu" value="128.430.000đ" percent={12.5} isIncrease={true} icon={Wallet} barColor="bg-green-500" />
           <StatCard title="Giá Trị Đơn TB" value="842.000đ" percent={0.0} isIncrease={true} icon={ShoppingCart} barColor="bg-yellow-400" />
-          <StatCard title="Tỷ Lệ Chuyển Đổi" value="3.42%" percent={0.8} isIncrease={false} icon={Activity} barColor="bg-[#FF3B30]" />
+          <StatCard title="Tỷ Lệ Chuyển Đổi" value="3.42%" percent={0.8} isIncrease={false} icon={Activity} barColor="bg-[#3D021E]" />
           <StatCard title="Tổng Đơn Hàng" value="1,524" percent={5.4} isIncrease={true} icon={Package} barColor="bg-blue-500" />
       </div>
 
@@ -143,7 +143,7 @@ export const AdminAnalyticsPage = () => {
                       <p className="text-xs text-gray-500">Phân tích doanh thu so với lợi nhuận ròng hàng tháng</p>
                   </div>
                   <div className="flex items-center gap-4 text-xs font-bold">
-                      <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-[#FF3B30]"></span> Doanh thu</div>
+                      <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-[#3D021E]"></span> Doanh thu</div>
                       <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-[#FCA5A5]"></span> Lợi nhuận</div>
                   </div>
               </div>
@@ -161,7 +161,7 @@ export const AdminAnalyticsPage = () => {
                           />
                           {/* Stacked Bars mô phỏng như ảnh */}
                           <Bar dataKey="profit" stackId="a" fill="#FEE2E2" radius={[0, 0, 4, 4]} /> {/* Màu hồng nhạt dưới */}
-                          <Bar dataKey="revenue" stackId="a" fill="#FF3B30" radius={[4, 4, 0, 0]} /> {/* Màu đỏ trên */}
+                          <Bar dataKey="revenue" stackId="a" fill="#3D021E" radius={[4, 4, 0, 0]} /> {/* Màu đỏ trên */}
                       </BarChart>
                   </ResponsiveContainer>
               </div>
@@ -215,7 +215,7 @@ export const AdminAnalyticsPage = () => {
                   <input 
                       type="text" 
                       placeholder="Tìm theo mã đơn, tên..." 
-                      className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#FF3B30] focus:ring-1 focus:ring-[#FF3B30] w-64"
+                      className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#3D021E] focus:ring-1 focus:ring-[#3D021E] w-64"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -280,7 +280,7 @@ export const AdminAnalyticsPage = () => {
           </div>
           
           <div className="p-4 border-t border-gray-100 flex justify-center">
-              <button className="text-xs font-bold text-gray-500 hover:text-[#FF3B30] flex items-center gap-1 transition-colors">
+              <button className="text-xs font-bold text-gray-500 hover:text-[#3D021E] flex items-center gap-1 transition-colors">
                   Xem tất cả giao dịch <ChevronDown className="w-3 h-3" />
               </button>
           </div>

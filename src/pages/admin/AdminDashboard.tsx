@@ -93,7 +93,7 @@ export const AdminDashboard = () => {
             <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
                 <Calendar className="w-4 h-4" /> 30 ngày qua
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-[#FF3B30] text-white rounded-lg text-sm font-bold hover:bg-red-600 shadow-sm transition-colors shadow-red-200">
+            <button className="flex items-center gap-2 px-4 py-2 bg-[#3D021E] text-white rounded-lg text-sm font-bold hover:bg-red-600 shadow-sm transition-colors shadow-red-200">
                 <Download className="w-4 h-4" /> Xuất Báo Cáo
             </button>
         </div>
@@ -185,7 +185,7 @@ export const AdminDashboard = () => {
          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="font-bold text-lg text-gray-900">Sản Phẩm Bán Chạy</h3>
-                <button className="text-xs font-bold text-[#FF3B30] hover:underline">Xem tất cả</button>
+                <button className="text-xs font-bold text-[#3D021E] hover:underline">Xem tất cả</button>
             </div>
             <div className="space-y-6">
                 {topProducts.map((product) => (

@@ -44,7 +44,7 @@ export const AdminSettingsPage = () => {
             <button className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
                 Hủy thay đổi
             </button>
-            <button className="flex items-center gap-2 px-6 py-2 bg-[#F97316] text-white rounded-lg text-sm font-bold hover:bg-orange-600 shadow-lg shadow-orange-100 transition-all">
+            <button className="flex items-center gap-2 px-6 py-2 bg-[#3D021E] text-white rounded-lg text-sm font-bold hover:bg-orange-600 shadow-lg shadow-orange-100 transition-all">
                 <Save className="w-4 h-4" /> Lưu Cấu Hình
             </button>
         </div>
@@ -58,7 +58,7 @@ export const AdminSettingsPage = () => {
               {/* SECTION: Platform Identity */}
               <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                   <div className="flex items-center gap-3 mb-6">
-                      <div className="p-2 bg-orange-50 rounded-lg text-[#F97316]">
+                      <div className="p-2 bg-orange-50 rounded-lg text-[#3D021E]">
                           <Shield className="w-5 h-5" />
                       </div>
                       <h3 className="text-lg font-bold text-gray-900">Thông Tin Nền Tảng</h3>
@@ -71,7 +71,7 @@ export const AdminSettingsPage = () => {
                               type="text" 
                               value={siteName}
                               onChange={(e) => setSiteName(e.target.value)}
-                              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#F97316] focus:ring-1 focus:ring-[#F97316]"
+                              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#3D021E] focus:ring-1 focus:ring-[#3D021E]"
                           />
                       </div>
                       <div>
@@ -80,7 +80,7 @@ export const AdminSettingsPage = () => {
                               type="email" 
                               value={supportEmail}
                               onChange={(e) => setSupportEmail(e.target.value)}
-                              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#F97316] focus:ring-1 focus:ring-[#F97316]"
+                              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#3D021E] focus:ring-1 focus:ring-[#3D021E]"
                           />
                       </div>
                   </div>
@@ -91,7 +91,7 @@ export const AdminSettingsPage = () => {
                           rows={3}
                           value={siteDesc}
                           onChange={(e) => setSiteDesc(e.target.value)}
-                          className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#F97316] focus:ring-1 focus:ring-[#F97316]"
+                          className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#3D021E] focus:ring-1 focus:ring-[#3D021E]"
                       ></textarea>
                   </div>
               </div>
@@ -105,7 +105,7 @@ export const AdminSettingsPage = () => {
                           </div>
                           <h3 className="text-lg font-bold text-gray-900">Cổng Thanh Toán</h3>
                       </div>
-                      <button className="text-sm font-bold text-[#F97316] hover:underline">+ Thêm Mới</button>
+                      <button className="text-sm font-bold text-[#3D021E] hover:underline">+ Thêm Mới</button>
                   </div>
 
                   <div className="space-y-4">
@@ -122,7 +122,7 @@ export const AdminSettingsPage = () => {
                               <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded uppercase">Active</span>
                               <div 
                                 onClick={() => setGateways({...gateways, stripe: !gateways.stripe})}
-                                className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${gateways.stripe ? 'bg-[#F97316]' : 'bg-gray-300'}`}
+                                className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${gateways.stripe ? 'bg-[#3D021E]' : 'bg-gray-300'}`}
                               >
                                   <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${gateways.stripe ? 'translate-x-6' : ''}`}></div>
                               </div>
@@ -142,7 +142,7 @@ export const AdminSettingsPage = () => {
                               <span className="bg-yellow-100 text-yellow-700 text-[10px] font-bold px-2 py-1 rounded uppercase">Setup Req</span>
                               <div 
                                 onClick={() => setGateways({...gateways, paypal: !gateways.paypal})}
-                                className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${gateways.paypal ? 'bg-[#F97316]' : 'bg-gray-300'}`}
+                                className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${gateways.paypal ? 'bg-[#3D021E]' : 'bg-gray-300'}`}
                               >
                                   <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${gateways.paypal ? 'translate-x-6' : ''}`}></div>
                               </div>
@@ -203,7 +203,7 @@ export const AdminSettingsPage = () => {
                   <p className="text-xs text-gray-500 mb-4">Tải lên logo độ phân giải cao cho trang admin và trang bán hàng.</p>
                   
                   <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:border-[#F97316] hover:bg-orange-50 transition-colors cursor-pointer group">
-                      <div className="w-12 h-12 bg-orange-100 text-[#F97316] rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <div className="w-12 h-12 bg-orange-100 text-[#3D021E] rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                           <Upload className="w-5 h-5" />
                       </div>
                       <p className="text-sm font-bold text-gray-900">Logo Chính</p>
@@ -253,7 +253,7 @@ export const AdminSettingsPage = () => {
                             type="checkbox" 
                             checked={shippingMethods.standard}
                             onChange={() => setShippingMethods({...shippingMethods, standard: !shippingMethods.standard})}
-                            className="w-4 h-4 rounded text-[#F97316] focus:ring-[#F97316]" 
+                            className="w-4 h-4 rounded text-[#3D021E] focus:ring-[#3D021E]" 
                           />
                           <span className="text-sm font-medium text-gray-700">Giao hàng Tiêu chuẩn (3-5 ngày)</span>
                       </label>
@@ -262,7 +262,7 @@ export const AdminSettingsPage = () => {
                             type="checkbox" 
                             checked={shippingMethods.express}
                             onChange={() => setShippingMethods({...shippingMethods, express: !shippingMethods.express})}
-                            className="w-4 h-4 rounded text-[#F97316] focus:ring-[#F97316]" 
+                            className="w-4 h-4 rounded text-[#3D021E] focus:ring-[#3D021E]" 
                           />
                           <span className="text-sm font-medium text-gray-700">Giao hàng Hỏa tốc (Trong ngày)</span>
                       </label>
@@ -271,7 +271,7 @@ export const AdminSettingsPage = () => {
                             type="checkbox" 
                             checked={shippingMethods.international}
                             onChange={() => setShippingMethods({...shippingMethods, international: !shippingMethods.international})}
-                            className="w-4 h-4 rounded text-[#F97316] focus:ring-[#F97316]" 
+                            className="w-4 h-4 rounded text-[#3D021E] focus:ring-[#3D021E]" 
                           />
                           <span className="text-sm font-medium text-gray-700">Vận chuyển Quốc tế</span>
                       </label>
@@ -279,7 +279,7 @@ export const AdminSettingsPage = () => {
               </div>
 
               {/* SECTION: Pro Banner (Automation Engine) */}
-              <div className="bg-[#F97316] p-6 rounded-2xl text-white relative overflow-hidden">
+              <div className="bg-[#3D021E] p-6 rounded-2xl text-white relative overflow-hidden">
                   <div className="absolute top-0 right-0 bg-white/20 text-[10px] font-bold px-2 py-1 rounded-bl-lg">PRO FEATURE</div>
                   <div className="mb-4">
                       <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mb-2">
@@ -290,7 +290,7 @@ export const AdminSettingsPage = () => {
                   <p className="text-xs text-white/90 mb-6 leading-relaxed">
                       Thiết lập quy trình làm việc tự động để quản lý kho hàng và nhật ký vận chuyển mà không cần can thiệp thủ công.
                   </p>
-                  <button className="w-full py-2.5 bg-white text-[#F97316] font-bold text-sm rounded-lg hover:bg-orange-50 transition-colors">
+                  <button className="w-full py-2.5 bg-white text-[#3D021E] font-bold text-sm rounded-lg hover:bg-orange-50 transition-colors">
                       Cấu Hình Workflow
                   </button>
               </div>

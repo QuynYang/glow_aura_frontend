@@ -118,12 +118,12 @@ export const AdminPromotionPage = () => {
                 <input 
                     type="text" 
                     placeholder="Tìm kiếm mã code..." 
-                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#F97316] focus:ring-1 focus:ring-[#F97316]"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#3D021E] focus:ring-1 focus:ring-[#3D021E]"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
-            <button className="flex items-center gap-2 px-6 py-2.5 bg-[#F97316] text-white rounded-lg text-sm font-bold hover:bg-orange-600 shadow-lg shadow-orange-100 transition-all whitespace-nowrap">
+            <button className="flex items-center gap-2 px-6 py-2.5 bg-[#3D021E] text-white rounded-lg text-sm font-bold hover:bg-orange-600 shadow-lg shadow-orange-100 transition-all whitespace-nowrap">
                 <Plus className="w-4 h-4" /> Thêm Mã Mới
             </button>
         </div>
@@ -147,7 +147,7 @@ export const AdminPromotionPage = () => {
                     onClick={() => setActiveTab(tab.id)}
                     className={`pb-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap
                         ${activeTab === tab.id 
-                            ? 'border-[#F97316] text-[#F97316]' 
+                            ? 'border-[#3D021E] text-[#3D021E]' 
                             : 'border-transparent text-gray-500 hover:text-gray-900'}
                     `}
                  >
@@ -177,7 +177,7 @@ export const AdminPromotionPage = () => {
                                  <td className="py-4 pl-4 border-t border-b border-l border-gray-100 rounded-l-xl">
                                      <div className="flex items-center gap-2">
                                          <span className="font-bold text-gray-900 text-base">{voucher.code}</span>
-                                         <button className="text-gray-400 hover:text-[#F97316]" title="Sao chép">
+                                         <button className="text-gray-400 hover:text-[#3D021E]" title="Sao chép">
                                              <Copy className="w-3.5 h-3.5" />
                                          </button>
                                      </div>
@@ -192,7 +192,7 @@ export const AdminPromotionPage = () => {
 
                                  {/* Value */}
                                  <td className="py-4 border-t border-b border-gray-100">
-                                     <span className="font-bold text-[#F97316] text-base">{voucher.value}</span>
+                                     <span className="font-bold text-[#3D021E] text-base">{voucher.value}</span>
                                  </td>
 
                                  {/* Usage Status (Progress Bar) */}
@@ -203,7 +203,7 @@ export const AdminPromotionPage = () => {
                                      </div>
                                      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                                          <div 
-                                            className={`h-full rounded-full ${voucher.limit === -1 ? 'bg-blue-300 w-full' : 'bg-[#F97316]'}`} 
+                                            className={`h-full rounded-full ${voucher.limit === -1 ? 'bg-blue-300 w-full' : 'bg-[#3D021E]'}`} 
                                             style={{ width: voucher.limit === -1 ? '100%' : `${(voucher.used / voucher.limit) * 100}%` }}
                                          ></div>
                                      </div>
@@ -217,7 +217,7 @@ export const AdminPromotionPage = () => {
                                  {/* Actions */}
                                  <td className="py-4 pr-4 border-t border-b border-r border-gray-100 rounded-r-xl text-right">
                                      <div className="flex items-center justify-end gap-2">
-                                         <button className="p-2 text-gray-400 hover:text-[#F97316] hover:bg-orange-50 rounded-lg transition-colors">
+                                         <button className="p-2 text-gray-400 hover:text-[#3D021E] hover:bg-orange-50 rounded-lg transition-colors">
                                              <Edit className="w-4 h-4" />
                                          </button>
                                          <button className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
@@ -243,7 +243,7 @@ export const AdminPromotionPage = () => {
              <span>Hiển thị {filteredVouchers.length} kết quả</span>
              <div className="flex items-center gap-2">
                  <button className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg hover:bg-gray-50"><ChevronLeft className="w-4 h-4" /></button>
-                 <button className="w-8 h-8 flex items-center justify-center bg-[#F97316] text-white font-bold rounded-lg shadow-md shadow-orange-200">1</button>
+                 <button className="w-8 h-8 flex items-center justify-center bg-[#3D021E] text-white font-bold rounded-lg shadow-md shadow-orange-200">1</button>
                  <button className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg hover:bg-gray-50">2</button>
                  <button className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg hover:bg-gray-50">3</button>
                  <button className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg hover:bg-gray-50"><ChevronRight className="w-4 h-4" /></button>
