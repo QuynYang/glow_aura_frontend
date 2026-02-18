@@ -183,7 +183,7 @@ export const AdminOrderPage = () => {
                              {/* CHECKBOX CHỌN TẤT CẢ */}
                              <input 
                                 type="checkbox" 
-                                className="rounded border-gray-300 text-[#FF3B30] focus:ring-[#FF3B30] w-4 h-4 cursor-pointer"
+                                className="rounded border-gray-300 text-[#3D021E] focus:ring-[#3D021E] w-4 h-4 cursor-pointer"
                                 checked={isAllSelected}
                                 onChange={handleSelectAll}
                              />
