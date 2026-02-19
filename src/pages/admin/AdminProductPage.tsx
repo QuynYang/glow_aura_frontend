@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import hook điều hướng
 import { 
   Plus, Search, Filter, Edit, Trash2, ChevronLeft, ChevronRight, 
 } from 'lucide-react';
@@ -12,7 +13,7 @@ const products = [
     name: "Son Kem Lì Aura Velvet",
     variant: "Màu Đỏ Gạch (01)",
     sku: "SKU-88219",
-    category: "Trang điểm", // Khớp với Tab
+    category: "Trang điểm", 
     price: 299000,
     stock: 82,
     maxStock: 100,
@@ -24,7 +25,7 @@ const products = [
     name: "Serum Vitamin C Glow",
     variant: "30ml - Bản Giới Hạn",
     sku: "SKU-44120",
-    category: "Chăm sóc da", // Khớp với Tab
+    category: "Chăm sóc da", 
     price: 1450000,
     stock: 4,
     maxStock: 50,
@@ -48,7 +49,7 @@ const products = [
     name: "Nước Hoa Rose Garden",
     variant: "50ml Spray",
     sku: "SKU-90921",
-    category: "Nước hoa", // Khớp với Tab
+    category: "Nước hoa", 
     price: 2500000,
     stock: 0,
     maxStock: 30,
@@ -78,10 +79,10 @@ const StatCard = ({ label, value, colorClass }: any) => (
 );
 
 export const AdminProductPage = () => {
-  // State quản lý Tab đang chọn
+  const navigate = useNavigate(); // Khởi tạo hàm điều hướng
+
+  // State quản lý Tab đang chọn và từ khóa tìm kiếm
   const [activeTab, setActiveTab] = useState('Tất cả');
-  
-  // State quản lý từ khóa tìm kiếm
   const [searchTerm, setSearchTerm] = useState('');
 
   // --- LOGIC LỌC SẢN PHẨM ---
@@ -94,11 +95,10 @@ export const AdminProductPage = () => {
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
         product.sku.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Trả về true nếu thỏa mãn CẢ HAI
     return matchesCategory && matchesSearch;
   });
 
-  // Hàm tính toán màu sắc thanh tiến trình
+  // Hàm tính toán màu sắc và chiều dài thanh tiến trình tồn kho
   const getStockBarColor = (current: number, max: number) => {
     if (current === 0) return 'bg-gray-200';
     if (current <= 10) return 'bg-red-500';
@@ -118,7 +118,12 @@ export const AdminProductPage = () => {
             <h1 className="text-2xl font-bold text-[#3D021E]">Quản Lý Kho Hàng</h1>
             <p className="text-sm text-gray-500 mt-1">Theo dõi mức tồn kho và quản lý danh mục sản phẩm của bạn.</p>
         </div>
-        <button className="flex items-center gap-2 px-6 py-3 bg-[#3D021E] text-white rounded-lg text-sm font-bold hover:bg-[#5a032d] shadow-lg shadow-purple-900/20 transition-all transform hover:-translate-y-1">
+        
+        {/* NÚT THÊM SẢN PHẨM: Đã gắn sự kiện onClick chuyển trang */}
+        <button 
+            onClick={() => navigate('/admin/products/add')}
+            className="flex items-center gap-2 px-6 py-3 bg-[#3D021E] text-white rounded-lg text-sm font-bold hover:bg-[#5a032d] shadow-lg shadow-purple-900/20 transition-all transform hover:-translate-y-1"
+        >
             <Plus className="w-5 h-5" /> Thêm Sản Phẩm Mới
         </button>
       </div>
@@ -141,8 +146,8 @@ export const AdminProductPage = () => {
                     type="text" 
                     placeholder="Tìm kiếm theo tên, SKU..." 
                     className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#3D021E] focus:ring-1 focus:ring-[#3D021E]"
-                    value={searchTerm} // Liên kết với state
-                    onChange={(e) => setSearchTerm(e.target.value)} // Cập nhật state khi gõ
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
             {/* Filter Button */}
@@ -184,7 +189,6 @@ export const AdminProductPage = () => {
                      </tr>
                  </thead>
                  <tbody className="divide-y divide-gray-100">
-                     {/* Render danh sách đã lọc */}
                      {filteredProducts.length > 0 ? (
                          filteredProducts.map((product) => (
                              <tr key={product.id} className="hover:bg-gray-50 transition-colors group">
@@ -261,7 +265,6 @@ export const AdminProductPage = () => {
          <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
              <span>Hiển thị {filteredProducts.length} kết quả</span>
              <div className="flex items-center gap-2">
-                 {/* ... Pagination Buttons ... */}
                  <button className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50"><ChevronLeft className="w-4 h-4" /></button>
                  <button className="w-8 h-8 flex items-center justify-center bg-[#3D021E] text-white font-bold rounded-lg">1</button>
                  <button className="p-2 hover:bg-gray-100 rounded-lg"><ChevronRight className="w-4 h-4" /></button>
