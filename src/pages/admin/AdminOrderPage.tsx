@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // 1. Import hook điều hướng
 import { 
   Plus, Download, Filter, ChevronLeft, ChevronRight, 
   MoreHorizontal, Calendar, Truck, DollarSign, Zap 
@@ -83,6 +84,8 @@ const StatCard = ({ title, value, subtext, icon: Icon, iconColor, trend }: any) 
 );
 
 export const AdminOrderPage = () => {
+  const navigate = useNavigate(); // 2. Khởi tạo navigate
+
   // State quản lý Tab đang chọn
   const [activeTab, setActiveTab] = useState('Tất cả đơn hàng');
   
@@ -103,11 +106,9 @@ export const AdminOrderPage = () => {
   // 2. LOGIC CHỌN TẤT CẢ (SELECT ALL)
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.checked) {
-          // Nếu tick vào: Lấy toàn bộ ID của danh sách ĐANG HIỂN THỊ (filteredOrders)
           const allIds = filteredOrders.map(order => order.id);
           setSelectedOrders(allIds);
       } else {
-          // Nếu bỏ tick: Xóa hết
           setSelectedOrders([]);
       }
   };
@@ -121,7 +122,7 @@ export const AdminOrderPage = () => {
       }
   };
 
-  // Kiểm tra xem có đang chọn tất cả không (để tick vào ô trên header)
+  // Kiểm tra xem có đang chọn tất cả không
   const isAllSelected = filteredOrders.length > 0 && selectedOrders.length === filteredOrders.length;
 
   return (
@@ -180,7 +181,6 @@ export const AdminOrderPage = () => {
                  <thead className="bg-gray-50 text-gray-500 uppercase tracking-wider text-xs font-bold">
                      <tr>
                          <th className="px-6 py-4 w-12">
-                             {/* CHECKBOX CHỌN TẤT CẢ */}
                              <input 
                                 type="checkbox" 
                                 className="rounded border-gray-300 text-[#3D021E] focus:ring-[#3D021E] w-4 h-4 cursor-pointer"
@@ -197,45 +197,51 @@ export const AdminOrderPage = () => {
                      </tr>
                  </thead>
                  <tbody className="divide-y divide-gray-100">
-                     {/* Duyệt qua filteredOrders thay vì orders gốc */}
                      {filteredOrders.length > 0 ? (
                          filteredOrders.map((order) => (
-                            <tr key={order.id} className={`hover:bg-gray-50 transition-colors group ${selectedOrders.includes(order.id) ? 'bg-red-50' : ''}`}>
-                                <td className="px-6 py-4">
-                                    {/* CHECKBOX CHỌN TỪNG DÒNG */}
-                                    <input 
-                                       type="checkbox" 
-                                       className="rounded border-gray-300 text-[#3D021E] focus:ring-[#3D021E] w-4 h-4 cursor-pointer"
-                                       checked={selectedOrders.includes(order.id)}
-                                       onChange={() => handleSelectRow(order.id)}
-                                    />
-                                </td>
-                                <td className="px-6 py-4 font-bold text-gray-900">{order.id}</td>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs">
-                                            {order.avatar}
-                                        </div>
-                                        <span className="font-medium text-gray-700">{order.customer}</span>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 text-gray-500">{order.date}</td>
-                                <td className="px-6 py-4">
-                                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase flex items-center gap-1 w-fit ${order.color}`}>
-                                        <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-                                        {order.status}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 text-right font-bold text-gray-900">
-                                    {order.total.toLocaleString('vi-VN')}đ
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                    <button className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors">
-                                        <MoreHorizontal className="w-4 h-4" />
-                                    </button>
-                                </td>
-                            </tr>
-                        ))
+                             // 3. THÊM SỰ KIỆN CHUYỂN TRANG VÀO <tr>
+                             <tr 
+                                key={order.id} 
+                                onClick={() => navigate(`/admin/orders/${order.id.replace('#', '')}`)}
+                                className={`hover:bg-gray-50 transition-colors group cursor-pointer ${selectedOrders.includes(order.id) ? 'bg-red-50' : ''}`}
+                             >
+                                 {/* 4. CHẶN SỰ KIỆN CLICK Ở CỘT CHECKBOX */}
+                                 <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                                     <input 
+                                        type="checkbox" 
+                                        className="rounded border-gray-300 text-[#3D021E] focus:ring-[#3D021E] w-4 h-4 cursor-pointer"
+                                        checked={selectedOrders.includes(order.id)}
+                                        onChange={() => handleSelectRow(order.id)}
+                                     />
+                                 </td>
+                                 <td className="px-6 py-4 font-bold text-[#E11D48] hover:underline">{order.id}</td>
+                                 <td className="px-6 py-4">
+                                     <div className="flex items-center gap-3">
+                                         <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs">
+                                             {order.avatar}
+                                         </div>
+                                         <span className="font-medium text-gray-700">{order.customer}</span>
+                                     </div>
+                                 </td>
+                                 <td className="px-6 py-4 text-gray-500">{order.date}</td>
+                                 <td className="px-6 py-4">
+                                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase flex items-center gap-1 w-fit ${order.color}`}>
+                                         <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                         {order.status}
+                                     </span>
+                                 </td>
+                                 <td className="px-6 py-4 text-right font-bold text-gray-900">
+                                     {order.total.toLocaleString('vi-VN')}đ
+                                 </td>
+                                 
+                                 {/* 5. CHẶN SỰ KIỆN CLICK Ở CỘT HÀNH ĐỘNG */}
+                                 <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                                     <button className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors">
+                                         <MoreHorizontal className="w-4 h-4" />
+                                     </button>
+                                 </td>
+                             </tr>
+                         ))
                      ) : (
                         <tr>
                             <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
@@ -250,8 +256,7 @@ export const AdminOrderPage = () => {
          {/* Footer Pagination */}
          <div className="p-4 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500">
              <span>Hiển thị {filteredOrders.length} kết quả</span>
-             {/* ...Pagination buttons (Giữ nguyên)... */}
-              <div className="flex items-center gap-2">
+             <div className="flex items-center gap-2">
                  <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"><ChevronLeft className="w-4 h-4" /></button>
                  <button className="w-8 h-8 flex items-center justify-center bg-[#3D021E] text-white font-bold rounded-lg shadow-md shadow-red-200">1</button>
                  <button className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg hover:bg-gray-50">2</button>
