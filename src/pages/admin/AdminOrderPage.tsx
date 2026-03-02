@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
 
+
 // --- 1. MOCK DATA (Dữ liệu đơn hàng) ---
 const orders = [
   {
@@ -138,9 +139,12 @@ export const AdminOrderPage = () => {
             <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
                 <Download className="w-4 h-4" /> Xuất CSV
             </button>
-            <button className="flex items-center gap-2 px-6 py-2 bg-[#3D021E] text-white rounded-lg text-sm font-bold hover:bg-red-600 shadow-lg shadow-red-100 transition-all">
-                <Plus className="w-4 h-4" /> Tạo Đơn Hàng Mới
-            </button>
+            <button 
+                    onClick={() => navigate('/admin/orders/create')} 
+                    className="flex items-center gap-2 px-4 py-2 bg-[#3D021E] text-white font-bold rounded-lg hover:bg-[#5a032d] shadow-md shadow-pink-200 transition-all text-sm"
+                 >
+                     <Plus className="w-4 h-4" /> Tạo đơn hàng mới
+                 </button>
         </div>
       </div>
 
