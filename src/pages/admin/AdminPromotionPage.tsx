@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // 1. Import useNavigate
 import { 
   Search, Plus, Ticket, ShoppingCart, Clock, 
   Copy, Edit, Trash2, ChevronLeft, ChevronRight, Sparkles 
@@ -86,13 +87,13 @@ const StatCard = ({ label, value, subtext, icon: Icon, colorClass }: any) => (
 );
 
 export const AdminPromotionPage = () => {
+  const navigate = useNavigate(); // 2. Khởi tạo navigate
   const [activeTab, setActiveTab] = useState('active');
   const [searchTerm, setSearchTerm] = useState('');
 
   // --- LOGIC LỌC & TÌM KIẾM ---
   const filteredVouchers = vouchers.filter(voucher => {
       // 1. Lọc theo Tab (Trạng thái)
-      // Lưu ý: Logic này giả lập, thực tế sẽ check ngày hết hạn hoặc trường status
       let matchesTab = true;
       if (activeTab === 'active') matchesTab = voucher.status === 'active';
       else if (activeTab === 'expired') matchesTab = voucher.status === 'expired';
@@ -123,7 +124,11 @@ export const AdminPromotionPage = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
-            <button className="flex items-center gap-2 px-6 py-2.5 bg-[#3D021E] text-white rounded-lg text-sm font-bold hover:bg-orange-600 shadow-lg shadow-orange-100 transition-all whitespace-nowrap">
+            {/* 3. Gắn sự kiện onClick vào nút Thêm Mã Mới */}
+            <button 
+                onClick={() => navigate('/admin/promotions/add')}
+                className="flex items-center gap-2 px-6 py-2.5 bg-[#3D021E] text-white rounded-lg text-sm font-bold hover:bg-orange-600 shadow-lg shadow-orange-100 transition-all whitespace-nowrap"
+            >
                 <Plus className="w-4 h-4" /> Thêm Mã Mới
             </button>
         </div>

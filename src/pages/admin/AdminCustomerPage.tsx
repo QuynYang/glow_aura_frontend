@@ -5,6 +5,7 @@ import {
   ChevronLeft, ChevronRight 
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
+import { useNavigate } from 'react-router-dom';
 
 // --- 1. MOCK DATA (Dữ liệu Khách hàng) ---
 const customers = [
@@ -79,6 +80,7 @@ const StatCard = ({ label, value, subValue, colorClass }: any) => (
 );
 
 export const AdminCustomerPage = () => {
+  const navigate = useNavigate(); // Khởi tạo hook điều hướng
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('Tất cả');
 
@@ -104,7 +106,11 @@ export const AdminCustomerPage = () => {
       <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold text-gray-900">Quản Lý Khách Hàng</h1>
-              <button className="flex items-center gap-2 px-6 py-2.5 bg-[#3D021E] text-white rounded-lg text-sm font-bold hover:bg-[#5a032d] transition-all shadow-lg shadow-purple-900/10">
+              {/* Đã thêm onClick để chuyển trang */}
+              <button 
+                  onClick={() => navigate('/admin/customers/add')}
+                  className="flex items-center gap-2 px-6 py-2.5 bg-[#3D021E] text-white rounded-lg text-sm font-bold hover:bg-[#5a032d] transition-all shadow-lg shadow-purple-900/10"
+              >
                   <UserPlus className="w-4 h-4" /> Thêm Khách Hàng
               </button>
           </div>

@@ -25,6 +25,8 @@ import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
 import { AdminAddProductPage } from './pages/admin/AdminAddProductPage';
 import { AdminOrderDetailPage } from './pages/admin/AdminOrderDetailPage';
 import { AdminCreateOrderPage } from './pages/admin/AdminCreateOrderPage';
+import { AdminAddCustomerPage } from './pages/admin/AdminAddCustomerPage';
+import { AdminAddPromotionPage } from './pages/admin/AdminAddPromotionPage';
 
 
 function App() {
@@ -56,6 +58,8 @@ function App() {
       <Route path="/admin/promotions" element={<AdminPromotionPage />} />
       <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
       <Route path="/admin/settings" element={<AdminSettingsPage />} />
+      <Route path="/admin/customers/add" element={<AdminAddCustomerPage />} />
+      <Route path="/admin/promotions/add" element={<AdminAddPromotionPage />} />
     </Routes>
   );
 }
