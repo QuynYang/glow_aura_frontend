@@ -27,7 +27,7 @@ import { AdminOrderDetailPage } from './pages/admin/AdminOrderDetailPage';
 import { AdminCreateOrderPage } from './pages/admin/AdminCreateOrderPage';
 import { AdminAddCustomerPage } from './pages/admin/AdminAddCustomerPage';
 import { AdminAddPromotionPage } from './pages/admin/AdminAddPromotionPage';
-
+import { SkinQuizPage } from './pages/SkinQuizPage';
 
 function App() {
   return (
@@ -49,6 +49,7 @@ function App() {
       <Route path="/mat-1" element={<EyesPage />} />
       <Route path="/sale" element={<FlashSalePage />} />
       <Route path="/da" element={<SkinCarePage />} />
+      <Route path="/skin-quiz" element={<SkinQuizPage />} />
       <Route path="/admin/products" element={<AdminProductPage />} />
       <Route path="/admin/products/add" element={<AdminAddProductPage />} />
       <Route path="/admin/orders" element={<AdminOrderPage />} />

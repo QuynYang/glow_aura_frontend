@@ -67,10 +67,10 @@ export const ProductInfo = () => {
       {/* Benefits (Các dòng hồng nhạt) */}
       <div className="bg-[#FFF0F5] p-4 space-y-3 rounded-sm">
         <div className="flex items-center gap-3 text-xs text-[#A41C4E] font-medium">
-            <Package className="w-4 h-4" /> Nhận ngay 2 mẫu thử miễn phí khi mua hàng trị giá $100
+            <Package className="w-4 h-4" /> Nhận ngay 2 mẫu thử miễn phí khi mua hàng trị giá 300.000 VNĐ
         </div>
         <div className="flex items-center gap-3 text-xs text-[#A41C4E] font-medium">
-            <Truck className="w-4 h-4" /> Nhận ngay 2 đô la khi trả lại 5 hộp đựng rỗng
+            <Truck className="w-4 h-4" /> Nhận ngay 50.000 VNĐ khi trả lại 5 hộp đựng rỗng
         </div>
         <div className="flex items-center gap-3 text-xs text-[#A41C4E] font-medium">
             <ShieldCheck className="w-4 h-4" /> Nhận tư vấn chuyên gia trực tiếp miễn phí tại các chi nhánh
