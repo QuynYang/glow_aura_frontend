@@ -65,10 +65,12 @@ export const CheckoutPage = () => {
         return;
     }
     setIsSubmitting(true);
+    
+    // Giả lập call API 1.5 giây rồi chuyển trang
     setTimeout(() => {
         setIsSubmitting(false);
-        alert("Đặt hàng thành công!");
-        navigate('/'); // Trở về trang chủ
+        // SỬA DÒNG NÀY:
+        navigate('/order-success'); 
     }, 1500);
   };
 

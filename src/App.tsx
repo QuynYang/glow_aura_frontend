@@ -32,6 +32,8 @@ import { SkinQuizTestPage } from './pages/SkinQuizTestPage';
 import { SkinQuizResultPage } from './pages/SkinQuizResultPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
+import { OrderSuccessPage } from './pages/OrderSuccessPage';
+import { OrderDetailPage } from './pages/OrderDetailPage';
 
 function App() {
   return (
@@ -48,6 +50,8 @@ function App() {
       <Route path="/profile/wishlist" element={<WishlistPage />} />
       <Route path="/profile/change-password" element={<ChangePasswordPage />} />
       <Route path="/profile/address" element={<AddressPage />} />
+      <Route path="/order-success" element={<OrderSuccessPage />} />
+      <Route path="/profile/orders/:id" element={<OrderDetailPage />} />
       <Route path="/cart" element={<CartPage />} />
       <Route path="/moi" element={<LipsPage />} />
       <Route path="/mat" element={<FacePage />} />

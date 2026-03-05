@@ -1,7 +1,8 @@
-import { useState } from 'react'; // 1. Import useState
+import { useState } from 'react';
 import { Filter, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { ProfileSidebar } from '../features/user/components/ProfileSidebar';
+import { useNavigate } from 'react-router-dom';
 
 // Dữ liệu mẫu (Giữ nguyên)
 const orders = [
@@ -16,11 +17,11 @@ const orders = [
 const FILTER_OPTIONS = ['Tất cả', 'Đã hoàn thành', 'Đang giao', 'Đang xử lý', 'Đã hủy'];
 
 export const OrderHistoryPage = () => {
-  // 2. State quản lý bộ lọc
+  const navigate = useNavigate(); // Khởi tạo hook useNavigate
   const [filterStatus, setFilterStatus] = useState('Tất cả');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // 3. Logic lọc đơn hàng
+  // Logic lọc đơn hàng
   const filteredOrders = filterStatus === 'Tất cả' 
     ? orders 
     : orders.filter(order => order.status === filterStatus);
@@ -112,12 +113,16 @@ export const OrderHistoryPage = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 font-bold text-gray-900">
-                                            {order.total.toLocaleString()}đ
+                                            {order.total.toLocaleString('vi-VN')}đ
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <a href="#" className="text-xs font-bold text-primary uppercase hover:underline tracking-wider">
+                                            {/* SỬA ĐỔI: Thay thế thẻ <a> bằng button và gọi hàm navigate */}
+                                            <button 
+                                                onClick={() => navigate(`/profile/orders/${order.id.replace('#', '')}`)}
+                                                className="text-xs font-bold text-[#3D021E] uppercase hover:underline tracking-wider"
+                                            >
                                                 Xem chi tiết
-                                            </a>
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
@@ -130,7 +135,7 @@ export const OrderHistoryPage = () => {
                             <p>Không tìm thấy đơn hàng nào có trạng thái "{filterStatus}"</p>
                             <button 
                                 onClick={() => setFilterStatus('Tất cả')}
-                                className="mt-4 text-primary font-bold hover:underline"
+                                className="mt-4 text-[#3D021E] font-bold hover:underline"
                             >
                                 Xóa bộ lọc
                             </button>
