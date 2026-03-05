@@ -32,7 +32,7 @@ const megaMenuData = {
 };
 
 const navItems = [
-  { label: "Mới", hasMegaMenu: false, path: "/" }, // Thêm thuộc tính path để dễ so sánh
+  { label: "Trang chủ", hasMegaMenu: false, path: "/" }, 
   { label: "BEST-SELLERS", hasMegaMenu: false, path: "/best-sellers" },
   { label: "MÔI", hasMegaMenu: false, path: "/moi" },
   { label: "MẶT", hasMegaMenu: false, path: "/mat" },

@@ -12,24 +12,54 @@ type QuizPhase = 'intro' | 'quiz' | 'analyzing' | 'result';
 
 const QUIZ_STEPS = [
   {
-    id: 'gender',
-    title: 'Giới tính của bạn là gì?',
-    options: ['Nữ', 'Nam', 'Không muốn tiết lộ']
+    id: '1',
+    title: 'Sau khi rửa mặt 30 phút, da bạn cảm thấy như thế nào?',
+    options: ['Bóng dầu, đặc biệt ở vùng T', 'Căng, khô, hơi khó chịu', 'Bình thường, thoải mái', 'Vùng T hơi dầu, má thì khô','Hơi đỏ, ngứa nhẹ']
   },
   {
-    id: 'age',
-    title: 'Độ tuổi của bạn?',
-    options: ['Dưới 20', '20 - 29', '30 - 39', '40 - 49', 'Trên 50']
+    id: '2',
+    title: 'Lỗ chân lông của bạn trông như thế nào?',
+    options: ['To, dễ thấy, đặc biệt ở mũi và má', 'Nhỏ, gần như không thấy', 'Vừa phải, cân đối', 'To ở vùng T, nhỏ ở má', 'Nhỏ nhưng hay bị đỏ xung quanh']
   },
   {
-    id: 'skinType',
-    title: 'Bạn thuộc loại da nào?',
-    options: ['Da khô', 'Da dầu', 'Da hỗn hợp', 'Da thường', 'Da nhạy cảm']
+    id: '3',
+    title: 'Bạn có thường xuyên bị mụn không?',
+    options: ['Có, thường xuyên bị mụn đầu đen, mụn ẩn', 'Hiếm khi, nhưng hay bị khô nứt', 'Rất ít, thỉnh thoảng 1-2 nốt', 'Có, chủ yếu ở vùng trán và mũi', 'Có, nhưng kèm theo đỏ, viêm']
   },
   {
-    id: 'concern',
-    title: 'Vấn đề da bạn quan tâm nhất?',
-    options: ['Mụn & Thâm', 'Lão hóa & Nếp nhăn', 'Sạm nám', 'Lỗ chân lông to', 'Thiếu ẩm']
+    id: '4',
+    title: 'Da bạn phản ứng thế nào với các sản phẩm skincare mới?',
+    options: ['Bình thường, không có vấn đề gì', 'Đôi khi bị khô hơn', 'Thường bị đỏ, ngứa, châm chích', 'Vùng má hay bị kích ứng hơn vùng T', 'Có thể bị nổi mụn nếu quá dầu']
+  },
+    {
+    id: '5',
+    title: 'Đến cuối ngày, da bạn trông như thế nào?',
+    options: ['Rất bóng dầu, makeup trôi', 'Căng, có thể bong tróc', 'Gần như buổi sáng, bình thường', 'Vùng T bóng, má vẫn ổn hoặc hơi khô', 'Có thể đỏ hơn, mệt mỏi']
+  },
+  {
+    id: '6',
+    title: 'Da bạn phản ứng thế nào với thời tiết thay đổi?',
+    options: ['Dầu hơn khi nóng, bình thường khi lạnh', 'Khô hơn, nứt nẻ khi lạnh', 'Không thay đổi nhiều', 'Thay đổi tùy vùng trên mặt', 'Dễ bị đỏ, kích ứng khi thời tiết khắc nghiệt']
+  },
+  {
+    id: '7',
+    title: 'Khi soi gương gần, bạn thấy gì?',
+    options: ['Lỗ chân lông to, mụn đầu đen', 'Vảy khô, nếp nhăn nhỏ', 'Da mịn, đều màu', 'Khác biệt giữa vùng T và má', 'Mạch máu nhỏ, vùng đỏ']
+  },
+  {
+    id: '8',
+    title: 'Bạn cần dùng bao nhiêu kem dưỡng ẩm?',
+    options: ['Rất ít hoặc không cần, sợ bóng dầu', 'Nhiều, vẫn cảm thấy thiếu ẩm', 'Lượng vừa phải là đủ', 'Nhiều cho má, ít cho vùng T', 'Cẩn thận chọn loại dịu nhẹ']
+  },
+  {
+    id: '9',
+    title: 'Kem chống nắng phù hợp với bạn là?',
+    options: ['Dạng gel, không dầu, kiềm dầu', 'Dạng cream, dưỡng ẩm cao', 'Bất kỳ loại nào cũng ổn', 'Kết hợp: nhẹ vùng T, dưỡng ẩm vùng má', 'Mineral/Physical, hypoallergenic']
+  },
+  {
+    id: '10',
+    title: 'Vấn đề da bạn lo lắng nhất là gì?',
+    options: ['Mụn, bóng dầu, lỗ chân lông to', 'Khô, nếp nhăn, thiếu độ đàn hồi', 'Duy trì làn da khỏe mạnh', 'Cân bằng các vùng da khác nhau', 'Kích ứng, đỏ, dị ứng']
   }
 ];
 
@@ -96,7 +126,7 @@ export const SkinQuizPage = () => {
                         Khám phá nhu cầu <br/> thực sự của làn da bạn
                     </h1>
                     <p className="text-gray-200 text-sm md:text-base mb-10 max-w-md leading-relaxed">
-                        Công nghệ phân tích da tiên tiến mang lại giải pháp cá nhân hóa hoàn hảo cho vẻ đẹp rạng rỡ của bạn từ bên trong.
+                        Công nghệ phân tích da bằng AI tiên tiến mang lại giải pháp cá nhân hóa hoàn hảo cho vẻ đẹp rạng rỡ của bạn từ bên trong.
                     </p>
                     <button 
                         onClick={() => setPhase('quiz')}
