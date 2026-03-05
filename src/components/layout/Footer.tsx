@@ -50,9 +50,10 @@ export const Footer = () => {
           <div>
             <h3 className="font-serif text-xl font-bold mb-6">Sản phẩm</h3>
             <ul className="space-y-3 text-sm text-gray-300">
-              <li><a href="#" className="hover:text-white transition-colors">Đồ trang điểm</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Đồ Skincare</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Gifts & Sets</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Môi</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Mặt</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Mắt</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Da</a></li>
             </ul>
           </div>
 

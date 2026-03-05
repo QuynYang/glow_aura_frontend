@@ -1,8 +1,9 @@
 import { Search, ShoppingCart, User } from 'lucide-react';
 import { useState } from 'react';
 import { SearchOverlay } from './SearchOverlay';
-import { Link, useLocation } from 'react-router-dom'; // 1. Import useLocation
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+
 
 // --- Dữ liệu Mega Menu (Giữ nguyên) ---
 const megaMenuData = {
@@ -45,8 +46,6 @@ const navItems = [
 export const Header = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { isAuthenticated, user } = useAuth();
-  
-  // 2. Lấy đường dẫn hiện tại
   const location = useLocation();
 
   const getUserLink = () => {
@@ -68,8 +67,6 @@ export const Header = () => {
             {/* Navigation Menu */}
             <nav className="hidden md:flex space-x-6 h-full items-center">
             {navItems.map((item) => {
-                // 3. Logic kiểm tra Active
-                // Active khi: đường dẫn hiện tại TRÙNG KHỚP với path của item
                 const isActive = location.pathname === item.path;
 
                 return (
@@ -80,22 +77,18 @@ export const Header = () => {
                         ${item.label === 'ALL' 
                             ? 'bg-accent text-white hover:bg-primary'
                             : isActive 
-                                ? 'text-primary font-bold' // Nếu Active thì đậm và màu chính
+                                ? 'text-primary font-bold'
                                 : 'text-gray-700 hover:text-primary group-hover:text-primary'
                         }`}
                     >
                         {item.label}
                         
-                        {/* 4. Logic Gạch chân (Underline) */}
+                        {/* Gạch chân (Underline) */}
                         {item.label !== 'ALL' && (
                             <span className={`absolute bottom-0 left-0 h-0.5 bg-primary transition-all duration-300
                                 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'} 
                             `}></span>
                         )}
-                        {/* Giải thích: 
-                            - isActive ? 'w-full' : Luôn hiển thị gạch chân nếu đang ở trang đó.
-                            - 'w-0 group-hover:w-full': Nếu không ở trang đó, thì ẩn đi, chỉ hiện khi hover.
-                        */}
                     </Link>
 
                     {/* Mega Menu Logic */}
@@ -151,12 +144,15 @@ export const Header = () => {
                     )}
                 </Link>
 
-                <div className="relative cursor-pointer">
-                    <ShoppingCart className="w-5 h-5 hover:text-primary transition-colors" />
-                    <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-                    0
+                {/* ===== ĐÃ SỬA: Link sang trang Giỏ hàng & Cập nhật số 1 ===== */}
+                <Link to="/cart" className="relative cursor-pointer group flex items-center">
+                    <div className="group-hover:bg-gray-50 rounded-full transition-colors p-1 -m-1">
+                        <ShoppingCart className="w-5 h-5 text-gray-800 group-hover:text-primary transition-colors" />
+                    </div>
+                    <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full transform group-hover:scale-110 transition-transform">
+                        1
                     </span>
-                </div>
+                </Link>
             </div>
         </div>
       </header>

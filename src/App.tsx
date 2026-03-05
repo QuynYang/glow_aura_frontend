@@ -27,7 +27,10 @@ import { AdminOrderDetailPage } from './pages/admin/AdminOrderDetailPage';
 import { AdminCreateOrderPage } from './pages/admin/AdminCreateOrderPage';
 import { AdminAddCustomerPage } from './pages/admin/AdminAddCustomerPage';
 import { AdminAddPromotionPage } from './pages/admin/AdminAddPromotionPage';
-import { SkinQuizPage } from './pages/SkinQuizPage';
+import { SkinQuizIntroPage } from './pages/SkinQuizIntroPage';
+import { SkinQuizTestPage } from './pages/SkinQuizTestPage';
+import { SkinQuizResultPage } from './pages/SkinQuizResultPage';
+import { CartPage } from './pages/CartPage';
 
 function App() {
   return (
@@ -44,12 +47,15 @@ function App() {
       <Route path="/profile/wishlist" element={<WishlistPage />} />
       <Route path="/profile/change-password" element={<ChangePasswordPage />} />
       <Route path="/profile/address" element={<AddressPage />} />
+      <Route path="/cart" element={<CartPage />} />
       <Route path="/moi" element={<LipsPage />} />
       <Route path="/mat" element={<FacePage />} />
       <Route path="/mat-1" element={<EyesPage />} />
       <Route path="/sale" element={<FlashSalePage />} />
       <Route path="/da" element={<SkinCarePage />} />
-      <Route path="/skin-quiz" element={<SkinQuizPage />} />
+      <Route path="/skin-quiz" element={<SkinQuizIntroPage />} />
+      <Route path="/skin-quiz/test" element={<SkinQuizTestPage />} />
+      <Route path="/skin-quiz/result" element={<SkinQuizResultPage />} />
       <Route path="/admin/products" element={<AdminProductPage />} />
       <Route path="/admin/products/add" element={<AdminAddProductPage />} />
       <Route path="/admin/orders" element={<AdminOrderPage />} />
