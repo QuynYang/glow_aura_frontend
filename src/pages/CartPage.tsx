@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, Minus, Plus, ShieldCheck, Truck } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
+import { useNavigate } from 'react-router-dom';
 
 // --- MOCK DATA ---
 const MOCK_CART_ITEMS = [
@@ -64,6 +65,7 @@ const formatVND = (amount: number) => {
 export const CartPage = () => {
   const [cartItems, setCartItems] = useState(MOCK_CART_ITEMS);
   const [promoCode, setPromoCode] = useState('');
+  const navigate = useNavigate();
 
   // --- LOGIC GIỎ HÀNG ---
   const handleUpdateQuantity = (id: number, delta: number) => {
@@ -210,9 +212,12 @@ export const CartPage = () => {
                   </div>
 
                   {/* Nút Thanh Toán */}
-                  <button className="w-full bg-[#3D021E] text-white py-4 rounded-2xl font-bold text-sm tracking-widest uppercase hover:bg-[#5a032d] transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
-                    Tiến hành thanh toán
-                  </button>
+                                    <button 
+                        onClick={() => navigate('/checkout')} 
+                        className="w-full bg-[#3D021E] text-white py-4 rounded-2xl font-bold text-sm tracking-widest uppercase hover:bg-[#5a032d] transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                    >
+                        Tiến hành thanh toán
+                    </button>
 
                   {/* Icon Payment Methods */}
                   <div className="flex justify-center items-center gap-2 mt-6 opacity-40">

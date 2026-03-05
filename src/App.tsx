@@ -31,6 +31,7 @@ import { SkinQuizIntroPage } from './pages/SkinQuizIntroPage';
 import { SkinQuizTestPage } from './pages/SkinQuizTestPage';
 import { SkinQuizResultPage } from './pages/SkinQuizResultPage';
 import { CartPage } from './pages/CartPage';
+import { CheckoutPage } from './pages/CheckoutPage';
 
 function App() {
   return (
@@ -53,6 +54,7 @@ function App() {
       <Route path="/mat-1" element={<EyesPage />} />
       <Route path="/sale" element={<FlashSalePage />} />
       <Route path="/da" element={<SkinCarePage />} />
+      <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/skin-quiz" element={<SkinQuizIntroPage />} />
       <Route path="/skin-quiz/test" element={<SkinQuizTestPage />} />
       <Route path="/skin-quiz/result" element={<SkinQuizResultPage />} />
