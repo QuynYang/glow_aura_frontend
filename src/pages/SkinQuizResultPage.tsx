@@ -1,9 +1,23 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // Thêm import Link ở đây
 import { 
   CheckCircle2, RotateCcw, BarChart2, 
   Lightbulb, Sparkles, ArrowRight
 } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
+
+// Mock data đã được bổ sung thêm trường 'id' để làm đường dẫn (URL)
+const SIDEBAR_PRODUCTS = [
+    { id: '101', name: "2% BHA Liquid Exfoliant", brand: "PAULA'S CHOICE", price: "890k", oldPrice: "940k", img: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=150" },
+    { id: '102', name: "Niacinamide 10% + Zinc 1%", brand: "THE ORDINARY", price: "215k", oldPrice: "320k", img: "https://images.unsplash.com/photo-1608248597279-f99d160bfbc8?q=80&w=150" },
+    { id: '103', name: "Foaming Facial Cleanser", brand: "CERAVE", price: "385k", oldPrice: "450k", img: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=150" },
+];
+
+const BOTTOM_PRODUCTS = [
+    { id: '201', name: "Kem Chống Nắng Kiềm Dầu", price: "450.000đ", img: "https://images.unsplash.com/photo-1556228720-1987bb7b0033?q=80&w=300" },
+    { id: '202', name: "Gel Dưỡng Cấp Nước", price: "320.000đ", img: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?q=80&w=300" },
+    { id: '203', name: "Mặt Nạ Đất Sét Hút Dầu", price: "290.000đ", img: "https://images.unsplash.com/photo-1620917670397-a3313437ef1a?q=80&w=300" },
+    { id: '204', name: "Toner Cân Bằng Độ pH", price: "540.000đ", img: "https://images.unsplash.com/photo-1601049676869-702ea24cfd58?q=80&w=300" },
+];
 
 export const SkinQuizResultPage = () => {
   const navigate = useNavigate();
@@ -150,24 +164,21 @@ export const SkinQuizResultPage = () => {
                         <p className="text-sm text-white/70 mb-8 relative z-10 leading-relaxed">
                             Đã áp dụng tự động cho 15 sản phẩm phù hợp với làn da của bạn.
                         </p>
-                        <button className="w-full bg-white text-[#3D021E] font-bold py-4 rounded-xl hover:bg-gray-100 transition-colors shadow-lg relative z-10">
+                        <Link to="/products" className="w-full bg-white text-[#3D021E] font-bold py-4 rounded-xl hover:bg-gray-100 transition-colors shadow-lg relative z-10 block text-center">
                             Mua sắm ngay
-                        </button>
+                        </Link>
                         <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-pink-500 opacity-20 rounded-full blur-3xl"></div>
                     </div>
 
-                    {/* Dành riêng cho bạn */}
+                    {/* === SỬA ĐỔI: Thẻ Dành riêng cho bạn bọc trong Link === */}
                     <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm">
                         <h3 className="font-bold text-[#3D021E] text-lg mb-6">Dành riêng cho bạn</h3>
                         <div className="space-y-6">
-                            {[
-                                { name: "2% BHA Liquid Exfoliant", brand: "PAULA'S CHOICE", price: "890k", oldPrice: "940k", img: "https://paulaschoice.sg/cdn/shop/products/SKU2010_Lifestyle_1080x.png" },
-                                { name: "Niacinamide 10% + Zinc 1%", brand: "THE ORDINARY", price: "215k", oldPrice: "320k", img: "https://images.unsplash.com/photo-1608248597279-f99d160bfbc8?q=80&w=150" },
-                                { name: "Foaming Facial Cleanser", brand: "CERAVE", price: "385k", oldPrice: "450k", img: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=150" },
-                            ].map((item, i) => (
-                                <div key={i} className="flex items-center gap-4 group cursor-pointer">
+                            {SIDEBAR_PRODUCTS.map((item) => (
+                                // Sử dụng thẻ Link thay vì div, truyền ID sản phẩm vào URL
+                                <Link to={`/product/${item.id}`} key={item.id} className="flex items-center gap-4 group cursor-pointer block">
                                     <div className="w-16 h-16 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100">
-                                        <img src={item.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform" alt="sp" />
+                                        <img src={item.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform" alt={item.name} />
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">{item.brand}</p>
@@ -180,7 +191,7 @@ export const SkinQuizResultPage = () => {
                                             <span className="text-xs font-bold text-gray-800 flex items-center gap-1 group-hover:text-[#3D021E] transition-colors">Mua ngay <ArrowRight className="w-3 h-3"/></span>
                                         </div>
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     </div>
@@ -188,27 +199,23 @@ export const SkinQuizResultPage = () => {
                 </div>
             </div>
 
-            {/* === BOTTOM: Bộ sản phẩm khuyên dùng === */}
+            {/* === SỬA ĐỔI: Bộ sản phẩm khuyên dùng bọc trong Link === */}
             <div className="border-t border-gray-200 pt-16">
                 <div className="flex justify-between items-end mb-10">
                     <h2 className="text-3xl font-serif font-bold text-[#3D021E]">Bộ sản phẩm khuyên dùng</h2>
-                    <a href="#" className="text-sm font-bold text-gray-500 hover:text-[#3D021E] underline underline-offset-4 transition-colors">Xem tất cả sản phẩm</a>
+                    <Link to="/products" className="text-sm font-bold text-gray-500 hover:text-[#3D021E] underline underline-offset-4 transition-colors">Xem tất cả sản phẩm</Link>
                 </div>
                 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    {[
-                        { name: "Kem Chống Nắng Kiềm Dầu", price: "450.000đ", img: "https://images.unsplash.com/photo-1556228720-1987bb7b0033?q=80&w=300" },
-                        { name: "Gel Dưỡng Cấp Nước", price: "320.000đ", img: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?q=80&w=300" },
-                        { name: "Mặt Nạ Đất Sét Hút Dầu", price: "290.000đ", img: "https://images.unsplash.com/photo-1620917670397-a3313437ef1a?q=80&w=300" },
-                        { name: "Toner Cân Bằng Độ pH", price: "540.000đ", img: "https://images.unsplash.com/photo-1601049676869-702ea24cfd58?q=80&w=300" },
-                    ].map((item, i) => (
-                        <div key={i} className="bg-white border border-gray-100 rounded-[2rem] p-5 hover:shadow-xl transition-all duration-300 cursor-pointer group">
+                    {BOTTOM_PRODUCTS.map((item) => (
+                        // Sử dụng thẻ Link
+                        <Link to={`/product/${item.id}`} key={item.id} className="bg-white border border-gray-100 rounded-[2rem] p-5 hover:shadow-xl transition-all duration-300 cursor-pointer group block">
                             <div className="aspect-square bg-gray-50 rounded-2xl mb-5 overflow-hidden border border-gray-100">
-                                <img src={item.img} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Product" />
+                                <img src={item.img} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={item.name} />
                             </div>
                             <h3 className="font-bold text-sm text-gray-900 mb-2 text-center group-hover:text-[#3D021E] transition-colors">{item.name}</h3>
                             <p className="text-[#3D021E] font-bold text-center">{item.price}</p>
-                        </div>
+                        </Link>
                     ))}
                 </div>
             </div>
