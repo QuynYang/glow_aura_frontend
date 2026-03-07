@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '../../components/ui/Button'; // Import Button gốc của bạn
+import { Button } from '@/components/ui/Button'; // Import Button gốc của bạn
 
 // 1. Data chứa 3 slide, hỗ trợ thẻ <br/> trong Title để xuống dòng chuẩn như code gốc
 const BANNERS = [
@@ -13,14 +13,14 @@ const BANNERS = [
   },
   {
     id: 2,
-    image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1920",
+    image: "https://cdn.shopify.com/s/files/1/0410/9608/5665/t/3/assets/pf-cee320f0--Blog-Creative-1_800x450.jpg?v=1603789844&resized",
     title: <>Dưỡng da chuyên sâu <br className="hidden md:block" /> với AI cá nhân hóa</>,
     btnText: "Khám phá ngay",
     link: "/skin-quiz"
   },
   {
     id: 3,
-    image: "https://images.unsplash.com/photo-1556228720-1987bb7b0033?q=80&w=1920",
+    image: "https://img.freepik.com/free-photo/beauty-concept-beautiful-woman-with-clean-fresh-skin-close-up-pink-studio-skin-care-face-cosmetology_1258-98844.jpg?semt=ais_rp_progressive&w=740&q=80",
     title: <>Tỏa sáng rạng ngời <br className="hidden md:block" /> cùng Glow Aura</>,
     btnText: "Mua sắm ưu đãi",
     link: "/sale"
