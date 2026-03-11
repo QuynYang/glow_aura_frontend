@@ -1,4 +1,7 @@
+import { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
+import apiClient from './services/apiClient';
+
 import { HomePage } from './pages/HomePage';
 import { ProductListPage } from './pages/ProductListPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
@@ -36,6 +39,25 @@ import { OrderSuccessPage } from './pages/OrderSuccessPage';
 import { OrderDetailPage } from './pages/OrderDetailPage';
 
 function App() {
+
+  // ==========================================
+  // TEST KẾT NỐI API TỪ BACKEND
+  // ==========================================
+  useEffect(() => {
+    const testConnection = async () => {
+      try {
+        console.log("Đang gọi API lấy danh sách sản phẩm...");
+        const response = await apiClient.get('/products'); 
+        console.log("🎉 Thành công! Dữ liệu từ Backend:", response.data);
+      } catch (error) {
+        console.error("❌ Lỗi gọi API:", error);
+      }
+    };
+
+    testConnection();
+  }, []);
+  // ==========================================
+
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />

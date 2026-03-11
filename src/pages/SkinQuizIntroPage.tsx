@@ -10,7 +10,7 @@ export const SkinQuizIntroPage = () => {
       <div className="font-sans min-h-screen bg-white">
         
         {/* ========================================== */}
-        {/* 1. HERO BANNER (Giống ảnh image_4ed9aa.png) */}
+        {/* 1. HERO BANNER  */}
         {/* ========================================== */}
         <div className="max-w-[1200px] mx-auto px-4 pt-10 mb-20">
           <div className="bg-[#3D021E] rounded-[2.5rem] relative overflow-hidden flex min-h-[500px] shadow-lg">
@@ -37,7 +37,7 @@ export const SkinQuizIntroPage = () => {
                 </h1>
                 
                 <p className="text-white/80 text-sm md:text-base mb-10 max-w-md leading-relaxed font-light">
-                    Công nghệ phân tích da tiên tiến mang lại giải pháp cá nhân hóa hoàn hảo cho vẻ đẹp rạng rỡ của bạn từ bên trong.
+                    Công nghệ phân tích da bằng AI tiên tiến mang lại giải pháp cá nhân hóa hoàn hảo cho vẻ đẹp rạng rỡ của bạn từ bên trong.
                 </p>
                 
                 <button 
@@ -51,7 +51,7 @@ export const SkinQuizIntroPage = () => {
         </div>
 
         {/* ========================================== */}
-        {/* 2. LỢI ÍCH ĐỘC QUYỀN (Giống ảnh image_0b1dd4.png) */}
+        {/* 2. LỢI ÍCH ĐỘC QUYỀN  */}
         {/* ========================================== */}
         <div className="max-w-[1100px] mx-auto px-4 mb-24">
           <div className="text-center mb-12">
@@ -65,28 +65,28 @@ export const SkinQuizIntroPage = () => {
                   { icon: CheckSquare, title: 'Lộ trình 4 bước cá nhân', desc: 'Quy trình chăm sóc chuyên biệt được thiết kế riêng cho từng vấn đề của bạn.' },
                   { icon: Tag, title: 'Ưu đãi đặc quyền', desc: 'Giảm ngay 5% cho tất cả các sản phẩm được đề xuất trong lộ trình cá nhân.' },
               ].map((item, idx) => (
-                  <div key={idx} className="bg-white p-10 md:p-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-50 flex flex-col items-center text-center hover:-translate-y-1 transition-transform duration-300">
-                      <div className="w-14 h-14 bg-pink-50/50 rounded-2xl flex items-center justify-center mb-6 text-[#3D021E]">
+                  <div key={idx} className="bg-[#3D021E] p-10 md:p-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-50 flex flex-col items-center text-center hover:-translate-y-1 transition-transform duration-300">
+                      <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 text-[#3D021E]">
                           <item.icon className="w-6 h-6 stroke-[1.5]" />
                       </div>
-                      <h3 className="font-bold text-gray-900 mb-3 text-lg">{item.title}</h3>
-                      <p className="text-sm text-gray-500 leading-relaxed px-2">{item.desc}</p>
+                      <h3 className="font-bold text-white mb-3 text-lg">{item.title}</h3>
+                      <p className="text-sm text-gray-200 leading-relaxed px-2">{item.desc}</p>
                   </div>
               ))}
           </div>
         </div>
 
         {/* ========================================== */}
-        {/* 3. QUY TRÌNH THỰC HIỆN (Giống ảnh image_4ed6a2.png) */}
+        {/* 3. QUY TRÌNH THỰC HIỆN */}
         {/* ========================================== */}
-        <div className="w-full bg-[#FDFBFB] py-24 px-4 border-y border-gray-100">
+        <div className="w-full bg-[#3D021E] py-24 px-4 border-y border-gray-100">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl font-serif font-bold text-[#3D021E] mb-3">Quy trình thực hiện</h2>
-            <p className="text-sm text-gray-600 mb-20 font-medium">Đơn giản, khoa học và hoàn toàn miễn phí</p>
+            <h2 className="text-3xl font-serif font-bold text-white mb-3">Quy trình thực hiện</h2>
+            <p className="text-sm text-gray-200 mb-20 font-medium">Đơn giản, khoa học và hoàn toàn miễn phí</p>
 
             <div className="relative">
                 {/* Đường kẻ ngang mảnh */}
-                <div className="hidden md:block absolute top-7 left-[15%] right-[15%] h-[1px] bg-gray-300 z-0"></div>
+                <div className="hidden md:block absolute top-7 left-[15%] right-[15%] h-[2px] bg-white z-0"></div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative z-10">
                     {[
@@ -94,12 +94,12 @@ export const SkinQuizIntroPage = () => {
                         { step: '2', title: 'Phân tích AI', desc: 'Hệ thống AI đối chiếu dữ liệu với hàng nghìn tình trạng da tương đồng.' },
                         { step: '3', title: 'Nhận phác đồ', desc: 'Sở hữu lộ trình dưỡng da chuyên biệt cùng bộ sản phẩm phù hợp nhất.' },
                     ].map((item) => (
-                        <div key={item.step} className="flex flex-col items-center bg-[#FDFBFB]">
+                        <div key={item.step} className="flex flex-col items-center bg-[#3D021E]">
                             <div className="w-14 h-14 rounded-full bg-[#3D021E] text-white flex items-center justify-center font-bold text-lg mb-6 shadow-md ring-[10px] ring-[#FDFBFB]">
                                 {item.step}
                             </div>
-                            <h3 className="font-bold text-gray-900 mb-3">{item.title}</h3>
-                            <p className="text-sm text-gray-500 leading-relaxed px-4">{item.desc}</p>
+                            <h3 className="font-bold text-gray-100 mb-3">{item.title}</h3>
+                            <p className="text-sm text-gray-200 leading-relaxed px-4">{item.desc}</p>
                         </div>
                     ))}
                 </div>
