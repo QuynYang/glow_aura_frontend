@@ -27,7 +27,20 @@ export const LoginPage = () => {
     try {
         // GỌI API ĐĂNG NHẬP THẬT TỪ BACKEND
         const data = await authService.login(email, password);
-// Kiểm tra role trả về từ user object
+
+        // --- BẮT ĐẦU ĐOẠN THÊM MỚI ---
+        // 1. Lấy token thật từ API (theo đúng cấu trúc JSON bạn chụp) và cất vào localStorage
+        if (data.token && data.token.accessToken) {
+            localStorage.setItem('accessToken', data.token.accessToken);
+        }
+        
+        // 2. Cất luôn thông tin user thật để AuthContext và Header đọc được
+        if (data.user) {
+            localStorage.setItem('glow_user', JSON.stringify(data.user));
+        }
+        // --- KẾT THÚC ĐOẠN THÊM MỚI ---
+
+        // Kiểm tra role trả về từ user object
         if (data.user?.role === 'Admin') {
             alert('Chào mừng Quản trị viên!');
             navigate('/admin');

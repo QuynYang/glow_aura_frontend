@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 import { SearchOverlay } from './SearchOverlay';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService'; // Import authService thật
+import { useCart } from '../../context/CartContext';
+
 
 // --- Dữ liệu Mega Menu (Giữ nguyên) ---
 const megaMenuData = {
@@ -43,6 +45,7 @@ const navItems = [
 ];
 
 export const Header = () => {
+  const { totalItems } = useCart();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false); // Quản lý trạng thái mở menu user
   
@@ -155,7 +158,7 @@ export const Header = () => {
                     onClick={() => setIsSearchOpen(true)}
                 />
 
-                {/* ===== KHU VỰC ĐÃ SỬA: User Menu Dropdown ===== */}
+                {/* User Menu Dropdown ===== */}
                 <div className="relative" ref={menuRef}>
                     <div 
                         className="cursor-pointer flex items-center relative"
@@ -217,13 +220,17 @@ export const Header = () => {
                 {/* ============================================== */}
 
                 <Link to="/cart" className="relative cursor-pointer group flex items-center">
-                    <div className="group-hover:bg-gray-50 rounded-full transition-colors p-1 -m-1">
-                        <ShoppingCart className="w-5 h-5 text-gray-800 group-hover:text-primary transition-colors" />
-                    </div>
-                    <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full transform group-hover:scale-110 transition-transform">
-                        1
-                    </span>
-                </Link>
+        <div className="group-hover:bg-gray-50 rounded-full transition-colors p-1 -m-1">
+            <ShoppingCart className="w-5 h-5 text-gray-800 group-hover:text-primary transition-colors" />
+        </div>
+        
+        {/* CHỈ hiển thị chấm đỏ nếu có hàng trong giỏ, và in ra số totalItems */}
+        {totalItems > 0 && (
+            <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full transform group-hover:scale-110 transition-transform">
+                {totalItems}
+            </span>
+        )}
+    </Link>
             </div>
         </div>
       </header>

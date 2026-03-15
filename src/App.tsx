@@ -37,6 +37,9 @@ import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
 import { OrderDetailPage } from './pages/OrderDetailPage';
+import { CartProvider } from './context/CartContext';
+
+
 
 function App() {
 

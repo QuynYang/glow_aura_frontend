@@ -1,14 +1,14 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-// 1. Định nghĩa kiểu dữ liệu User
+// Định nghĩa kiểu dữ liệu User
 interface User {
   email: string;
-  role: 'admin' | 'customer';
+  role: 'admin' | 'customer' | 'Admin' | 'User';
   name: string;
+  fullName?: string;
 }
 
-// 2. Định nghĩa Context
+// Định nghĩa Context
 interface AuthContextType {
   user: User | null;
   login: (email: string) => void;
@@ -18,8 +18,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// 3. Tạo Provider
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
   // Khi web vừa tải, kiểm tra xem trong kho (localStorage) có user chưa
@@ -34,21 +34,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = (email: string) => {
     let userData: User;
 
-    // Giả lập logic check role từ Server
     if (email === 'admin@glowaura.com') {
       userData = { email, role: 'admin', name: 'Admin User' };
     } else {
-      userData = { email, role: 'customer', name: 'Nguyễn Văn A' }; // Giả lập tên
+      userData = { email, role: 'customer', name: 'Nguyễn Văn A' }; 
     }
 
     setUser(userData);
-    localStorage.setItem('glow_user', JSON.stringify(userData)); // Lưu vào ổ cứng trình duyệt
+    localStorage.setItem('glow_user', JSON.stringify(userData)); 
   };
 
   // Hàm Đăng xuất
   const logout = () => {
     setUser(null);
     localStorage.removeItem('glow_user');
+    localStorage.removeItem('accessToken');
   };
 
   return (
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// 4. Hook để các component khác dễ dàng gọi
+// Hook để các component khác dễ dàng gọi
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error('useAuth must be used within an AuthProvider');

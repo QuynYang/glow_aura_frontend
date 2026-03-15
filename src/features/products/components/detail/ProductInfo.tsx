@@ -1,6 +1,8 @@
 import { useState } from 'react'; 
-import { MapPin, Package, Truck, ShieldCheck, Heart } from 'lucide-react'; 
+import { ShoppingCart, MapPin, Package, Truck, ShieldCheck, Heart } from 'lucide-react'; 
 import { Button } from '../../../../components/ui/Button';
+import { useCart } from '../../../../context/CartContext';
+
 
 // 1. Khai báo cổng nhận dữ liệu product
 interface ProductInfoProps {
@@ -9,7 +11,7 @@ interface ProductInfoProps {
 
 export const ProductInfo = ({ product }: ProductInfoProps) => {
   const [isWishlist, setIsWishlist] = useState(false);
-
+    const { addToCart } = useCart();
   // Xử lý an toàn: Nếu Backend chưa có mảng tags hoặc sizes, ta dùng mảng mặc định để UI không vỡ
   const tags = product.tags || ['Mới', 'Bán chạy'];
   const sizes = product.sizes || ['Tiêu chuẩn'];
@@ -53,10 +55,13 @@ export const ProductInfo = ({ product }: ProductInfoProps) => {
 
       {/* Action Buttons */}
       <div className="flex gap-4">
-        <Button className="flex-1 py-4 text-sm font-bold bg-[#A41C4E] hover:bg-[#8a1640]">
-            <MapPin className="w-4 h-4 mr-2" />
-            Kiểm tra kho hàng tại các chi nhánh
-        </Button>
+        <Button 
+        onClick={() => addToCart(product, 1)} // Gọi hàm thêm 1 sản phẩm
+        className="flex-1 py-4 text-sm font-bold bg-[#A41C4E] hover:bg-[#8a1640]"
+      >
+          <ShoppingCart className="w-4 h-4 mr-2" />
+          Thêm vào giỏ hàng
+      </Button>
 
         <button 
             onClick={() => setIsWishlist(!isWishlist)}
