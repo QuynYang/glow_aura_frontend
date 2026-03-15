@@ -1,9 +1,8 @@
-import { Search, ShoppingCart, User } from 'lucide-react';
-import { useState } from 'react';
+import { Search, ShoppingCart, User, LogOut, LayoutDashboard, UserCircle } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import { SearchOverlay } from './SearchOverlay';
-import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { authService } from '../../services/authService'; // Import authService thật
 
 // --- Dữ liệu Mega Menu (Giữ nguyên) ---
 const megaMenuData = {
@@ -36,22 +35,41 @@ const navItems = [
   { label: "Trang chủ", hasMegaMenu: false, path: "/" }, 
   { label: "BEST-SELLERS", hasMegaMenu: false, path: "/best-sellers" },
   { label: "MÔI", hasMegaMenu: false, path: "/moi" },
-  { label: "MẶT", hasMegaMenu: false, path: "/mat" },
+  { label: "TRANG ĐIỂM", hasMegaMenu: false, path: "/mat" },
   { label: "MẮT", hasMegaMenu: false, path: "/mat-1" },
-  { label: "DA", hasMegaMenu: false, path: "/da" },
+  { label: "DƯỠNG DA", hasMegaMenu: false, path: "/da" },
   { label: "ALL", hasMegaMenu: true, path: "/all" }, 
   { label: "ĐANG SALE SỐC", hasMegaMenu: false, path: "/sale" }
 ];
 
 export const Header = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { isAuthenticated, user } = useAuth();
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false); // Quản lý trạng thái mở menu user
+  
   const location = useLocation();
+  const navigate = useNavigate();
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const getUserLink = () => {
-    if (!isAuthenticated) return '/login';
-    if (user?.role === 'admin') return '/admin';
-    return '/profile';
+  // Lấy thông tin user trực tiếp từ localStorage thông qua authService
+  const user = authService.getCurrentUser();
+  const isAuthenticated = !!user;
+
+  // Xử lý click ra ngoài để đóng Dropdown menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Xử lý Đăng xuất
+  const handleLogout = () => {
+    authService.logout(); // Xóa token
+    setIsUserMenuOpen(false); // Đóng menu
+    navigate('/login'); // Đẩy về trang đăng nhập
   };
 
   return (
@@ -91,7 +109,7 @@ export const Header = () => {
                         )}
                     </Link>
 
-                    {/* Mega Menu Logic */}
+                    {/* Mega Menu Logic (Giữ nguyên) */}
                     {item.hasMegaMenu && (
                         <div className="absolute left-0 top-full w-full bg-white shadow-xl border-t border-gray-100 hidden group-hover:block transition-all duration-300 z-50 animate-in fade-in slide-in-from-top-2">
                         <div className="container mx-auto px-4 py-8">
@@ -137,14 +155,67 @@ export const Header = () => {
                     onClick={() => setIsSearchOpen(true)}
                 />
 
-                <Link to={getUserLink()} className="relative">
-                    <User className={`w-5 h-5 cursor-pointer transition-colors ${isAuthenticated ? 'text-primary' : 'hover:text-primary'}`} />
-                    {isAuthenticated && (
-                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full border border-white"></span>
-                    )}
-                </Link>
+                {/* ===== KHU VỰC ĐÃ SỬA: User Menu Dropdown ===== */}
+                <div className="relative" ref={menuRef}>
+                    <div 
+                        className="cursor-pointer flex items-center relative"
+                        onClick={() => {
+                            if (!isAuthenticated) navigate('/login');
+                            else setIsUserMenuOpen(!isUserMenuOpen);
+                        }}
+                    >
+                        <User className={`w-5 h-5 transition-colors ${isAuthenticated ? 'text-primary' : 'hover:text-primary'}`} />
+                        {isAuthenticated && (
+                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full border border-white"></span>
+                        )}
+                    </div>
 
-                {/* ===== ĐÃ SỬA: Link sang trang Giỏ hàng & Cập nhật số 1 ===== */}
+                    {/* Menu Dropdown hiện ra khi bấm vào icon (Nếu đã đăng nhập) */}
+                    {isAuthenticated && isUserMenuOpen && (
+                        <div className="absolute right-0 mt-4 w-56 bg-white shadow-xl border border-gray-100 rounded-md py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                            {/* Hiển thị tên User */}
+                            <div className="px-4 py-3 border-b border-gray-100">
+                                <p className="text-sm font-bold text-gray-800 truncate">{user.fullName || user.email || 'Khách hàng'}</p>
+                                <p className="text-xs text-primary font-medium mt-1 uppercase">{user.role || 'User'}</p>
+                            </div>
+
+                            <div className="py-2">
+                                {/* Nếu là Admin thì hiện thêm nút đi tới Trang Quản Trị */}
+                                {user.role === 'Admin' && (
+                                    <Link 
+                                        to="/admin" 
+                                        className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"
+                                        onClick={() => setIsUserMenuOpen(false)}
+                                    >
+                                        <LayoutDashboard className="w-4 h-4" />
+                                        Trang Quản trị
+                                    </Link>
+                                )}
+
+                                <Link 
+                                    to="/profile" 
+                                    className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"
+                                    onClick={() => setIsUserMenuOpen(false)}
+                                >
+                                    <UserCircle className="w-4 h-4" />
+                                    Tài khoản của tôi
+                                </Link>
+                            </div>
+
+                            <div className="border-t border-gray-100 py-1">
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 text-left transition-colors font-medium"
+                                >
+                                    <LogOut className="w-4 h-4" />
+                                    Đăng xuất
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+                {/* ============================================== */}
+
                 <Link to="/cart" className="relative cursor-pointer group flex items-center">
                     <div className="group-hover:bg-gray-50 rounded-full transition-colors p-1 -m-1">
                         <ShoppingCart className="w-5 h-5 text-gray-800 group-hover:text-primary transition-colors" />

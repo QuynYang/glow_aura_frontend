@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { HeroBanner } from '../features/home/components/HeroBanner';
 import { CategoryGrid } from '../features/home/components/CategoryGrid';
@@ -8,41 +9,66 @@ import { Button } from '../components/ui/Button';
 import { FeaturedCollection } from '../features/home/components/FeaturedCollection';
 import { BrandPhilosophy } from '../features/home/components/BrandPhilosophy';
 import { NewArrivals } from '../features/home/components/NewArrivals';
-
-// Mock data (Đã Việt hóa tag)
-const bestSellers = [
-  { id: 1, brand: 'Dior', name: 'Capture Totale Dream Skin', price: 76.00, image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=600' },
-  { id: 2, brand: 'Chanel', name: 'N°5 Eau de Parfum', price: 135.00, image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=600', tag: 'Bán Chạy' },
-  { id: 3, brand: 'Estee Lauder', name: 'Advanced Night Repair', price: 110.00, image: 'https://product.hstatic.net/1000209952/product/z4930630178742_89d5ef0e650d66386b039f40c5cf5892_b7b4388486564c3b8f5581bfb30fa499_grande.jpg' },
-  { id: 4, brand: 'YSL', name: 'Libre Eau de Parfum', price: 95.00, image: 'https://cdn.vuahanghieu.com/unsafe/0x900/left/top/smart/filters:quality(90)/https://admin.vuahanghieu.com/upload/product/2024/06/nuoc-hoa-nu-yves-saint-laurent-ysl-libre-edp-90ml-66696f319f3fd-12062024164937.jpg' },
-];
+import { productService } from '../services/productService'; 
+import { Loader2 } from 'lucide-react'; 
 
 export const HomePage = () => {
+  const [bestSellers, setBestSellers] = useState<any[]>([]);
+  // 1. Thêm State lưu hàng mới về
+  const [latestProducts, setLatestProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const data = await productService.getAll();
+        const productsArray = Array.isArray(data) ? data : (data.items || data.data || []);
+        
+        // Tạm thời lấy 4 sản phẩm đầu tiên làm Best Sellers
+        setBestSellers(productsArray.slice(0, 4));
+
+        // 2. Logic lấy hàng mới về: Sắp xếp ID giảm dần (mới nhất lên đầu), lấy 2 cái
+        const sortedByNewest = [...productsArray].sort((a, b) => b.id - a.id);
+        setLatestProducts(sortedByNewest.slice(0, 2));
+
+      } catch (error) {
+        console.error("Không tải được sản phẩm", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   return (
     <MainLayout>
-      {/* 1. Hero Banner */}
       <HeroBanner />
-
-      {/* 2. Danh mục sản phẩm */}
       <CategoryGrid />
-
       <BrandPhilosophy />
       <FeaturedCollection />
-      <NewArrivals />
-      {/* 3. Promo Section */}
+      
+      {/* 3. Truyền danh sách 2 sản phẩm mới nhất vào NewArrivals */}
+      <NewArrivals products={latestProducts} />
+      
       <PromoSection />
 
-      {/* 4. Best Sellers */}
       <section className="container mx-auto px-4 py-20">
         <SectionHeading title="Sản Phẩm Bán Chạy" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {bestSellers.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        
+        {isLoading ? (
+            <div className="flex justify-center items-center py-10">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+        ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {bestSellers.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+        )}
       </section>
 
-      {/* 5. Special Offers */}
       <section className="container mx-auto px-4 py-20">
         <div className="container mx-auto px-4 flex flex-col md:flex-row items-center gap-10">
            <div className="w-full md:w-1/2">
@@ -61,7 +87,6 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* 6. Our Brand */}
       <section className="grid grid-cols-1 md:grid-cols-2">
          <div className="bg-primary text-white p-16 flex flex-col justify-center items-start">
             <h2 className="text-3xl font-serif font-bold mb-4">Về chúng tôi</h2>
@@ -76,7 +101,6 @@ export const HomePage = () => {
             <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800" className="w-full h-full object-cover" alt="Brand" />
          </div>
       </section>
-
     </MainLayout>
   );
 };

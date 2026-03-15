@@ -1,8 +1,10 @@
 import { useState } from 'react';
-
+interface ProductTabsProps {
+    product: any;
+}
 const tabs = ["Product Details", "How To Apply", "Ingredient", "What Makes It Advance"];
 
-export const ProductTabs = () => {
+export const ProductTabs = ({ product }: ProductTabsProps) => {
   const [activeTab, setActiveTab] = useState(tabs[0]);
 
   return (

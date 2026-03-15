@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom'; // Thêm để lấy ID từ URL
 import { MainLayout } from '../components/layout/MainLayout';
 import { ProductGallery } from '../features/products/components/detail/ProductGallery';
 import { ProductInfo } from '../features/products/components/detail/ProductInfo';
@@ -6,36 +7,93 @@ import { ProductTabs } from '../features/products/components/detail/ProductTabs'
 import { BeforeAfterSection } from '../features/products/components/detail/BeforeAfterSection';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { ProductCard } from '../features/products/components/ProductCard';
-import { singleProduct, products } from '../data/mockData';
-// Import component còn thiếu
 import { ProductReviews } from '../features/products/components/detail/ProductReviews';
 import { SkincareRoutine } from '../features/products/components/detail/SkincareRoutine';
+import { productService } from '../services/productService'; // Import API Service
+import { Loader2 } from 'lucide-react'; // Import Icon Loading
 
 export const ProductDetailPage = () => {
+  // 1. Lấy ID sản phẩm từ URL (ví dụ: /product/5 -> lấy số 5)
+  const { id } = useParams<{ id: string }>();
+
+  // 2. State quản lý dữ liệu sản phẩm
+  const [product, setProduct] = useState<any>(null);
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   // State kiểm soát video
   const [isPlaying, setIsPlaying] = useState(false);
   const videoId = "0YPJMxnpxdA";
 
+  // 3. Gọi API khi tải trang hoặc khi ID thay đổi
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      setIsLoading(true);
+      try {
+        // Gọi API lấy chi tiết sản phẩm
+        if (id) {
+          const data = await productService.getById(id);
+          setProduct(data.data || data); // Tùy cấu trúc BE trả về
+        }
+        
+        // Gọi thêm API lấy list sản phẩm để làm mục "Bạn cũng có thể thích"
+        const allData = await productService.getAll();
+        const productsArray = Array.isArray(allData) ? allData : (allData.items || allData.data || []);
+        setRelatedProducts(productsArray);
+
+      } catch (error) {
+        console.error("Lỗi khi tải chi tiết sản phẩm:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProductDetails();
+  }, [id]);
+
+  // Nếu đang tải dữ liệu, hiện màn hình loading
+  if (isLoading) {
+      return (
+          <MainLayout>
+              <div className="flex justify-center items-center min-h-[60vh]">
+                  <Loader2 className="w-12 h-12 animate-spin text-primary" />
+              </div>
+          </MainLayout>
+      );
+  }
+
+  // Nếu không tìm thấy sản phẩm (ID không hợp lệ)
+  if (!product) {
+      return (
+          <MainLayout>
+              <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                  <h2 className="text-2xl font-bold font-serif mb-4">Không tìm thấy sản phẩm</h2>
+                  <p className="text-gray-500">Sản phẩm bạn tìm kiếm không tồn tại hoặc đã bị xóa.</p>
+              </div>
+          </MainLayout>
+      );
+  }
+
   return (
     <MainLayout>
-      {/* 1. Phần thông tin chính */}
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
-            <ProductGallery images={singleProduct.images} />
-            <ProductInfo />
+            {/* Truyền dữ liệu thật xuống các Component con (Hiện sẽ báo lỗi đỏ cho đến khi ta sửa file con) */}
+            <ProductGallery product={product} />
+            <ProductInfo product={product} />
         </div>
-        <ProductTabs />
+        
+        <ProductTabs product={product} />
       </div>
 
-      {/* 2. Before/After Section */}
       <BeforeAfterSection />
 
-      {/* 3. Video Section */}
+      {/* Video Section */}
       <div 
         className="relative h-[500px] w-full bg-black mt-16 group cursor-pointer overflow-hidden"
         onClick={() => setIsPlaying(true)}
       >
-          {!isPlaying ? (
+         {!isPlaying ? (
             <>
               <img 
                 src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} 
@@ -48,7 +106,7 @@ export const ProductDetailPage = () => {
                  </div>
               </div>
               <span className="absolute bottom-10 left-10 text-white text-xl font-serif tracking-widest uppercase z-10 animate-in slide-in-from-bottom-4">
-                 Bước 1: La Micro-Lotion De Rose
+                 Bước 1: Khám phá công dụng
               </span>
             </>
           ) : (
@@ -63,18 +121,15 @@ export const ProductDetailPage = () => {
           )}
       </div>
 
-      {/* === 4. THÊM MỚI: Phần Đánh giá (Review) === */}
       <ProductReviews />
-
-      {/* === 5. THÊM MỚI: Phần Quy trình dưỡng da (Routine) === */}
       <SkincareRoutine />
 
-      {/* 6. You May Also Like */}
+      {/* You May Also Like - Dữ liệu thật */}
       <div className="container mx-auto px-4 py-20">
          <SectionHeading title="Bạn cũng có thể thích" />
          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {products.slice(0, 4).map(product => (
-                <ProductCard key={product.id} product={product} />
+            {relatedProducts.slice(0, 4).map(p => (
+                <ProductCard key={p.id} product={p} />
             ))}
          </div>
       </div>

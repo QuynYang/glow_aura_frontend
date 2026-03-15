@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Tạo một instance của axios với cấu hình mặc định
 const apiClient = axios.create({
-    // Đổi port 5000 thành port thực tế mà Swagger/API của bạn đang chạy (ví dụ 5001, 7123...)
+    // Port 5278 là port thực tế mà Swagger/API của bạn đang chạy
     baseURL: 'http://localhost:5278/api', 
     headers: {
         'Content-Type': 'application/json',

@@ -1,14 +1,14 @@
 import React from 'react';
 import { ShoppingCart, Heart } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
-import { useNavigate } from 'react-router-dom'; // 1. Import hook
+import { useNavigate } from 'react-router-dom';
 
-// 2. Interface chuẩn
 export interface Product {
   id: number;
   name: string;
   price: number;
-  image: string;
+  image?: string;
+  imageUrl?: string;
   brand?: string;
   description?: string;
   tag?: string;
@@ -19,30 +19,27 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ product }: ProductCardProps) => {
-  const navigate = useNavigate(); // 3. Khởi tạo hook điều hướng
+  const navigate = useNavigate();
 
-  // 4. Hàm chuyển đến trang chi tiết khi bấm vào thẻ
   const handleCardClick = () => {
     navigate(`/product/${product.id}`);
   };
 
-  // 5. Hàm chặn sự kiện nổi bọt (Để bấm nút Mua không bị nhảy trang)
   const handleActionClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Quan trọng: Ngừng việc click lan ra thẻ cha
+    e.stopPropagation(); 
     console.log("Action button clicked");
-    // Sau này code logic Add to Cart/Wishlist ở đây
   };
 
   return (
     <div 
-      onClick={handleCardClick} // 6. Gắn sự kiện click vào div tổng
+      onClick={handleCardClick}
       className="group cursor-pointer flex flex-col h-full relative"
     >
       {/* Image Section */}
       <div className="relative overflow-hidden mb-3 aspect-[3/4] bg-gray-100">
         <img 
-          src={product.image} 
-          alt={product.name} 
+          src={product.imageUrl || product.image} 
+    alt={product.name}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
         
@@ -53,14 +50,14 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             </span>
         )}
 
-        {/* Action Buttons (Hiện khi hover) */}
+        {/* Action Buttons */}
         <div className="absolute bottom-4 left-0 right-0 px-4 flex gap-2 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
              
              {/* Nút Add To Cart */}
              <Button 
                 variant="solid-white" 
                 className="flex-1 text-xs py-2 shadow-lg"
-                onClick={handleActionClick} // 7. Gắn hàm chặn click
+                onClick={handleActionClick} // Gắn hàm chặn click
              >
                 Thêm vào giỏ hàng
              </Button>
@@ -68,7 +65,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
              {/* Nút Wishlist */}
              <button 
                 className="bg-white p-2 text-gray-900 hover:bg-primary hover:text-white shadow-lg transition-colors"
-                onClick={handleActionClick} // 7. Gắn hàm chặn click
+                onClick={handleActionClick} // Gắn hàm chặn click
              >
                 <Heart className="w-4 h-4" />
              </button>
