@@ -2,39 +2,67 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ChevronLeft, Sparkles, AlertCircle, Droplet, 
-  Smile, Info, ArrowRight, Wand2, CheckSquare, Tag
+  Smile, Info, ArrowRight, Wand2, CheckSquare, Tag, Loader2 
 } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
+import { skinQuizService } from '../services/skinQuizService'; // Import API Service
 
-type TestStatus = 'answering' | 'analyzing';
-
-const QUIZ_STEPS = [
-  { id: '1', title: 'Sau khi rửa mặt 30 phút, da bạn cảm thấy như thế nào?', options: ['Bóng dầu, đặc biệt ở vùng T', 'Căng, khô, hơi khó chịu', 'Bình thường, thoải mái', 'Vùng T hơi dầu, má thì khô','Hơi đỏ, ngứa nhẹ'] },
-  { id: '2', title: 'Lỗ chân lông của bạn trông như thế nào?', options: ['To, dễ thấy, đặc biệt ở mũi và má', 'Nhỏ, gần như không thấy', 'Vừa phải, cân đối', 'To ở vùng T, nhỏ ở má', 'Nhỏ nhưng hay bị đỏ xung quanh'] },
-  { id: '3', title: 'Bạn có thường xuyên bị mụn không?', options: ['Có, thường xuyên bị mụn đầu đen, mụn ẩn', 'Hiếm khi, nhưng hay bị khô nứt', 'Rất ít, thỉnh thoảng 1-2 nốt', 'Có, chủ yếu ở vùng trán và mũi', 'Có, nhưng kèm theo đỏ, viêm'] },
-  { id: '4', title: 'Vấn đề da bạn lo lắng nhất là gì?', options: ['Mụn, bóng dầu, lỗ chân lông to', 'Khô, nếp nhăn, thiếu độ đàn hồi', 'Duy trì làn da khỏe mạnh', 'Cân bằng các vùng da khác nhau', 'Kích ứng, đỏ, dị ứng'] }
-];
+type TestStatus = 'loading' | 'answering' | 'analyzing' | 'error';
 
 export const SkinQuizTestPage = () => {
   const navigate = useNavigate();
-  const [status, setStatus] = useState<TestStatus>('answering');
+  const [status, setStatus] = useState<TestStatus>('loading');
+  const [questions, setQuestions] = useState<any[]>([]); 
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, any>>({});
+
+  // Gọi API lấy danh sách câu hỏi khi trang vừa load
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const data = await skinQuizService.getQuestions();
+        setQuestions(data);
+        setStatus('answering');
+      } catch (error) {
+        setStatus('error');
+      }
+    };
+    fetchQuestions();
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step, status]);
 
-  const handleSelect = (option: string) => {
-    setAnswers({ ...answers, [QUIZ_STEPS[step].id]: option });
+  const handleSelect = (optionValue: any) => {
+    setAnswers({ ...answers, [questions[step].id]: optionValue });
   };
 
-  const handleNext = () => {
-    if (!answers[QUIZ_STEPS[step].id]) return alert("Vui lòng chọn một đáp án!");
-    if (step < QUIZ_STEPS.length - 1) {
+  const handleNext = async () => {
+    if (!answers[questions[step].id]) return alert("Vui lòng chọn một đáp án!");
+    
+    if (step < questions.length - 1) {
       setStep(step + 1);
     } else {
-      startAnalysis();
+      // Đã trả lời xong -> Gửi lên C# phân tích
+      setStatus('analyzing');
+      try {
+        const payload = {
+          answers: Object.keys(answers).map(qId => ({
+            questionId: qId,
+            selectedOption: answers[qId]
+          }))
+        };
+
+        const result = await skinQuizService.analyzeSkin(payload);
+        
+        // Chuyển trang và mang theo loại da (ví dụ: 'OILY', 'DRY')
+        navigate('/skin-quiz/result', { state: { skinType: result.skinType || result } });
+        
+      } catch (error) {
+        alert("Có lỗi xảy ra khi phân tích. Vui lòng thử lại!");
+        setStatus('answering');
+      }
     }
   };
 
@@ -43,21 +71,27 @@ export const SkinQuizTestPage = () => {
       else navigate('/skin-quiz'); 
   };
 
-  // LOGIC ĐÃ SỬA: Chuyển hướng sang trang kết quả sau khi phân tích
-  const startAnalysis = () => {
-    setStatus('analyzing');
-    setTimeout(() => {
-        navigate('/skin-quiz/result'); // Chuyển trang
-    }, 3000); 
-  };
+  // Màn hình Loading khi đang lấy câu hỏi
+  if (status === 'loading' || status === 'error') {
+    return (
+      <MainLayout>
+        <div className="min-h-[80vh] flex flex-col items-center justify-center bg-[#FDFBFB]">
+          {status === 'loading' ? (
+              <div className="flex flex-col items-center">
+                  <Loader2 className="w-10 h-10 animate-spin text-[#3D021E] mb-4" />
+                  <p className="text-gray-500 font-bold">Đang tải câu hỏi...</p>
+              </div>
+          ) : (
+              <p className="text-red-500 font-bold">Lỗi tải dữ liệu. Vui lòng thử lại sau.</p>
+          )}
+        </div>
+      </MainLayout>
+    );
+  }
 
-  const progress = ((step + 1) / QUIZ_STEPS.length) * 100;
-  
-  const getIconForOption = (index: number) => {
-      const icons = [AlertCircle, Droplet, Smile, Info, Sparkles];
-      const Icon = icons[index % icons.length];
-      return <Icon className="w-5 h-5" />;
-  };
+  const progress = ((step + 1) / questions.length) * 100;
+  const currentQ = questions[step];
+  const icons = [AlertCircle, Droplet, Smile, Info, Sparkles];
 
   return (
     <MainLayout>
@@ -68,12 +102,12 @@ export const SkinQuizTestPage = () => {
           <div className="container mx-auto px-4 py-12 animate-in slide-in-from-right duration-500">
              <div className="flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto">
                  
-                 {/* CỘT TRÁI */}
+                 {/* --- CỘT TRÁI: CÂU HỎI --- */}
                  <div className="w-full lg:w-2/3 bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100 flex flex-col min-h-[600px]">
                     <div className="flex items-center justify-between mb-4">
                         <span className="font-bold text-[#3D021E] text-lg">Tiến trình hoàn thành</span>
                         <span className="text-sm font-bold bg-gray-100 text-gray-600 px-4 py-1.5 rounded-full">
-                            {step + 1}/{QUIZ_STEPS.length}
+                            {step + 1}/{questions.length}
                         </span>
                     </div>
                     <div className="w-full h-2 bg-gray-100 rounded-full mb-10 overflow-hidden">
@@ -81,20 +115,21 @@ export const SkinQuizTestPage = () => {
                     </div>
 
                     <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-2 leading-tight">
-                        {QUIZ_STEPS[step].title}
+                        {currentQ?.question || currentQ?.title || currentQ?.text || currentQ?.content || currentQ?.name || 'Câu hỏi chưa lấy được dữ liệu'}
                     </h2>
                     <p className="text-gray-500 text-sm mb-10 italic">
                         Vui lòng chọn trạng thái gần nhất với cảm nhận của bạn
                     </p>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1 mb-10">
-                        {QUIZ_STEPS[step].options.map((option, idx) => {
-                            const isSelected = answers[QUIZ_STEPS[step].id] === option;
-                            const title = option.split(',')[0];
-                            const sub = option.split(',').slice(1).join(',');
+                        {currentQ?.options?.map((option: any, idx: number) => {
+                            const optionValue = option.id || option; 
+                            const optionText = option.text || option.content || option;
+                            const isSelected = answers[currentQ.id] === optionValue;
+                            const Icon = icons[idx % icons.length];
                             
                             return (
-                                <div key={option} onClick={() => handleSelect(option)}
+                                <div key={idx} onClick={() => handleSelect(optionValue)}
                                     className={`p-6 rounded-2xl border-2 cursor-pointer transition-all duration-200 flex flex-col items-start gap-4 group
                                         ${isSelected ? 'border-[#3D021E] bg-white shadow-md' : 'border-gray-100 hover:border-[#3D021E]/30 hover:bg-gray-50'}
                                     `}
@@ -102,11 +137,10 @@ export const SkinQuizTestPage = () => {
                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors
                                         ${isSelected ? 'bg-[#3D021E] text-white' : 'bg-gray-100 text-gray-800 group-hover:bg-gray-200'}
                                     `}>
-                                        {getIconForOption(idx)}
+                                        <Icon className="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <h4 className={`font-bold text-lg mb-1 ${isSelected ? 'text-[#3D021E]' : 'text-gray-900'}`}>{title}</h4>
-                                        {sub && <p className="text-sm text-gray-500">{sub.trim()}</p>}
+                                        <h4 className={`font-bold text-lg mb-1 ${isSelected ? 'text-[#3D021E]' : 'text-gray-900'}`}>{optionText}</h4>
                                     </div>
                                 </div>
                             );
@@ -123,16 +157,40 @@ export const SkinQuizTestPage = () => {
                     </div>
                  </div>
 
-                 {/* CỘT PHẢI */}
+                 {/* --- CỘT PHẢI: GLOW AURA PREMIUM --- */}
                  <div className="w-full lg:w-1/3 flex flex-col gap-6">
                     <div className="bg-[#3D021E] rounded-3xl p-8 text-white shadow-xl relative overflow-hidden flex-1">
                         <div className="relative z-10">
                             <span className="inline-block bg-white/20 backdrop-blur-sm text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest mb-6">Glow Aura Premium</span>
                             <h3 className="text-3xl font-serif font-bold mb-8 leading-tight">Tại sao nên làm bài kiểm tra này?</h3>
                             <div className="space-y-6">
-                                <div className="flex gap-4"><div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0"><Wand2 className="w-4 h-4 text-pink-200" /></div><div><h4 className="font-bold">Phân tích AI chính xác</h4><p className="text-sm text-white/70">Dữ liệu từ hàng triệu mẫu da.</p></div></div>
-                                <div className="flex gap-4"><div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0"><CheckSquare className="w-4 h-4 text-pink-200" /></div><div><h4 className="font-bold">Phác đồ cá nhân hóa</h4><p className="text-sm text-white/70">Quy trình chăm sóc 4 bước riêng biệt.</p></div></div>
-                                <div className="flex gap-4"><div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0"><Tag className="w-4 h-4 text-pink-200" /></div><div><h4 className="font-bold">Đặc quyền mua sắm</h4><p className="text-sm text-white/70">Giảm ngay 5% cho đơn hàng đầu tiên.</p></div></div>
+                                <div className="flex gap-4">
+                                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                                        <Wand2 className="w-4 h-4 text-pink-200" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold">Phân tích AI chính xác</h4>
+                                        <p className="text-sm text-white/70">Dữ liệu từ hàng triệu mẫu da.</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-4">
+                                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                                        <CheckSquare className="w-4 h-4 text-pink-200" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold">Phác đồ cá nhân hóa</h4>
+                                        <p className="text-sm text-white/70">Quy trình chăm sóc 4 bước riêng biệt.</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-4">
+                                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                                        <Tag className="w-4 h-4 text-pink-200" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold">Đặc quyền mua sắm</h4>
+                                        <p className="text-sm text-white/70">Giảm ngay 5% cho đơn hàng đầu tiên.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

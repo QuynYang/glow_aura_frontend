@@ -2,11 +2,32 @@ import { Search, ShoppingCart, User, LogOut, LayoutDashboard, UserCircle } from 
 import { useState, useEffect, useRef } from 'react';
 import { SearchOverlay } from './SearchOverlay';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { authService } from '../../services/authService'; // Import authService thật
+import { authService } from '../../services/authService';
 import { useCart } from '../../context/CartContext';
 
+// --- Hàm chuyển đổi số VIP sang Nhãn và Màu sắc ---
+const getVipInfo = (level: number | string | undefined) => {
+  const safeLevel = String(level).toLowerCase();
 
-// --- Dữ liệu Mega Menu (Giữ nguyên) ---
+  switch (safeLevel) {
+    case '1': 
+    case 'bronze': 
+        return { label: 'BRONZE MEMBER', color: 'text-[#cd7f32]' };
+    case '2': 
+    case 'silver': 
+        return { label: 'SILVER MEMBER', color: 'text-gray-500' };
+    case '3': 
+    case 'gold': 
+        return { label: 'GOLD MEMBER', color: 'text-yellow-600' };
+    case '4': 
+    case 'platinum': 
+        return { label: 'PLATINUM MEMBER', color: 'text-purple-600' };
+    default: 
+        return { label: 'USER', color: 'text-[#3D021E]' }; // None hoặc không có dữ liệu
+  }
+};
+
+// --- Dữ liệu Mega Menu ---
 const megaMenuData = {
   columns: [
     {
@@ -47,17 +68,19 @@ const navItems = [
 export const Header = () => {
   const { totalItems } = useCart();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false); // Quản lý trạng thái mở menu user
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false); 
   
   const location = useLocation();
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Lấy thông tin user trực tiếp từ localStorage thông qua authService
+  // Lấy thông tin user
   const user = authService.getCurrentUser();
   const isAuthenticated = !!user;
 
-  // Xử lý click ra ngoài để đóng Dropdown menu
+  // Lấy thông tin VIP của user
+  const vipInfo = getVipInfo(user?.vipLevel);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -68,11 +91,10 @@ export const Header = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Xử lý Đăng xuất
   const handleLogout = () => {
-    authService.logout(); // Xóa token
-    setIsUserMenuOpen(false); // Đóng menu
-    navigate('/login'); // Đẩy về trang đăng nhập
+    authService.logout(); 
+    setIsUserMenuOpen(false); 
+    navigate('/login'); 
   };
 
   return (
@@ -104,7 +126,6 @@ export const Header = () => {
                     >
                         {item.label}
                         
-                        {/* Gạch chân (Underline) */}
                         {item.label !== 'ALL' && (
                             <span className={`absolute bottom-0 left-0 h-0.5 bg-primary transition-all duration-300
                                 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'} 
@@ -112,7 +133,6 @@ export const Header = () => {
                         )}
                     </Link>
 
-                    {/* Mega Menu Logic (Giữ nguyên) */}
                     {item.hasMegaMenu && (
                         <div className="absolute left-0 top-full w-full bg-white shadow-xl border-t border-gray-100 hidden group-hover:block transition-all duration-300 z-50 animate-in fade-in slide-in-from-top-2">
                         <div className="container mx-auto px-4 py-8">
@@ -173,17 +193,18 @@ export const Header = () => {
                         )}
                     </div>
 
-                    {/* Menu Dropdown hiện ra khi bấm vào icon (Nếu đã đăng nhập) */}
                     {isAuthenticated && isUserMenuOpen && (
                         <div className="absolute right-0 mt-4 w-56 bg-white shadow-xl border border-gray-100 rounded-md py-2 z-50 animate-in fade-in slide-in-from-top-2">
-                            {/* Hiển thị tên User */}
+                            
+                            {/* KHU VỰC HIỂN THỊ TÊN & VIP LEVEL */}
                             <div className="px-4 py-3 border-b border-gray-100">
                                 <p className="text-sm font-bold text-gray-800 truncate">{user.fullName || user.email || 'Khách hàng'}</p>
-                                <p className="text-xs text-primary font-medium mt-1 uppercase">{user.role || 'User'}</p>
+                                <p className={`text-[11px] font-black mt-1 tracking-widest uppercase ${vipInfo.color}`}>
+                                    {vipInfo.label}
+                                </p>
                             </div>
 
                             <div className="py-2">
-                                {/* Nếu là Admin thì hiện thêm nút đi tới Trang Quản Trị */}
                                 {user.role === 'Admin' && (
                                     <Link 
                                         to="/admin" 
@@ -220,17 +241,16 @@ export const Header = () => {
                 {/* ============================================== */}
 
                 <Link to="/cart" className="relative cursor-pointer group flex items-center">
-        <div className="group-hover:bg-gray-50 rounded-full transition-colors p-1 -m-1">
-            <ShoppingCart className="w-5 h-5 text-gray-800 group-hover:text-primary transition-colors" />
-        </div>
-        
-        {/* CHỈ hiển thị chấm đỏ nếu có hàng trong giỏ, và in ra số totalItems */}
-        {totalItems > 0 && (
-            <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full transform group-hover:scale-110 transition-transform">
-                {totalItems}
-            </span>
-        )}
-    </Link>
+                    <div className="group-hover:bg-gray-50 rounded-full transition-colors p-1 -m-1">
+                        <ShoppingCart className="w-5 h-5 text-gray-800 group-hover:text-primary transition-colors" />
+                    </div>
+                    
+                    {totalItems > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full transform group-hover:scale-110 transition-transform">
+                            {totalItems}
+                        </span>
+                    )}
+                </Link>
             </div>
         </div>
       </header>

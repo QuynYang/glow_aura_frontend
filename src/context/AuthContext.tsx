@@ -1,17 +1,20 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-
 // Định nghĩa kiểu dữ liệu User
-interface User {
+export interface User {
+  id?: number;
   email: string;
-  role: 'admin' | 'customer' | 'Admin' | 'User';
-  name: string;
-  fullName?: string;
+  role: string;
+  fullName: string;
+  vipLevel: number|String; // 0: None, 1: Bronze, 2: Silver, 3: Gold, 4: Platinum
+  phoneNumber?: string;
+  address?: string;
+  avatarUrl?: string;
 }
 
 // Định nghĩa Context
 interface AuthContextType {
   user: User | null;
-  login: (email: string) => void;
+  login: (userData: User) => void;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -31,15 +34,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   // Hàm Đăng nhập
-  const login = (email: string) => {
-    let userData: User;
-
-    if (email === 'admin@glowaura.com') {
-      userData = { email, role: 'admin', name: 'Admin User' };
-    } else {
-      userData = { email, role: 'customer', name: 'Nguyễn Văn A' }; 
-    }
-
+  const login = (userData: User) => {
     setUser(userData);
     localStorage.setItem('glow_user', JSON.stringify(userData)); 
   };

@@ -21,5 +21,17 @@ export const orderService = {
       console.error(`Lỗi khi lấy đơn hàng ${id}:`, error);
       throw error;
     }
+  },
+
+  // Lấy danh sách lịch sử đơn hàng của User
+  getMyOrders: async () => {
+    try {
+      const response = await apiClient.get('/Order/my-orders');
+      // Nếu Backend bọc data trong response.data thì lấy ra, không thì trả về nguyên cục
+      return response.data?.data || response.data; 
+    } catch (error) {
+      console.error('Lỗi khi lấy lịch sử đơn hàng:', error);
+      throw error;
+    }
   }
 };

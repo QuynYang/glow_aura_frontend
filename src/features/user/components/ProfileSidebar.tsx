@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react';
 import { User, Package, Heart, Lock, MapPin, LogOut } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { MemberCard } from './MemberCard';
+import { userService } from '../../../services/userService'; // Import service gọi API
 
 interface ProfileSidebarProps {
   activePage?: 'profile' | 'orders' | 'wishlist' | 'password' | 'address';
@@ -10,6 +12,25 @@ interface ProfileSidebarProps {
 export const ProfileSidebar = ({ activePage }: ProfileSidebarProps) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  
+  // State lưu số điểm lấy từ API (Mặc định là 0 để tránh lỗi trước khi API load xong)
+  const [loyaltyPoints, setLoyaltyPoints] = useState<number>(0);
+
+  // Gọi API lấy điểm tích lũy ngay khi Sidebar hiển thị
+  useEffect(() => {
+    const fetchLoyaltyPoints = async () => {
+      try {
+        const points = await userService.getLoyaltyPoints();
+        // Kiểm tra xem C# trả về thẳng một con số hay một Object chứa số điểm
+        const actualPoints = typeof points === 'number' ? points : (points?.points || points?.totalPoints || 0);
+        setLoyaltyPoints(actualPoints);
+      } catch (error) {
+        console.error("Không lấy được điểm tích lũy:", error);
+      }
+    };
+
+    fetchLoyaltyPoints();
+  }, []);
 
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -17,12 +38,11 @@ export const ProfileSidebar = ({ activePage }: ProfileSidebarProps) => {
     navigate('/login');
   };
 
-  // Hàm helper tạo class active
   const getMenuClass = (pageName: string) => {
     const isActive = activePage === pageName;
     return `flex items-center gap-3 px-6 py-4 font-medium transition-colors ${
       isActive 
-        ? 'bg-[#3D021E] text-white border-l-4 border-accent' // Đã đổi màu nền thành #3D021E theo yêu cầu
+        ? 'bg-[#3D021E] text-white border-l-4 border-accent' 
         : 'text-gray-600 hover:bg-gray-50 hover:text-primary'
     }`;
   };
@@ -31,37 +51,28 @@ export const ProfileSidebar = ({ activePage }: ProfileSidebarProps) => {
     <div className="w-full lg:w-1/4 space-y-6">
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <nav className="flex flex-col">
-          {/* 1. Hồ sơ cá nhân */}
           <Link to="/profile" className={getMenuClass('profile')}>
             <User className="w-5 h-5" /> Hồ sơ cá nhân
           </Link>
           
-          {/* 2. Lịch sử đơn hàng */}
           <Link to="/profile/orders" className={getMenuClass('orders')}>
             <Package className="w-5 h-5" /> Lịch sử đơn hàng
           </Link>
           
-          {/* 3. Danh sách yêu thích */}
           <Link to="/profile/wishlist" className={getMenuClass('wishlist')}>
             <Heart className="w-5 h-5" /> Danh sách yêu thích
           </Link>
           
-          {/* 4. Đổi mật khẩu (ĐÃ SỬA LINK CHÍNH XÁC) */}
           <Link to="/profile/change-password" className={getMenuClass('password')}>
             <Lock className="w-5 h-5" /> Đổi mật khẩu
           </Link>
           
-          {/* 5. Địa chỉ giao hàng (Chưa có trang thì để #) */}
-
           <Link to="/profile/address" className={getMenuClass('address')}>
-                <MapPin className="w-5 h-5" /> Địa chỉ giao hàng
-            </Link>
-
-
+             <MapPin className="w-5 h-5" /> Địa chỉ giao hàng
+          </Link>
 
           <div className="border-t border-gray-100 my-2"></div>
           
-          {/* 6. Đăng xuất */}
           <button 
             onClick={handleLogout} 
             className="flex items-center gap-3 px-6 py-4 text-red-500 hover:bg-red-50 font-medium transition-colors w-full text-left"
@@ -71,8 +82,8 @@ export const ProfileSidebar = ({ activePage }: ProfileSidebarProps) => {
         </nav>
       </div>
 
-      {/* Thẻ thành viên */}
-      <MemberCard currentPoints={1240} />
+      {/* Truyền số điểm thật lấy từ API xuống cho thẻ MemberCard */}
+      <MemberCard currentPoints={loyaltyPoints} />
     </div>
   );
 };

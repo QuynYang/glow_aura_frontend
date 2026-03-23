@@ -51,5 +51,15 @@ export const authService = {
         const userStr = localStorage.getItem('user');
         if (userStr) return JSON.parse(userStr);
         return null;
+    },
+
+    // đổi mật khẩu user
+    changePassword: async (data: { currentPassword: string, newPassword: string, confirmNewPassword: string }) => {
+    try {
+      const response = await apiClient.post('/Auth/change-password', data);
+      return response.data;
+    } catch (error) {
+      throw error;
     }
+  },
 };
