@@ -33,5 +33,16 @@ export const orderService = {
       console.error('Lỗi khi lấy lịch sử đơn hàng:', error);
       throw error;
     }
-  }
+  },
+
+  // Gọi API Hủy đơn hàng
+  cancelOrder: async (id: string | number) => {
+    try {
+      const response = await apiClient.post(`/Order/${id}/cancel`);
+      return response.data?.data || response.data;
+    } catch (error) {
+      console.error(`Lỗi khi hủy đơn hàng ${id}:`, error);
+      throw error;
+    }
+  },
 };

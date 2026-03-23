@@ -38,6 +38,7 @@ import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
 import { OrderDetailPage } from './pages/OrderDetailPage';
 import { CartProvider } from './context/CartContext';
+import { SearchPage } from './pages/SearchPage';
 
 
 
@@ -98,6 +99,7 @@ function App() {
       <Route path="/admin/settings" element={<AdminSettingsPage />} />
       <Route path="/admin/customers/add" element={<AdminAddCustomerPage />} />
       <Route path="/admin/promotions/add" element={<AdminAddPromotionPage />} />
+      <Route path="/search" element={<SearchPage />} />
     </Routes>
   );
 }

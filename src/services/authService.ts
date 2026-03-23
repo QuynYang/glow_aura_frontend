@@ -1,4 +1,3 @@
-
 import apiClient from './apiClient';
 
 export const authService = {
@@ -8,27 +7,26 @@ export const authService = {
             const response = await apiClient.post('/auth/login', { email, password });
             
             if (response.data && response.data.isSuccess) {
-                // Lưu token và thông tin user vào localStorage
+                // LƯU CẢ ACCESS TOKEN LẪN REFRESH TOKEN
                 localStorage.setItem('accessToken', response.data.token.accessToken);
+                localStorage.setItem('refreshToken', response.data.token.refreshToken);
                 localStorage.setItem('user', JSON.stringify(response.data.user));
             }
             return response.data;
         } catch (error: any) {
-            // Trả về lỗi từ backend (nếu có) hoặc lỗi mặc định
             throw error.response?.data || { message: "Có lỗi xảy ra khi đăng nhập" };
         }
     },
 
-
     // đăng ký
-    
     register: async (userData: { email: string; password: string; confirmPassword: string; fullName: string; phoneNumber: string }) => {
         try {
             const response = await apiClient.post('/auth/register', userData);
             
-            // đăng ký thành công cũng trả về token luôn
             if (response.data && response.data.isSuccess && response.data.token) {
+                // LƯU CẢ ACCESS TOKEN LẪN REFRESH TOKEN
                 localStorage.setItem('accessToken', response.data.token.accessToken);
+                localStorage.setItem('refreshToken', response.data.token.refreshToken);
                 localStorage.setItem('user', JSON.stringify(response.data.user));
             }
             return response.data;
@@ -37,13 +35,12 @@ export const authService = {
         }
     },
 
-
     // Hàm xử lý đăng xuất
     logout: () => {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
-        // Chuyển hướng về trang đăng nhập hoặc trang chủ sẽ được xử lý ở UI
+        window.location.href = '/login'; // Ép văng ra trang login luôn cho an toàn
     },
     
     // Lấy thông tin user hiện tại
@@ -55,11 +52,11 @@ export const authService = {
 
     // đổi mật khẩu user
     changePassword: async (data: { currentPassword: string, newPassword: string, confirmNewPassword: string }) => {
-    try {
-      const response = await apiClient.post('/Auth/change-password', data);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
+        try {
+            const response = await apiClient.post('/Auth/change-password', data);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
 };

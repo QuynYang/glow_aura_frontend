@@ -20,5 +20,36 @@ export const productService = {
             console.error(`Lỗi khi lấy thông tin sản phẩm có ID ${id}:`, error);
             throw error;
         }
+    },
+
+    // Lọc và tìm kiếm nâng cao
+    advancedSearch: async (searchParams: any) => {
+    try {
+      const response = await apiClient.post('/Products/advanced-search', searchParams);
+      return response.data?.data || response.data;
+    } catch (error) {
+      throw error;
     }
+  },
+
+  // Lấy danh sách danh mục (Để render ra Sidebar)
+  getCategories: async () => {
+    try {
+      const response = await apiClient.get('/Products/categories');
+      return response.data?.data || response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Lấy danh sách Flash Sale
+  getFlashSale: async () => {
+    try {
+      const response = await apiClient.get('/Products/flash-sale');
+      return response.data?.data || response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
 };

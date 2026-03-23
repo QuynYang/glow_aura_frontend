@@ -6,9 +6,11 @@ export interface User {
   role: string;
   fullName: string;
   vipLevel: number|String; // 0: None, 1: Bronze, 2: Silver, 3: Gold, 4: Platinum
-  phoneNumber?: string;
-  address?: string;
-  avatarUrl?: string;
+  phoneNumber?: string; 
+  address?: string;     
+  gender?: string;      
+  dateOfBirth?: string; 
+  avatarUrl?: string;   
 }
 
 // Định nghĩa Context

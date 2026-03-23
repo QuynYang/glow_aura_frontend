@@ -14,22 +14,31 @@ import { Loader2 } from 'lucide-react';
 
 export const HomePage = () => {
   const [bestSellers, setBestSellers] = useState<any[]>([]);
-  // 1. Thêm State lưu hàng mới về
   const [latestProducts, setLatestProducts] = useState<any[]>([]);
+  // 1. Thêm State lưu danh sách Flash Sale
+  const [flashSaleProducts, setFlashSaleProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const data = await productService.getAll();
-        const productsArray = Array.isArray(data) ? data : (data.items || data.data || []);
-        
-        // Tạm thời lấy 4 sản phẩm đầu tiên làm Best Sellers
+        // 2. Gọi 2 API cùng lúc để tối ưu hiệu năng
+        const [allData, flashSaleData] = await Promise.all([
+            productService.getAll(),
+            productService.getFlashSale()
+        ]);
+
+        // Xử lý dữ liệu sản phẩm chung
+        const productsArray = Array.isArray(allData) ? allData : (allData?.items || allData?.data || []);
         setBestSellers(productsArray.slice(0, 4));
 
-        // 2. Logic lấy hàng mới về: Sắp xếp ID giảm dần (mới nhất lên đầu), lấy 2 cái
         const sortedByNewest = [...productsArray].sort((a, b) => b.id - a.id);
         setLatestProducts(sortedByNewest.slice(0, 2));
+
+        // Xử lý dữ liệu Flash Sale
+        const flashSaleArray = Array.isArray(flashSaleData) ? flashSaleData : (flashSaleData?.items || flashSaleData?.data || []);
+        // Lấy tối đa 4 sản phẩm Flash Sale đưa ra trang chủ
+        setFlashSaleProducts(flashSaleArray.slice(0, 4)); 
 
       } catch (error) {
         console.error("Không tải được sản phẩm", error);
@@ -48,17 +57,41 @@ export const HomePage = () => {
       <BrandPhilosophy />
       <FeaturedCollection />
       
-      {/* 3. Truyền danh sách 2 sản phẩm mới nhất vào NewArrivals */}
       <NewArrivals products={latestProducts} />
       
       <PromoSection />
 
-      <section className="container mx-auto px-4 py-20">
+      {/* 3. SECTION FLASH SALE MỚI THÊM VÀO */}
+      {flashSaleProducts.length > 0 && (
+          <section className="container mx-auto px-4 pt-20 pb-10">
+             <div className="flex justify-between items-center mb-8 border-b border-red-100 pb-4">
+                 <h2 className="text-3xl font-serif font-bold text-red-600 flex items-center gap-2">
+                     <span className="animate-pulse">⚡</span> FLASH SALE SỐC
+                 </h2>
+                 
+             </div>
+             
+             {isLoading ? (
+                 <div className="flex justify-center items-center py-10">
+                     <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+                 </div>
+             ) : (
+                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                   {flashSaleProducts.map((product) => (
+                     <ProductCard key={`flash-${product.id}`} product={product} />
+                   ))}
+                 </div>
+             )}
+          </section>
+      )}
+
+      {/* SECTION BÁN CHẠY (CŨ) */}
+      <section className="container mx-auto px-4 py-10">
         <SectionHeading title="Sản Phẩm Bán Chạy" />
         
         {isLoading ? (
             <div className="flex justify-center items-center py-10">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <Loader2 className="w-8 h-8 animate-spin text-[#3D021E]" />
             </div>
         ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -76,11 +109,11 @@ export const HomePage = () => {
            </div>
            <div className="w-full md:w-1/2 space-y-4">
               <h4 className="font-bold text-gray-500">Ưu đãi đặc biệt</h4>
-              <h2 className="text-4xl font-serif font-bold text-primary">Giảm giá tới 50%</h2>
+              <h2 className="text-4xl font-serif font-bold text-[#3D021E]">Giảm giá tới 50%</h2>
               <p className="text-gray-600">
                 Mừng Ngày của Mẹ! Hãy dành tặng sự chăm sóc tốt nhất để tri ân người phụ nữ tuyệt vời nhất của bạn.
               </p>
-              <Button className="bg-accent text-white hover:bg-primary mt-4">
+              <Button className="bg-accent text-white hover:bg-[#3D021E] mt-4 transition-colors">
                 Tìm hiểu thêm
               </Button>
            </div>
@@ -88,12 +121,12 @@ export const HomePage = () => {
       </section>
 
       <section className="grid grid-cols-1 md:grid-cols-2">
-         <div className="bg-primary text-white p-16 flex flex-col justify-center items-start">
+         <div className="bg-[#3D021E] text-white p-16 flex flex-col justify-center items-start">
             <h2 className="text-3xl font-serif font-bold mb-4">Về chúng tôi</h2>
             <p className="mb-8 text-gray-300 leading-relaxed">
                Chúng tôi tin rằng vẻ đẹp thăng hoa từ sự đa dạng và khám phá. Sứ mệnh của chúng tôi là mở rộng góc nhìn của thế giới về cái đẹp.
             </p>
-            <Button variant="outline" className="border-white text-white hover:bg-white hover:text-primary">
+            <Button variant="outline" className="border-white text-white hover:bg-white hover:text-[#3D021E] transition-colors">
                Khám phá thêm
             </Button>
          </div>

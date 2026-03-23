@@ -9,9 +9,9 @@ import { productService } from '../services/productService';
 import { Loader2 } from 'lucide-react';
 
 export const ProductListPage = () => {
-  // 1. Quản lý State cho Dữ liệu
-  const [allProducts, setAllProducts] = useState<any[]>([]); // Giữ nguyên data gốc từ API
-  const [filteredProducts, setFilteredProducts] = useState<any[]>([]); // Data sau khi đã lọc/sắp xếp để hiển thị
+  // 1. Quản lý State cho Dữ liệu (Từ API)
+  const [products, setProducts] = useState<any[]>([]); 
+  const [displayedProducts, setDisplayedProducts] = useState<any[]>([]); // Dùng để render và sắp xếp FE
   const [isLoading, setIsLoading] = useState(true);
 
   // 2. Quản lý State cho Bộ lọc & Sắp xếp
@@ -19,15 +19,40 @@ export const ProductListPage = () => {
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
   const [sortOption, setSortOption] = useState<string>('recommended');
 
-  // Gọi API lần đầu tiên
+  // 3. LOGIC GỌI API LỌC THẬT TỪ BACKEND
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchFilteredProducts = async () => {
+      setIsLoading(true);
       try {
-        const data = await productService.getAll();
-        const productsArray = Array.isArray(data) ? data : (data.items || data.data || []);
+        // --- XỬ LÝ KHOẢNG GIÁ ---
+        let minPrice = null;
+        let maxPrice = null;
         
-        setAllProducts(productsArray);
-        setFilteredProducts(productsArray); // Mặc định hiển thị tất cả
+        if (selectedPriceRanges.length > 0) {
+            const allMins = selectedPriceRanges.map(r => parseInt(r.split('-')[0]));
+            const allMaxs = selectedPriceRanges.map(r => {
+                const maxVal = r.split('-')[1];
+                return maxVal ? parseInt(maxVal) : 999999999;
+            });
+            minPrice = Math.min(...allMins);
+            maxPrice = Math.max(...allMaxs);
+        }
+
+        // Đóng gói Payload theo chuẩn C#
+        const payload = {
+            keyword: null, // Bỏ trống vì trang này không dùng text search
+            category: selectedCategories.length > 0 ? selectedCategories[0] : null, 
+            minPrice: minPrice,
+            maxPrice: maxPrice === 999999999 ? null : maxPrice,
+            pageNumber: 1,
+            pageSize: 50 
+        };
+
+        const response = await productService.advancedSearch(payload);
+        const productsArray = Array.isArray(response) ? response : (response?.items || response?.data || []);
+        
+        setProducts(productsArray);
+
       } catch (error) {
         console.error("Lỗi khi tải danh sách sản phẩm:", error);
       } finally {
@@ -35,44 +60,21 @@ export const ProductListPage = () => {
       }
     };
 
-    fetchProducts();
-  }, []);
+    fetchFilteredProducts();
+  }, [selectedCategories, selectedPriceRanges]);
 
-  // 3. Logic: Tự động tính toán lại danh sách hiển thị mỗi khi bộ lọc thay đổi
+  // 4. XỬ LÝ SẮP XẾP Ở FRONTEND
   useEffect(() => {
-    // Copy mảng gốc ra để xử lý
-    let result = [...allProducts];
+    let result = [...products];
 
-    // Lọc theo Danh mục (Loại)
-    if (selectedCategories.length > 0) {
-        // LƯU Ý: Thay 'category' bằng tên trường thực tế trả về từ Backend của bạn (vd: categoryName)
-        result = result.filter(p => selectedCategories.includes(p.category));
-    }
-
-    // Lọc theo Khoảng Giá
-    if (selectedPriceRanges.length > 0) {
-        result = result.filter(p => {
-            return selectedPriceRanges.some(range => {
-                const [minStr, maxStr] = range.split('-');
-                const min = parseInt(minStr);
-                const max = maxStr ? parseInt(maxStr) : null;
-
-                if (max) return p.price >= min && p.price <= max;
-                return p.price >= min; // Xử lý trường hợp "Trên X tiền"
-            });
-        });
-    }
-
-    // Sắp xếp
     if (sortOption === 'priceAsc') {
-        result.sort((a, b) => a.price - b.price); // Giá thấp đến cao
+        result.sort((a, b) => a.price - b.price);
     } else if (sortOption === 'priceDesc') {
-        result.sort((a, b) => b.price - a.price); // Giá cao đến thấp
+        result.sort((a, b) => b.price - a.price);
     }
 
-    // Cập nhật giao diện
-    setFilteredProducts(result);
-  }, [allProducts, selectedCategories, selectedPriceRanges, sortOption]);
+    setDisplayedProducts(result);
+  }, [products, sortOption]);
 
   return (
     <MainLayout>
@@ -80,7 +82,7 @@ export const ProductListPage = () => {
         <div className="container mx-auto px-4 text-center">
              <span className="text-xs font-bold tracking-widest uppercase text-gray-500 mb-2 block">Skincare</span>
              <h1 className="text-4xl font-serif font-bold text-primary">
-                 BEST-SELLERS <span className="text-2xl text-gray-500 font-normal">({filteredProducts.length})</span>
+                 BEST-SELLERS <span className="text-2xl text-gray-500 font-normal">({displayedProducts.length})</span>
              </h1>
         </div>
       </div>
@@ -89,7 +91,7 @@ export const ProductListPage = () => {
         <div className="flex flex-col md:flex-row gap-8">
             
             <aside className="w-full md:w-1/4 hidden md:block">
-                {/* 4. Truyền State và Hàm cập nhật xuống Sidebar */}
+                {/* Truyền State xuống Sidebar */}
                 <FilterSidebar 
                     selectedCategories={selectedCategories}
                     setSelectedCategories={setSelectedCategories}
@@ -103,7 +105,6 @@ export const ProductListPage = () => {
                     <h2 className="text-xl font-bold font-serif md:hidden">Filter</h2>
                     <div className="flex items-center gap-2 ml-auto">
                         <span className="text-sm font-bold text-gray-600">Sort:</span>
-                        {/* 5. Gắn sự kiện cho ô select Sắp xếp */}
                         <select 
                             className="text-sm border-none bg-transparent font-medium focus:ring-0 cursor-pointer outline-none"
                             value={sortOption}
@@ -120,14 +121,26 @@ export const ProductListPage = () => {
                     <div className="flex justify-center items-center py-20">
                         <Loader2 className="w-10 h-10 animate-spin text-primary" />
                     </div>
+                ) : displayedProducts.length === 0 ? (
+                    <div className="flex flex-col justify-center items-center py-20">
+                        <p className="text-gray-500 text-lg font-medium">Không có sản phẩm nào phù hợp với bộ lọc!</p>
+                        <button 
+                            onClick={() => {
+                                setSelectedCategories([]);
+                                setSelectedPriceRanges([]);
+                            }}
+                            className="mt-4 text-primary font-bold hover:underline"
+                        >
+                            Xóa bộ lọc
+                        </button>
+                    </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div className="col-span-1 sm:col-span-2 lg:col-span-2 min-h-[400px]">
                             <AwardedBanner />
                         </div>
                         
-                        {/* 6. Render từ mảng ĐÃ LỌC (filteredProducts) */}
-                        {filteredProducts.map((product, index) => {
+                        {displayedProducts.map((product, index) => {
                             return (
                                 <React.Fragment key={product.id || index}>
                                     {index === 1 && (
