@@ -1,76 +1,11 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import hook điều hướng
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
-  Plus, Search, Filter, Edit, Trash2, ChevronLeft, ChevronRight, 
+  Plus, Search, Filter, Edit, Trash2, ChevronLeft, ChevronRight, Loader2
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
+import apiClient from '../../services/apiClient';
 
-// --- 1. MOCK DATA (Dữ liệu giả lập) ---
-// Lưu ý: Category cần khớp chính xác với tên Tab để lọc được
-const products = [
-  {
-    id: 1,
-    name: "Son Kem Lì Aura Velvet",
-    variant: "Màu Đỏ Gạch (01)",
-    sku: "SKU-88219",
-    category: "Trang điểm", 
-    price: 299000,
-    stock: 82,
-    maxStock: 100,
-    status: "Còn hàng",
-    image: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?q=80&w=100"
-  },
-  {
-    id: 2,
-    name: "Serum Vitamin C Glow",
-    variant: "30ml - Bản Giới Hạn",
-    sku: "SKU-44120",
-    category: "Chăm sóc da", 
-    price: 1450000,
-    stock: 4,
-    maxStock: 50,
-    status: "Sắp hết",
-    image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=100"
-  },
-  {
-    id: 3,
-    name: "Kem Dưỡng Ẩm Midnight",
-    variant: "Hũ 50g",
-    sku: "SKU-11005",
-    category: "Chăm sóc da",
-    price: 890000,
-    stock: 42,
-    maxStock: 100,
-    status: "Còn hàng",
-    image: "https://images.unsplash.com/photo-1608248597279-f99d160bfbc8?q=80&w=100"
-  },
-  {
-    id: 4,
-    name: "Nước Hoa Rose Garden",
-    variant: "50ml Spray",
-    sku: "SKU-90921",
-    category: "Nước hoa", 
-    price: 2500000,
-    stock: 0,
-    maxStock: 30,
-    status: "Hết hàng",
-    image: "https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=100"
-  },
-  {
-    id: 5,
-    name: "Phấn Phủ Kiềm Dầu",
-    variant: "Tone Tự Nhiên",
-    sku: "SKU-77283",
-    category: "Trang điểm",
-    price: 420000,
-    stock: 156,
-    maxStock: 200,
-    status: "Còn hàng",
-    image: "https://images.unsplash.com/photo-1596462502278-27bfdd403348?q=80&w=100"
-  },
-];
-
-// Thẻ thống kê nhỏ
 const StatCard = ({ label, value, colorClass }: any) => (
     <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex-1">
         <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{label}</h4>
@@ -79,15 +14,96 @@ const StatCard = ({ label, value, colorClass }: any) => (
 );
 
 export const AdminProductPage = () => {
-  const navigate = useNavigate(); // Khởi tạo hàm điều hướng
+  const navigate = useNavigate();
 
-  // State quản lý Tab đang chọn và từ khóa tìm kiếm
+  const [products, setProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [stats, setStats] = useState({ totalSKU: 0, lowStock: 0, outOfStock: 0, totalValue: 0 });
+
+  // State Quản lý UI
   const [activeTab, setActiveTab] = useState('Tất cả');
+  const [dynamicCategories, setDynamicCategories] = useState<string[]>(['Tất cả']); // Tabs động
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // State Quản lý Bộ lọc (Filter Dropdown)
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [stockFilter, setStockFilter] = useState('all'); // 'all', 'low', 'out'
+  const filterRef = useRef<HTMLDivElement>(null);
 
-  // --- LOGIC LỌC SẢN PHẨM ---
+  // State Phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
+  // Đóng bộ lọc khi click ra ngoài
+  useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+          if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+              setIsFilterOpen(false);
+          }
+      };
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+        setIsLoading(true);
+        try {
+            const response = await apiClient.get('/Products');
+            
+            let productsList = [];
+            if (response.data && Array.isArray(response.data)) productsList = response.data;
+            else if (response.data?.data && Array.isArray(response.data.data)) productsList = response.data.data;
+            else if (response.data?.items && Array.isArray(response.data.items)) productsList = response.data.items;
+
+            const formattedProducts = productsList.map((p: any) => ({
+                id: p.id,
+                name: p.name,
+                variant: p.brand || p.description?.substring(0, 30) + '...',
+                sku: p.sku || `SKU-${p.id.toString().padStart(5, '0')}`,
+                category: p.category || 'Khác',
+                price: p.discountedPrice || p.price || 0,
+                stock: p.stockQuantity || p.stock || 0,
+                maxStock: 100, 
+                status: (p.stockQuantity || p.stock || 0) === 0 ? "Hết hàng" : (p.stockQuantity || p.stock || 0) <= 5 ? "Sắp hết" : "Còn hàng",
+                image: p.imageUrl || p.image || "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=100"
+            }));
+
+            setProducts(formattedProducts);
+
+            // 1. TỰ ĐỘNG TẠO TABS DANH MỤC TỪ DỮ LIỆU THẬT
+            const uniqueCats = Array.from(new Set(formattedProducts.map((p: any) => p.category))).filter(Boolean) as string[];
+            setDynamicCategories(['Tất cả', ...uniqueCats]);
+
+            // Tính toán Thống kê
+            let low = 0, out = 0, value = 0;
+            formattedProducts.forEach((p: any) => {
+                if (p.stock === 0) out++;
+                else if (p.stock <= 5) low++;
+                value += (p.price * p.stock);
+            });
+
+            setStats({
+                totalSKU: formattedProducts.length,
+                lowStock: low,
+                outOfStock: out,
+                totalValue: value
+            });
+
+        } catch (error) {
+            console.error("Lỗi tải danh sách Sản phẩm:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    fetchProducts();
+  }, []);
+
+  // --- LOGIC LỌC SẢN PHẨM CHẶT CHẼ ---
   const filteredProducts = products.filter((product) => {
-    // 1. Điều kiện Danh mục
+    // 1. Điều kiện Danh mục (Tabs)
     const matchesCategory = activeTab === 'Tất cả' || product.category === activeTab;
 
     // 2. Điều kiện Tìm kiếm (Tên hoặc SKU)
@@ -95,18 +111,36 @@ export const AdminProductPage = () => {
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
         product.sku.toLowerCase().includes(searchTerm.toLowerCase());
 
-    return matchesCategory && matchesSearch;
+    // 3. Điều kiện Bộ lọc Tồn kho (Nút Filter)
+    let matchesStock = true;
+    if (stockFilter === 'low') matchesStock = product.stock <= 5 && product.stock > 0;
+    if (stockFilter === 'out') matchesStock = product.stock === 0;
+
+    return matchesCategory && matchesSearch && matchesStock;
   });
 
-  // Hàm tính toán màu sắc và chiều dài thanh tiến trình tồn kho
+  // LOGIC PHÂN TRANG
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const currentProducts = filteredProducts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  // Reset trang khi đổi filter
+  useEffect(() => { setCurrentPage(1); }, [activeTab, searchTerm, stockFilter]);
+
+  // UI Helpers
   const getStockBarColor = (current: number, max: number) => {
     if (current === 0) return 'bg-gray-200';
-    if (current <= 10) return 'bg-red-500';
+    if (current <= 5) return 'bg-red-500';
     return 'bg-[#3D021E]';
   };
 
   const getStockWidth = (current: number, max: number) => {
     return `${Math.min((current / max) * 100, 100)}%`;
+  };
+
+  const formatCurrency = (amount: number) => {
+      if (amount >= 1000000000) return `${(amount / 1000000000).toFixed(1)} Tỷ`;
+      if (amount >= 1000000) return `${(amount / 1000000).toFixed(1)} Triệu`;
+      return `${amount.toLocaleString('vi-VN')}đ`;
   };
 
   return (
@@ -118,11 +152,9 @@ export const AdminProductPage = () => {
             <h1 className="text-2xl font-bold text-[#3D021E]">Quản Lý Kho Hàng</h1>
             <p className="text-sm text-gray-500 mt-1">Theo dõi mức tồn kho và quản lý danh mục sản phẩm của bạn.</p>
         </div>
-        
-        {/* NÚT THÊM SẢN PHẨM: Đã gắn sự kiện onClick chuyển trang */}
         <button 
             onClick={() => navigate('/admin/products/add')}
-            className="flex items-center gap-2 px-6 py-3 bg-[#3D021E] text-white rounded-lg text-sm font-bold hover:bg-[#5a032d] shadow-lg shadow-purple-900/20 transition-all transform hover:-translate-y-1"
+            className="flex items-center gap-2 px-6 py-3 bg-[#3D021E] text-white rounded-lg text-sm font-bold hover:bg-[#5a032d] shadow-lg shadow-pink-900/20 transition-all transform hover:-translate-y-1"
         >
             <Plus className="w-5 h-5" /> Thêm Sản Phẩm Mới
         </button>
@@ -130,10 +162,10 @@ export const AdminProductPage = () => {
 
       {/* 2. STATS BOARD */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-         <StatCard label="Tổng Mã Hàng (SKU)" value="1,284" colorClass="text-[#3D021E]" />
-         <StatCard label="Sắp Hết Hàng" value="24" colorClass="text-red-500" />
-         <StatCard label="Hết Hàng" value="8" colorClass="text-gray-400" />
-         <StatCard label="Giá Trị Kho" value="8.5 Tỷ" colorClass="text-[#3D021E]" />
+         <StatCard label="Tổng Mã Hàng (SKU)" value={stats.totalSKU.toLocaleString('vi-VN')} colorClass="text-[#3D021E]" />
+         <StatCard label="Sắp Hết Hàng" value={stats.lowStock} colorClass="text-red-500" />
+         <StatCard label="Hết Hàng" value={stats.outOfStock} colorClass="text-gray-400" />
+         <StatCard label="Giá Trị Kho" value={formatCurrency(stats.totalValue)} colorClass="text-[#3D021E]" />
       </div>
 
       {/* 3. TOOLBAR (Search & Filter) */}
@@ -150,21 +182,40 @@ export const AdminProductPage = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
-            {/* Filter Button */}
-            <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50">
-                <Filter className="w-4 h-4" /> Bộ lọc
-            </button>
+            
+            {/* NÚT BỘ LỌC ĐÃ HOẠT ĐỘNG */}
+            <div className="relative" ref={filterRef}>
+                <button 
+                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                    className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg text-sm font-bold transition-colors ${stockFilter !== 'all' ? 'border-[#3D021E] text-[#3D021E] bg-pink-50' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                >
+                    <Filter className="w-4 h-4" /> {stockFilter === 'all' ? 'Bộ lọc' : 'Đang lọc...'}
+                </button>
+                
+                {isFilterOpen && (
+                    <div className="absolute left-0 md:right-0 md:left-auto top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-2 animate-in fade-in zoom-in-95">
+                        <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Lọc Tồn kho</div>
+                        <button onClick={() => {setStockFilter('all'); setIsFilterOpen(false)}} className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${stockFilter === 'all' ? 'text-[#3D021E] font-bold' : 'text-gray-700'}`}>Tất cả trạng thái</button>
+                        <button onClick={() => {setStockFilter('low'); setIsFilterOpen(false)}} className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center justify-between ${stockFilter === 'low' ? 'text-red-500 font-bold' : 'text-gray-700'}`}>
+                            Sắp hết hàng <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full">{stats.lowStock}</span>
+                        </button>
+                        <button onClick={() => {setStockFilter('out'); setIsFilterOpen(false)}} className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center justify-between ${stockFilter === 'out' ? 'text-gray-500 font-bold' : 'text-gray-700'}`}>
+                            Hết hàng <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{stats.outOfStock}</span>
+                        </button>
+                    </div>
+                )}
+            </div>
         </div>
 
-        {/* Categories Tabs */}
+        {/* TABS DANH MỤC ĐỘNG (Dynamic Categories) */}
         <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto no-scrollbar">
-            {['Tất cả', 'Trang điểm', 'Chăm sóc da', 'Nước hoa'].map((tab) => (
+            {dynamicCategories.map((tab) => (
                 <button 
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors
                         ${activeTab === tab 
-                            ? 'bg-[#3D021E] text-white' 
+                            ? 'bg-[#3D021E] text-white shadow-sm shadow-pink-200' 
                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}
                     `}
                 >
@@ -176,7 +227,7 @@ export const AdminProductPage = () => {
 
       {/* 4. PRODUCT TABLE */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-         <div className="overflow-x-auto">
+         <div className="overflow-x-auto min-h-[400px]">
              <table className="w-full text-left text-sm">
                  <thead className="bg-gray-50 text-gray-500 uppercase tracking-wider text-xs font-bold border-b border-gray-100">
                      <tr>
@@ -189,40 +240,38 @@ export const AdminProductPage = () => {
                      </tr>
                  </thead>
                  <tbody className="divide-y divide-gray-100">
-                     {filteredProducts.length > 0 ? (
-                         filteredProducts.map((product) => (
+                     {isLoading ? (
+                         <tr>
+                             <td colSpan={6} className="px-6 py-12 text-center">
+                                 <Loader2 className="w-8 h-8 animate-spin text-[#3D021E] mx-auto mb-2" />
+                                 <span className="text-gray-500 font-medium">Đang tải kho hàng...</span>
+                             </td>
+                         </tr>
+                     ) : currentProducts.length > 0 ? (
+                         currentProducts.map((product) => (
                              <tr key={product.id} className="hover:bg-gray-50 transition-colors group">
-                                 {/* Product Info */}
                                  <td className="px-6 py-4">
                                      <div className="flex items-center gap-4">
                                          <div className="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 p-1 flex-shrink-0">
-                                            <img src={product.image} alt="" className="w-full h-full object-cover rounded-md" />
+                                            <img src={product.image} alt="" className="w-full h-full object-cover rounded-md mix-blend-multiply" />
                                          </div>
                                          <div>
-                                             <h4 className="font-bold text-gray-900 line-clamp-1">{product.name}</h4>
+                                             <h4 className="font-bold text-gray-900 line-clamp-1 max-w-[200px]">{product.name}</h4>
                                              <p className="text-xs text-gray-500">{product.variant}</p>
                                          </div>
                                      </div>
                                  </td>
-                                 
-                                 {/* SKU */}
                                  <td className="px-6 py-4">
                                      <span className="font-mono text-xs font-bold bg-gray-100 px-2 py-1 rounded text-gray-600">
                                          {product.sku}
                                      </span>
                                  </td>
-                                 
-                                 {/* Category */}
                                  <td className="px-6 py-4 text-gray-600">
                                      {product.category}
                                  </td>
-
-                                 {/* Price */}
-                                 <td className="px-6 py-4 font-bold text-gray-900">
+                                 <td className="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">
                                      {product.price.toLocaleString('vi-VN')}đ
                                  </td>
-
-                                 {/* Stock Level */}
                                  <td className="px-6 py-4">
                                      <div className="flex items-center justify-between mb-1 text-xs">
                                          <span className="font-bold text-gray-700">{product.stock} SP</span>
@@ -231,19 +280,23 @@ export const AdminProductPage = () => {
                                      </div>
                                      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                                          <div 
-                                            className={`h-full rounded-full ${getStockBarColor(product.stock, product.maxStock)}`} 
+                                            className={`h-full rounded-full transition-all duration-1000 ${getStockBarColor(product.stock, product.maxStock)}`} 
                                             style={{ width: getStockWidth(product.stock, product.maxStock) }}
                                          ></div>
                                      </div>
                                  </td>
-
-                                 {/* Actions */}
                                  <td className="px-6 py-4 text-right">
                                      <div className="flex items-center justify-end gap-2">
-                                         <button className="p-2 text-gray-400 hover:text-[#3D021E] hover:bg-purple-50 rounded-lg transition-colors">
+                                         <button 
+                                            onClick={() => navigate(`/admin/products/edit/${product.id}`)}
+                                            className="p-2 text-gray-400 hover:text-[#3D021E] hover:bg-purple-50 rounded-lg transition-colors"
+                                         >
                                              <Edit className="w-4 h-4" />
                                          </button>
-                                         <button className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                         <button 
+                                            onClick={() => { if(window.confirm('Bạn có chắc muốn xóa sản phẩm này?')) alert('Đang gọi API Xóa...'); }}
+                                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                         >
                                              <Trash2 className="w-4 h-4" />
                                          </button>
                                      </div>
@@ -251,25 +304,53 @@ export const AdminProductPage = () => {
                              </tr>
                          ))
                      ) : (
-                        <tr>
-                            <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                                Không tìm thấy sản phẩm nào phù hợp.
-                            </td>
-                        </tr>
+                         <tr>
+                             <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                                 Không tìm thấy sản phẩm nào phù hợp với bộ lọc.
+                             </td>
+                         </tr>
                      )}
                  </tbody>
              </table>
          </div>
          
          {/* Footer Pagination */}
-         <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-             <span>Hiển thị {filteredProducts.length} kết quả</span>
-             <div className="flex items-center gap-2">
-                 <button className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50"><ChevronLeft className="w-4 h-4" /></button>
-                 <button className="w-8 h-8 flex items-center justify-center bg-[#3D021E] text-white font-bold rounded-lg">1</button>
-                 <button className="p-2 hover:bg-gray-100 rounded-lg"><ChevronRight className="w-4 h-4" /></button>
+         {totalPages > 0 && (
+             <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                 <span>Hiển thị {currentProducts.length} trên tổng {filteredProducts.length} kết quả</span>
+                 <div className="flex items-center gap-2">
+                     <button 
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 transition-colors"
+                     >
+                        <ChevronLeft className="w-4 h-4" />
+                     </button>
+                     
+                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                        <button 
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`w-8 h-8 flex items-center justify-center font-bold rounded-lg transition-all
+                                ${currentPage === page 
+                                    ? 'bg-[#3D021E] text-white shadow-md shadow-pink-200' 
+                                    : 'border border-transparent hover:bg-gray-50 text-gray-700'}
+                            `}
+                        >
+                            {page}
+                        </button>
+                     ))}
+
+                     <button 
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 transition-colors"
+                     >
+                        <ChevronRight className="w-4 h-4" />
+                     </button>
+                 </div>
              </div>
-         </div>
+         )}
       </div>
 
     </AdminLayout>

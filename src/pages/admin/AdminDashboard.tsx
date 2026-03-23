@@ -170,7 +170,7 @@ export const AdminDashboard = () => {
       // Tạo danh sách đơn hàng gần đây
       const formattedOrders = [...filteredOrders].sort((a,b) => new Date(b.createdAt || b.orderDate).getTime() - new Date(a.createdAt || a.orderDate).getTime()).slice(0, 5).map((o: any) => ({
           id: o.orderNumber || o.id || 'N/A',
-          receirvername: getCustomerName(o),
+          customer: getCustomerName(o),
           date: new Date(o.createdAt || o.orderDate || Date.now()).toLocaleDateString('vi-VN', { day: '2-digit', month: 'short', year: 'numeric' }),
           amount: o.totalPrice || o.totalAmount || 0,
           status: translateStatus(o.status || o.orderStatus)
@@ -396,9 +396,9 @@ export const AdminDashboard = () => {
                              <td className="px-6 py-4">
                                  <div className="flex items-center gap-3">
                                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 uppercase flex-shrink-0">
-                                         {order.receirvername.charAt(0)}
+                                         {order.customer.charAt(0)}
                                      </div>
-                                     <span className="font-medium text-gray-900 truncate max-w-[150px]">{order.receirvername}</span>
+                                     <span className="font-medium text-gray-900 truncate max-w-[150px]">{order.customer}</span>
                                  </div>
                              </td>
                              <td className="px-6 py-4 text-gray-500 whitespace-nowrap">{order.date}</td>

@@ -1,108 +1,64 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, Search, Plus, Trash2, CheckCircle2, 
+  ArrowLeft, Search, Trash2, CheckCircle2, 
   User, MapPin, Phone, CreditCard, ShoppingBag, Receipt,
-  FileText, Truck // Đã import thêm icon Truck cho mục Giao hàng
+  FileText, Truck, Loader2 
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
-
-// Mock data sản phẩm để tìm kiếm
-const mockProducts = [
-  { 
-    id: 101, 
-    name: 'Tinh chất phục hồi Dior Capture Totale', 
-    brand: 'Dior',
-    category: 'Skincare',
-    price: 2450000, 
-    stock: 15, 
-    image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=200' 
-  },
-  { 
-    id: 102, 
-    name: 'Sữa rửa mặt tạo bọt Beautya La Mousse', 
-    brand: 'Beautya',
-    category: 'Skincare',
-    price: 850000, 
-    stock: 42, 
-    image: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=200' 
-  },
-  { 
-    id: 103, 
-    name: 'Son kem lì Rouge Velvet Matte - Đỏ Ruby', 
-    brand: 'Glow Aura',
-    category: 'Makeup',
-    price: 650000, 
-    stock: 8, 
-    image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?q=80&w=200' 
-  },
-  { 
-    id: 104, 
-    name: 'Kem dưỡng ẩm sâu Midnight Recovery', 
-    brand: 'Kiehl\'s',
-    category: 'Skincare',
-    price: 1250000, 
-    stock: 0, 
-    image: 'https://images.unsplash.com/photo-1629198688000-71f23e745b6e?q=80&w=200' 
-  },
-  { 
-    id: 105, 
-    name: 'Nước hoa hồng cân bằng da Rose Petal', 
-    brand: 'Fresh',
-    category: 'Skincare',
-    price: 920000, 
-    stock: 25, 
-    image: 'https://images.unsplash.com/photo-1601049676869-702ea24cfd58?q=80&w=200' 
-  },
-  { 
-    id: 106, 
-    name: 'Kem nền lụa Silk Glow Foundation', 
-    brand: 'Armani',
-    category: 'Makeup',
-    price: 1550000, 
-    stock: 12, 
-    image: 'https://images.unsplash.com/photo-1596462502278-27bf85033e5a?q=80&w=200' 
-  },
-  { 
-    id: 107, 
-    name: 'Kem chống nắng Daily Defense SPF 50+', 
-    brand: 'Glow Aura',
-    category: 'Suncare',
-    price: 450000, 
-    stock: 55, 
-    image: 'https://images.unsplash.com/photo-1556228720-192a6af4e865?q=80&w=200' 
-  },
-  { 
-    id: 108, 
-    name: 'Phấn phủ kiềm dầu Translucent Powder', 
-    brand: 'Laura Mercier',
-    category: 'Makeup',
-    price: 1100000, 
-    stock: 5, 
-    image: 'https://images.unsplash.com/photo-1590156546946-cb554ea81cb1?q=80&w=200' 
-  }
-];
+import apiClient from '../../services/apiClient';
 
 export const AdminCreateOrderPage = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
-  // States
+  // States Dữ liệu
+  const [productsList, setProductsList] = useState<any[]>([]);
+  
+  // States Form
   const [customer, setCustomer] = useState({ name: '', phone: '', address: '' });
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<any[]>([]);
   const [paymentMethod, setPaymentMethod] = useState('COD');
   
-  // STATES MỚI THÊM CHO GIAO HÀNG
+  // States Giao hàng & Khuyến mãi (Chỉ phục vụ hiển thị UI tạm tính)
   const [shippingProvider, setShippingProvider] = useState('ghtk');
   const [shippingFee, setShippingFee] = useState(30000);
-
-  // STATES GIẢM GIÁ & GHI CHÚ (Giữ nguyên)
   const [discount, setDiscount] = useState(0);
   const [couponCode, setCouponCode] = useState('');
   const [orderNote, setOrderNote] = useState('');
 
-  // Handlers
+  // 1. TẢI DANH SÁCH SẢN PHẨM TỪ API
+  useEffect(() => {
+      const fetchProducts = async () => {
+          setIsLoadingProducts(true);
+          try {
+              const response = await apiClient.get('/Products');
+              let pList = [];
+              if (response.data && Array.isArray(response.data)) pList = response.data;
+              else if (response.data?.data && Array.isArray(response.data.data)) pList = response.data.data;
+              else if (response.data?.items && Array.isArray(response.data.items)) pList = response.data.items;
+
+              const formattedProducts = pList.map((p: any) => ({
+                  id: p.id,
+                  name: p.name,
+                  price: p.discountedPrice || p.price || 0,
+                  stock: p.stockQuantity || p.stock || 0,
+                  image: p.imageUrl || p.image || 'https://via.placeholder.com/100'
+              })).filter((p: any) => p.stock > 0); // Chỉ hiển thị SP còn hàng
+              
+              setProductsList(formattedProducts);
+          } catch (error) {
+              console.error("Lỗi tải danh sách sản phẩm:", error);
+          } finally {
+              setIsLoadingProducts(false);
+          }
+      };
+      fetchProducts();
+  }, []);
+
+  // 2. HANDLERS GIỎ HÀNG
   const handleAddToCart = (product: any) => {
     if (product.stock <= 0) {
         alert('Sản phẩm này hiện đã hết hàng!');
@@ -124,7 +80,13 @@ export const AdminCreateOrderPage = () => {
   const updateQuantity = (id: number, delta: number) => {
     setCart(cart.map(item => {
       if (item.id === id) {
-        const newQty = Math.max(1, item.quantity + delta);
+        const product = productsList.find(p => p.id === id);
+        let newQty = item.quantity + delta;
+        if (newQty < 1) newQty = 1;
+        if (product && newQty > product.stock) {
+            alert(`Chỉ còn ${product.stock} sản phẩm trong kho!`);
+            newQty = product.stock;
+        }
         return { ...item, quantity: newQty };
       }
       return item;
@@ -137,29 +99,60 @@ export const AdminCreateOrderPage = () => {
 
   const handleApplyCoupon = () => {
       if(!couponCode.trim()) return;
+      // Tạm thời mock logic coupon trên Frontend. Thực tế Backend sẽ xử lý qua CouponCode DTO
       if(couponCode.toUpperCase() === 'SALE50') {
           setDiscount(50000);
-          alert('Áp dụng mã giảm giá thành công!');
+          alert('Áp dụng mã giảm giá thành công! (Mô phỏng UI)');
       } else {
           alert('Mã giảm giá không hợp lệ!');
           setDiscount(0);
       }
   };
 
-  // Tính toán tiền (Đã cập nhật để nhận state phí giao hàng mới)
+  // Tính toán tiền
   const subTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const currentShippingFee = subTotal > 0 ? shippingFee : 0;
-  const total = subTotal + currentShippingFee - discount;
+  const total = Math.max(0, subTotal + currentShippingFee - discount);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // 3. XỬ LÝ SUBMIT CREATE ORDER
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) return alert('Vui lòng thêm sản phẩm vào đơn hàng!');
+    if (!customer.name.trim() || !customer.phone.trim() || !customer.address.trim()) {
+        return alert('Vui lòng điền đầy đủ thông tin khách hàng!');
+    }
     
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      navigate('/admin/orders');
-    }, 1500);
+    
+    // Map dữ liệu về đúng chuẩn CreateOrderRequest của C#
+    let finalPaymentMethod = 'COD';
+    if (paymentMethod === 'Chuyển khoản (VNPay)') finalPaymentMethod = 'VNPay';
+    if (paymentMethod === 'Ví MoMo') finalPaymentMethod = 'Momo';
+
+    const payload = {
+        items: cart.map(item => ({
+            productId: item.id,
+            quantity: item.quantity
+        })),
+        shippingAddress: customer.address,
+        shippingPhone: customer.phone,
+        receiverName: customer.name,
+        paymentMethod: finalPaymentMethod, 
+        notes: orderNote,
+        couponCode: couponCode || null
+    };
+
+    try {
+        const response = await apiClient.post('/Order', payload);
+        alert('Tạo đơn hàng thành công!');
+        navigate('/admin/orders');
+    } catch (error: any) {
+        console.error("Lỗi tạo đơn:", error);
+        const errorMsg = error.response?.data?.message || 'Có lỗi xảy ra khi tạo đơn hàng.';
+        alert(errorMsg);
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (
@@ -237,20 +230,21 @@ export const AdminCreateOrderPage = () => {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <input 
                             type="text" 
-                            placeholder="Tìm kiếm sản phẩm theo tên để thêm vào đơn..." 
+                            placeholder={isLoadingProducts ? "Đang tải kho hàng..." : "Tìm kiếm sản phẩm theo tên..."}
                             className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-[#3D021E] outline-none"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                            disabled={isLoadingProducts}
                         />
                         {/* Dropdown Gợi ý tìm kiếm */}
                         {searchQuery && (
                             <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden max-h-60 overflow-y-auto">
-                                {mockProducts.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).map(product => (
-                                    <div key={product.id} className="flex items-center justify-between p-3 hover:bg-gray-50 cursor-pointer border-b last:border-0" onClick={() => handleAddToCart(product)}>
+                                {productsList.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).map(product => (
+                                    <div key={product.id} className="flex items-center justify-between p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0" onClick={() => handleAddToCart(product)}>
                                         <div className="flex items-center gap-3">
-                                            <img src={product.image} alt={product.name} className="w-10 h-10 rounded object-cover" />
+                                            <img src={product.image} alt={product.name} className="w-10 h-10 rounded object-cover mix-blend-multiply" />
                                             <div>
-                                                <p className="text-sm font-bold text-gray-900">{product.name}</p>
+                                                <p className="text-sm font-bold text-gray-900 line-clamp-1 max-w-[200px]">{product.name}</p>
                                                 <p className="text-xs text-gray-500">Kho: {product.stock}</p>
                                             </div>
                                         </div>
@@ -267,19 +261,19 @@ export const AdminCreateOrderPage = () => {
                             {cart.map(item => (
                                 <div key={item.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-xl">
                                     <div className="flex items-center gap-4">
-                                        <img src={item.image} className="w-14 h-14 rounded-lg object-cover bg-gray-50" />
+                                        <img src={item.image} className="w-14 h-14 rounded-lg object-cover bg-gray-50 mix-blend-multiply" />
                                         <div>
-                                            <h4 className="font-bold text-sm text-gray-900">{item.name}</h4>
+                                            <h4 className="font-bold text-sm text-gray-900 line-clamp-1 max-w-[150px] md:max-w-[250px]">{item.name}</h4>
                                             <p className="text-sm text-[#3D021E] font-medium mt-1">{item.price.toLocaleString('vi-VN')}đ</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-6">
                                         <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg p-1">
-                                            <button type="button" onClick={() => updateQuantity(item.id, -1)} className="w-7 h-7 flex items-center justify-center bg-white rounded shadow-sm hover:text-[#3D021E]">-</button>
+                                            <button type="button" onClick={() => updateQuantity(item.id, -1)} className="w-7 h-7 flex items-center justify-center bg-white rounded shadow-sm hover:text-[#3D021E] transition-colors">-</button>
                                             <span className="text-sm font-bold w-4 text-center">{item.quantity}</span>
-                                            <button type="button" onClick={() => updateQuantity(item.id, 1)} className="w-7 h-7 flex items-center justify-center bg-white rounded shadow-sm hover:text-[#3D021E]">+</button>
+                                            <button type="button" onClick={() => updateQuantity(item.id, 1)} className="w-7 h-7 flex items-center justify-center bg-white rounded shadow-sm hover:text-[#3D021E] transition-colors">+</button>
                                         </div>
-                                        <p className="font-bold text-gray-900 w-24 text-right">{(item.price * item.quantity).toLocaleString('vi-VN')}đ</p>
+                                        <p className="font-bold text-gray-900 w-24 text-right hidden sm:block">{(item.price * item.quantity).toLocaleString('vi-VN')}đ</p>
                                         <button type="button" onClick={() => removeFromCart(item.id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                                             <Trash2 className="w-4 h-4" />
                                         </button>
@@ -295,13 +289,12 @@ export const AdminCreateOrderPage = () => {
                     )}
                 </div>
 
-                {/* 3. KHU VỰC GIAO HÀNG ĐƯỢC THÊM MỚI Ở ĐÂY */}
+                {/* 3. KHU VỰC GIAO HÀNG */}
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                     <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
                         <Truck className="w-5 h-5 text-[#3D021E]" /> Giao hàng
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Chọn Đơn vị vận chuyển */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Đơn vị vận chuyển</label>
                             <select
@@ -315,10 +308,8 @@ export const AdminCreateOrderPage = () => {
                                 <option value="shop">Khách nhận tại cửa hàng</option>
                             </select>
                         </div>
-
-                        {/* Nhập/Sửa Phí giao hàng */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Phí giao hàng</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Phí giao hàng (Tạm tính UI)</label>
                             <div className="relative">
                                 <input
                                     type="number"
@@ -362,7 +353,7 @@ export const AdminCreateOrderPage = () => {
                     </h2>
                     <textarea 
                         rows={3} 
-                        placeholder="Nhập ghi chú cho đơn hàng (VD: Giao giờ hành chính, gọi trước khi giao...)" 
+                        placeholder="Nhập ghi chú cho đơn hàng..." 
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:border-[#3D021E] outline-none resize-none"
                         value={orderNote}
                         onChange={e => setOrderNote(e.target.value)}
@@ -375,7 +366,6 @@ export const AdminCreateOrderPage = () => {
                         <Receipt className="w-5 h-5 text-[#3D021E]" /> Tổng quan
                     </h2>
                     
-                    {/* Khu vực nhập mã giảm giá */}
                     <div className="flex gap-2 mb-6">
                         <input 
                             type="text" 
@@ -403,7 +393,6 @@ export const AdminCreateOrderPage = () => {
                             <span className="font-medium text-gray-900">{currentShippingFee.toLocaleString('vi-VN')}đ</span>
                         </div>
                         
-                        {/* Khu vực Giảm giá */}
                         <div className="flex justify-between items-center text-gray-600">
                             <span>Giảm giá</span>
                             <div className="flex items-center gap-1">
@@ -429,7 +418,8 @@ export const AdminCreateOrderPage = () => {
                         disabled={isSubmitting}
                         className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#3D021E] text-white font-bold rounded-xl hover:bg-[#5a032d] shadow-lg shadow-pink-200 transition-all disabled:opacity-70"
                     >
-                        {isSubmitting ? 'Đang tạo...' : <><CheckCircle2 className="w-5 h-5" /> Tạo Đơn Hàng Mới</>}
+                        {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+                        {isSubmitting ? 'Đang tạo đơn...' : 'Tạo Đơn Hàng Mới'}
                     </button>
                 </div>
 

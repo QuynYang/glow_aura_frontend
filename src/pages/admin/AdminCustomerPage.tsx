@@ -1,72 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  Search, Filter, Download, MoreHorizontal, 
-  UserPlus, Mail, Phone, Lock, Unlock, Edit, Trash2, 
-  ChevronLeft, ChevronRight 
+  Search, Filter, Download, UserPlus, Mail, Phone, Lock, Unlock, Edit, Trash2, 
+  ChevronLeft, ChevronRight, Loader2
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import { useNavigate } from 'react-router-dom';
+import apiClient from '../../services/apiClient';
 
-// --- 1. MOCK DATA (Dữ liệu Khách hàng) ---
-const customers = [
-  {
-    id: 1,
-    name: "Nguyễn Văn An",
-    email: "an.nguyen@example.com",
-    phone: "0901234567",
-    avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100",
-    joinDate: "24 Th10, 2023",
-    status: "Hoạt động",
-    totalOrders: 12,
-    role: "Thành viên Vàng"
-  },
-  {
-    id: 2,
-    name: "Trần Thị Bình",
-    email: "binh.tran@example.com",
-    phone: "0912345678",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100",
-    joinDate: "12 Th09, 2023",
-    status: "Hoạt động",
-    totalOrders: 5,
-    role: "Thành viên Bạc"
-  },
-  {
-    id: 3,
-    name: "Lê Minh Cường",
-    email: "cuong.le@example.com",
-    phone: "0987654321",
-    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100",
-    joinDate: "05 Th11, 2023",
-    status: "Bị chặn",
-    totalOrders: 0,
-    role: "Mới"
-  },
-  {
-    id: 4,
-    name: "Phạm Thu Dung",
-    email: "dung.pham@example.com",
-    phone: "0933445566",
-    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=100",
-    joinDate: "20 Th10, 2023",
-    status: "Hoạt động",
-    totalOrders: 24,
-    role: "Thành viên Kim Cương"
-  },
-  {
-    id: 5,
-    name: "Hoàng Văn Em",
-    email: "em.hoang@example.com",
-    phone: "0977889900",
-    avatar: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=100",
-    joinDate: "01 Th12, 2023",
-    status: "Hoạt động",
-    totalOrders: 2,
-    role: "Mới"
-  },
-];
-
-// Component Thẻ Thống Kê (Giống ảnh mẫu)
+// Component Thẻ Thống Kê
 const StatCard = ({ label, value, subValue, colorClass }: any) => (
     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex-1">
         <h4 className="text-gray-500 text-sm font-medium mb-2">{label}</h4>
@@ -80,16 +21,86 @@ const StatCard = ({ label, value, subValue, colorClass }: any) => (
 );
 
 export const AdminCustomerPage = () => {
-  const navigate = useNavigate(); // Khởi tạo hook điều hướng
+  const navigate = useNavigate(); 
+  
+  // States Quản lý Dữ liệu
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState({ total: 0, active: 0, newToday: 0, blocked: 0 });
+
+  // States Quản lý UI (Lọc, Tìm kiếm, Phân trang)
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('Tất cả');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
+  // 1. GỌI API LẤY DANH SÁCH USER
+  useEffect(() => {
+      const fetchUsers = async () => {
+          setIsLoading(true);
+          try {
+              const response = await apiClient.get('/User');
+              
+              // Bóc tách mảng dữ liệu an toàn
+              let usersList = [];
+              if (response.data && Array.isArray(response.data)) usersList = response.data;
+              else if (response.data?.data && Array.isArray(response.data.data)) usersList = response.data.data;
+              else if (response.data?.items && Array.isArray(response.data.items)) usersList = response.data.items;
+
+              const today = new Date().toLocaleDateString('vi-VN');
+              let activeCount = 0;
+              let newCount = 0;
+              let blockedCount = 0;
+
+              const formattedUsers = usersList.map((u: any) => {
+                  // Cấu trúc lại data dựa trên thuộc tính phổ biến của C# Identity
+                  const name = u.fullName || u.userName || 'Khách hàng';
+                  const email = u.email || 'Không có email';
+                  const joinDateObj = new Date(u.createdAt || u.dateCreated || Date.now());
+                  const joinDate = joinDateObj.toLocaleDateString('vi-VN', { day: '2-digit', month: 'short', year: 'numeric' });
+                  const isBlocked = u.isBlocked || u.status === 'Blocked' || u.isActive === false;
+                  const status = isBlocked ? 'Bị chặn' : 'Hoạt động';
+                  const role = u.role || (u.roles && u.roles.length > 0 ? u.roles[0] : 'Thành viên');
+
+                  // Tính toán thống kê
+                  if (status === 'Hoạt động') activeCount++;
+                  if (status === 'Bị chặn') blockedCount++;
+                  if (joinDateObj.toLocaleDateString('vi-VN') === today) newCount++;
+
+                  return {
+                      id: u.id,
+                      name: name,
+                      email: email,
+                      phone: u.phoneNumber || u.phone || 'Chưa cập nhật',
+                      avatar: u.avatarUrl || u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
+                      joinDate: joinDate,
+                      status: status,
+                      role: role
+                  };
+              });
+
+              setCustomers(formattedUsers);
+              setStats({
+                  total: formattedUsers.length,
+                  active: activeCount,
+                  newToday: newCount,
+                  blocked: blockedCount
+              });
+
+          } catch (error) {
+              console.error("Lỗi khi tải danh sách Khách hàng:", error);
+          } finally {
+              setIsLoading(false);
+          }
+      };
+
+      fetchUsers();
+  }, []);
 
   // --- LOGIC LỌC & TÌM KIẾM ---
   const filteredCustomers = customers.filter(customer => {
-      // 1. Lọc theo trạng thái
       const matchesStatus = filterStatus === 'Tất cả' || customer.status === filterStatus;
       
-      // 2. Tìm kiếm (Tên, Email hoặc SĐT)
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = 
           customer.name.toLowerCase().includes(searchLower) ||
@@ -99,6 +110,47 @@ export const AdminCustomerPage = () => {
       return matchesStatus && matchesSearch;
   });
 
+  // --- LOGIC PHÂN TRANG ---
+  const totalPages = Math.ceil(filteredCustomers.length / ITEMS_PER_PAGE);
+  const currentCustomers = filteredCustomers.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, filterStatus]);
+
+  // --- LOGIC ACTION BUTTONS ---
+  const handleToggleStatus = async (id: number | string, currentStatus: string) => {
+      const isCurrentlyBlocked = currentStatus === 'Bị chặn';
+      const actionText = isCurrentlyBlocked ? 'mở khóa' : 'khóa';
+      
+      if (!window.confirm(`Bạn có chắc chắn muốn ${actionText} tài khoản này?`)) return;
+
+      try {
+          // Gọi API C# (Giả định payload, bạn cần chỉnh sửa cho khớp với API của bạn)
+          await apiClient.patch(`/User/${id}/status`); 
+          
+          // Cập nhật state trực tiếp trên Frontend cho nhanh
+          setCustomers(prev => prev.map(c => 
+              c.id === id ? { ...c, status: isCurrentlyBlocked ? 'Hoạt động' : 'Bị chặn' } : c
+          ));
+          alert(`Đã ${actionText} tài khoản thành công!`);
+      } catch (error) {
+          alert(`Lỗi khi ${actionText} tài khoản.`);
+          console.error(error);
+      }
+  };
+
+  const handleDelete = async (id: number | string) => {
+      if (!window.confirm('CẢNH BÁO: Bạn có chắc chắn muốn xóa vĩnh viễn khách hàng này không?')) return;
+
+      try {
+          await apiClient.delete(`/User/${id}`);
+          setCustomers(prev => prev.filter(c => c.id !== id));
+          alert('Đã xóa khách hàng thành công!');
+      } catch (error) {
+          alert('Lỗi khi xóa khách hàng.');
+          console.error(error);
+      }
+  };
+
   return (
     <AdminLayout>
       
@@ -106,10 +158,9 @@ export const AdminCustomerPage = () => {
       <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold text-gray-900">Quản Lý Khách Hàng</h1>
-              {/* Đã thêm onClick để chuyển trang */}
               <button 
                   onClick={() => navigate('/admin/customers/add')}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-[#3D021E] text-white rounded-lg text-sm font-bold hover:bg-[#5a032d] transition-all shadow-lg shadow-purple-900/10"
+                  className="flex items-center gap-2 px-6 py-2.5 bg-[#3D021E] text-white rounded-lg text-sm font-bold hover:bg-[#5a032d] transition-all shadow-lg shadow-pink-900/10 transform hover:-translate-y-1"
               >
                   <UserPlus className="w-4 h-4" /> Thêm Khách Hàng
               </button>
@@ -117,10 +168,10 @@ export const AdminCustomerPage = () => {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <StatCard label="Tổng Khách Hàng" value="1,240" subValue="+12%" colorClass="bg-green-100 text-green-700" />
-              <StatCard label="Đang Hoạt Động" value="1,180" subValue="Realtime" colorClass="bg-blue-100 text-blue-700" />
-              <StatCard label="Khách Hàng Mới" value="45" subValue="Hôm nay" colorClass="bg-purple-100 text-purple-700" />
-              <StatCard label="Bị Chặn / Xóa" value="15" subValue="-2%" colorClass="bg-red-100 text-red-700" />
+              <StatCard label="Tổng Khách Hàng" value={stats.total.toLocaleString('vi-VN')} subValue="Hệ thống" colorClass="bg-gray-100 text-gray-700" />
+              <StatCard label="Đang Hoạt Động" value={stats.active.toLocaleString('vi-VN')} subValue="Realtime" colorClass="bg-green-100 text-green-700" />
+              <StatCard label="Khách Hàng Mới" value={stats.newToday} subValue="Hôm nay" colorClass="bg-purple-100 text-purple-700" />
+              <StatCard label="Bị Chặn / Xóa" value={stats.blocked} subValue="Cần xử lý" colorClass="bg-red-100 text-red-700" />
           </div>
       </div>
 
@@ -163,102 +214,152 @@ export const AdminCustomerPage = () => {
          </div>
 
          {/* Data Table */}
-         <div className="overflow-x-auto">
+         <div className="overflow-x-auto min-h-[400px]">
              <table className="w-full text-left text-sm">
                  <thead className="bg-gray-50 text-gray-500 uppercase tracking-wider text-xs font-bold">
                      <tr>
                          <th className="px-6 py-4">Khách Hàng</th>
                          <th className="px-6 py-4">Liên Hệ</th>
                          <th className="px-6 py-4">Ngày Tham Gia</th>
-                         <th className="px-6 py-4">Hạng Hội Viên</th>
+                         <th className="px-6 py-4">Quyền / Hạng</th>
                          <th className="px-6 py-4">Trạng Thái</th>
                          <th className="px-6 py-4 text-right">Hành Động</th>
                      </tr>
                  </thead>
                  <tbody className="divide-y divide-gray-100">
-                     {filteredCustomers.map((customer) => (
-                         <tr key={customer.id} className="hover:bg-gray-50 transition-colors">
-                             
-                             {/* Info */}
-                             <td className="px-6 py-4">
-                                 <div className="flex items-center gap-3">
-                                     <img 
-                                        src={customer.avatar} 
-                                        alt={customer.name} 
-                                        className="w-10 h-10 rounded-full object-cover border border-gray-200" 
-                                     />
-                                     <div>
-                                         <h4 className="font-bold text-gray-900">{customer.name}</h4>
-                                         <p className="text-xs text-gray-500">{customer.email}</p>
-                                     </div>
-                                 </div>
-                             </td>
-
-                             {/* Contact */}
-                             <td className="px-6 py-4 text-gray-600">
-                                 <div className="flex flex-col gap-1">
-                                     <span className="flex items-center gap-1 text-xs"><Phone className="w-3 h-3" /> {customer.phone}</span>
-                                     <span className="flex items-center gap-1 text-xs"><Mail className="w-3 h-3" /> Email</span>
-                                 </div>
-                             </td>
-
-                             {/* Date */}
-                             <td className="px-6 py-4 text-gray-600 font-medium">
-                                 {customer.joinDate}
-                             </td>
-
-                             {/* Role */}
-                             <td className="px-6 py-4">
-                                 <span className={`px-3 py-1 rounded-full text-[10px] font-bold border
-                                    ${customer.role.includes('Vàng') ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 
-                                      customer.role.includes('Kim Cương') ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                      'bg-gray-50 text-gray-600 border-gray-200'}
-                                 `}>
-                                     {customer.role}
-                                 </span>
-                             </td>
-
-                             {/* Status */}
-                             <td className="px-6 py-4">
-                                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold
-                                    ${customer.status === 'Hoạt động' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}
-                                 `}>
-                                     <span className={`w-1.5 h-1.5 rounded-full ${customer.status === 'Hoạt động' ? 'bg-green-600' : 'bg-red-600'}`}></span>
-                                     {customer.status}
-                                 </span>
-                             </td>
-
-                             {/* Actions */}
-                             <td className="px-6 py-4 text-right">
-                                 <div className="flex items-center justify-end gap-2">
-                                     <button className="p-2 text-gray-400 hover:text-[#3D021E] hover:bg-purple-50 rounded-lg transition-colors" title="Chỉnh sửa">
-                                         <Edit className="w-4 h-4" />
-                                     </button>
-                                     <button className="p-2 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors" title="Khóa/Mở khóa">
-                                         {customer.status === 'Hoạt động' ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
-                                     </button>
-                                     <button className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Xóa">
-                                         <Trash2 className="w-4 h-4" />
-                                     </button>
-                                 </div>
+                     {isLoading ? (
+                         <tr>
+                             <td colSpan={6} className="px-6 py-12 text-center">
+                                 <Loader2 className="w-8 h-8 animate-spin text-[#3D021E] mx-auto mb-2" />
+                                 <span className="text-gray-500 font-medium">Đang tải dữ liệu khách hàng...</span>
                              </td>
                          </tr>
-                     ))}
+                     ) : currentCustomers.length > 0 ? (
+                         currentCustomers.map((customer) => (
+                             <tr key={customer.id} className="hover:bg-gray-50 transition-colors">
+                                 
+                                 {/* Info */}
+                                 <td className="px-6 py-4">
+                                     <div className="flex items-center gap-3">
+                                         <img 
+                                            src={customer.avatar} 
+                                            alt={customer.name} 
+                                            className="w-10 h-10 rounded-full object-cover border border-gray-200 bg-white" 
+                                         />
+                                         <div>
+                                             <h4 className="font-bold text-gray-900">{customer.name}</h4>
+                                             <p className="text-xs text-gray-500">{customer.email}</p>
+                                         </div>
+                                     </div>
+                                 </td>
+
+                                 {/* Contact */}
+                                 <td className="px-6 py-4 text-gray-600">
+                                     <div className="flex flex-col gap-1">
+                                         <span className="flex items-center gap-1 text-xs"><Phone className="w-3 h-3" /> {customer.phone}</span>
+                                     </div>
+                                 </td>
+
+                                 {/* Date */}
+                                 <td className="px-6 py-4 text-gray-600 font-medium">
+                                     {customer.joinDate}
+                                 </td>
+
+                                 {/* Role */}
+                                 <td className="px-6 py-4">
+                                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold border uppercase
+                                        ${customer.role.toLowerCase().includes('admin') ? 'bg-red-50 text-red-700 border-red-200' : 
+                                          customer.role.toLowerCase().includes('staff') ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                          'bg-gray-50 text-gray-600 border-gray-200'}
+                                     `}>
+                                         {customer.role}
+                                     </span>
+                                 </td>
+
+                                 {/* Status */}
+                                 <td className="px-6 py-4">
+                                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold
+                                        ${customer.status === 'Hoạt động' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}
+                                     `}>
+                                         <span className={`w-1.5 h-1.5 rounded-full ${customer.status === 'Hoạt động' ? 'bg-green-600' : 'bg-red-600'}`}></span>
+                                         {customer.status}
+                                     </span>
+                                 </td>
+
+                                 {/* Actions */}
+                                 <td className="px-6 py-4 text-right">
+                                     <div className="flex items-center justify-end gap-2">
+                                         <button 
+                                            onClick={() => navigate(`/admin/customers/edit/${customer.id}`)}
+                                            className="p-2 text-gray-400 hover:text-[#3D021E] hover:bg-purple-50 rounded-lg transition-colors" title="Chỉnh sửa"
+                                         >
+                                             <Edit className="w-4 h-4" />
+                                         </button>
+                                         <button 
+                                            onClick={() => handleToggleStatus(customer.id, customer.status)}
+                                            className={`p-2 rounded-lg transition-colors ${customer.status === 'Hoạt động' ? 'text-gray-400 hover:text-orange-500 hover:bg-orange-50' : 'text-orange-500 bg-orange-50'}`} 
+                                            title={customer.status === 'Hoạt động' ? "Khóa tài khoản" : "Mở khóa tài khoản"}
+                                         >
+                                             {customer.status === 'Hoạt động' ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                                         </button>
+                                         <button 
+                                            onClick={() => handleDelete(customer.id)}
+                                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Xóa vĩnh viễn"
+                                         >
+                                             <Trash2 className="w-4 h-4" />
+                                         </button>
+                                     </div>
+                                 </td>
+                             </tr>
+                         ))
+                     ) : (
+                         <tr>
+                             <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                                 Không tìm thấy khách hàng nào phù hợp với bộ lọc.
+                             </td>
+                         </tr>
+                     )}
                  </tbody>
              </table>
          </div>
 
          {/* Footer Pagination */}
-         <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-             <span>Hiển thị {filteredCustomers.length} kết quả</span>
-             <div className="flex items-center gap-2">
-                 <button className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50"><ChevronLeft className="w-4 h-4" /></button>
-                 <button className="w-8 h-8 flex items-center justify-center bg-[#3D021E] text-white font-bold rounded-lg">1</button>
-                 <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-lg">2</button>
-                 <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-lg">3</button>
-                 <button className="p-2 hover:bg-gray-100 rounded-lg"><ChevronRight className="w-4 h-4" /></button>
+         {totalPages > 0 && (
+             <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                 <span>Hiển thị {currentCustomers.length} trên tổng {filteredCustomers.length} kết quả</span>
+                 <div className="flex items-center gap-2">
+                     <button 
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 transition-colors"
+                     >
+                        <ChevronLeft className="w-4 h-4" />
+                     </button>
+                     
+                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                        <button 
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`w-8 h-8 flex items-center justify-center font-bold rounded-lg transition-all
+                                ${currentPage === page 
+                                    ? 'bg-[#3D021E] text-white shadow-md shadow-pink-200' 
+                                    : 'border border-transparent hover:bg-gray-50 text-gray-700'}
+                            `}
+                        >
+                            {page}
+                        </button>
+                     ))}
+
+                     <button 
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 transition-colors"
+                     >
+                        <ChevronRight className="w-4 h-4" />
+                     </button>
+                 </div>
              </div>
-         </div>
+         )}
       </div>
 
     </AdminLayout>

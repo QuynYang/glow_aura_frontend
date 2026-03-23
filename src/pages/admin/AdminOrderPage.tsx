@@ -1,74 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // 1. Import hook điều hướng
+import { useNavigate } from 'react-router-dom';
 import { 
   Plus, Download, Filter, ChevronLeft, ChevronRight, 
-  MoreHorizontal, Calendar, Truck, DollarSign, Zap 
+  MoreHorizontal, Calendar, Truck, DollarSign, Zap, Loader2, 
+  Eye, Edit, Trash2
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
+import apiClient from '../../services/apiClient';
 
+// Danh sách Tabs trạng thái (Đã cập nhật đầy đủ các case của C#)
+const tabs = ["Tất cả đơn hàng", "Chờ xác nhận", "Đã thanh toán", "Đang xử lý", "Đang giao", "Đã giao", "Đã hủy"];
 
-// --- 1. MOCK DATA (Dữ liệu đơn hàng) ---
-const orders = [
-  {
-    id: "#ORD-7732",
-    customer: "Nguyễn Văn An",
-    avatar: "A",
-    date: "24 Th10, 2023",
-    status: "Đang xử lý",
-    total: 4500000,
-    color: "bg-orange-100 text-orange-600"
-  },
-  {
-    id: "#ORD-7731",
-    customer: "Trần Thị Bình",
-    avatar: "T",
-    date: "23 Th10, 2023",
-    status: "Đang giao",
-    total: 12200000,
-    color: "bg-blue-100 text-blue-600"
-  },
-  {
-    id: "#ORD-7730",
-    customer: "Lê Minh Cường",
-    avatar: "L",
-    date: "22 Th10, 2023",
-    status: "Đã giao",
-    total: 890000,
-    color: "bg-green-100 text-green-600"
-  },
-  {
-    id: "#ORD-7729",
-    customer: "Phạm Thu Dung",
-    avatar: "P",
-    date: "22 Th10, 2023",
-    status: "Đang xử lý",
-    total: 21000000,
-    color: "bg-orange-100 text-orange-600"
-  },
-  {
-    id: "#ORD-7728",
-    customer: "Hoàng Văn Em",
-    avatar: "H",
-    date: "21 Th10, 2023",
-    status: "Đã giao",
-    total: 3450000,
-    color: "bg-green-100 text-green-600"
-  },
-  {
-    id: "#ORD-7727",
-    customer: "Vũ Thị F",
-    avatar: "V",
-    date: "20 Th10, 2023",
-    status: "Đã hủy",
-    total: 0,
-    color: "bg-red-100 text-red-600"
-  }
-];
-
-// Danh sách Tabs trạng thái
-const tabs = ["Tất cả đơn hàng", "Đang xử lý", "Đang giao", "Đã giao", "Đã hủy"];
-
-// Component Thẻ Thống Kê
 const StatCard = ({ title, value, subtext, icon: Icon, iconColor, trend }: any) => (
     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex-1">
         <div className="flex justify-between items-start mb-4">
@@ -78,43 +20,132 @@ const StatCard = ({ title, value, subtext, icon: Icon, iconColor, trend }: any) 
             </div>
         </div>
         <div className="text-3xl font-bold text-gray-900 mb-2">{value}</div>
-        <p className={`text-xs font-medium ${trend ? 'text-green-500' : 'text-red-500'}`}>
+        <p className={`text-xs font-medium ${trend ? 'text-green-500' : 'text-gray-500'}`}>
             {subtext}
         </p>
     </div>
 );
 
+// HÀM DỊCH TRẠNG THÁI (Đã cập nhật đủ các trạng thái C# trả về)
+const translateStatus = (status: string) => {
+    switch (status?.toLowerCase()) {
+        case 'pending': return 'Chờ xác nhận';
+        case 'confirmed': return 'Đã xác nhận';
+        case 'paid': return 'Đã thanh toán';
+        case 'processing': return 'Đang xử lý';
+        case 'shipping': return 'Đang giao';
+        case 'delivered': return 'Đã giao';
+        case 'completed': return 'Hoàn thành';
+        case 'cancelled': return 'Đã hủy';
+        default: return status?.toUpperCase() || 'MỚI';
+    }
+};
+
+// HÀM GÁN MÀU SẮC (Đã xử lý cho Paid, Confirmed...)
+const getStatusColor = (statusText: string) => {
+    switch (statusText) {
+        case 'Đã giao':
+        case 'Hoàn thành':
+        case 'Đã thanh toán': return 'bg-green-100 text-green-700';
+        case 'Đang giao': return 'bg-blue-100 text-blue-700';
+        case 'Đang xử lý':
+        case 'Đã xác nhận': return 'bg-yellow-100 text-yellow-700';
+        case 'Đã hủy': return 'bg-red-100 text-red-700';
+        case 'Chờ xác nhận': return 'bg-gray-100 text-gray-700';
+        default: return 'bg-gray-100 text-gray-700';
+    }
+};
+
 export const AdminOrderPage = () => {
-  const navigate = useNavigate(); // 2. Khởi tạo navigate
-
-  // State quản lý Tab đang chọn
-  const [activeTab, setActiveTab] = useState('Tất cả đơn hàng');
+  const navigate = useNavigate();
   
-  // State quản lý danh sách các ID đơn hàng đang được chọn (checkbox)
-  const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [avgOrderValue, setAvgOrderValue] = useState(0);
 
-  // 1. LOGIC LỌC (FILTER): Lọc danh sách dựa trên activeTab
+  const [activeTab, setActiveTab] = useState('Tất cả đơn hàng');
+  const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
+  
+  // 1. STATE CHO PHÂN TRANG (PAGINATION)
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10; // Giới hạn 10 đơn/trang
+
+  // 2. STATE CHO NÚT ACTION (...)
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+
+  // Đóng dropdown khi click ra ngoài
+  useEffect(() => {
+      const handleClickOutside = () => setOpenDropdownId(null);
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+        setIsLoading(true);
+        try {
+            const response = await apiClient.get('/Order?page=1&pageSize=100');
+            
+            let ordersList = [];
+            if (response.data && Array.isArray(response.data)) ordersList = response.data;
+            else if (response.data?.data && Array.isArray(response.data.data)) ordersList = response.data.data;
+            else if (response.data?.items && Array.isArray(response.data.items)) ordersList = response.data.items;
+
+            const formattedOrders = ordersList.map((o: any) => {
+                const translatedStatus = translateStatus(o.status || o.orderStatus);
+                return {
+                    rawId: o.id, 
+                    id: o.orderNumber || `#GA-${o.id}`,
+                    customer: o.customerName || 'Khách hàng', 
+                    avatar: (o.customerName || 'K').charAt(0).toUpperCase(),
+                    date: new Date(o.createdAt || o.orderDate || Date.now()).toLocaleDateString('vi-VN', { day: '2-digit', month: 'short', year: 'numeric' }),
+                    status: translatedStatus,
+                    total: o.totalAmount || o.totalPrice || 0,
+                    color: getStatusColor(translatedStatus)
+                };
+            });
+
+            setOrders(formattedOrders);
+
+            if (formattedOrders.length > 0) {
+                const totalRev = formattedOrders.reduce((sum: number, ord: any) => sum + ord.total, 0);
+                setAvgOrderValue(Math.round(totalRev / formattedOrders.length));
+            }
+
+        } catch (error) {
+            console.error("Lỗi tải danh sách đơn hàng:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    fetchOrders();
+  }, []);
+
+  // Lọc theo Tab
   const filteredOrders = orders.filter((order) => {
       if (activeTab === 'Tất cả đơn hàng') return true;
       return order.status === activeTab;
   });
 
-  // Reset checkbox khi chuyển Tab để tránh nhầm lẫn
+  // TÍNH TOÁN PHÂN TRANG LOGIC
+  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
+  const currentOrders = filteredOrders.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  // Reset page & checkbox khi đổi Tab
   useEffect(() => {
+      setCurrentPage(1);
       setSelectedOrders([]);
   }, [activeTab]);
 
-  // 2. LOGIC CHỌN TẤT CẢ (SELECT ALL)
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.checked) {
-          const allIds = filteredOrders.map(order => order.id);
-          setSelectedOrders(allIds);
+          setSelectedOrders(currentOrders.map(order => order.id)); // Chỉ chọn ở trang hiện tại
       } else {
           setSelectedOrders([]);
       }
   };
 
-  // 3. LOGIC CHỌN TỪNG DÒNG (SELECT ROW)
   const handleSelectRow = (id: string) => {
       if (selectedOrders.includes(id)) {
           setSelectedOrders(selectedOrders.filter(item => item !== id));
@@ -123,13 +154,10 @@ export const AdminOrderPage = () => {
       }
   };
 
-  // Kiểm tra xem có đang chọn tất cả không
-  const isAllSelected = filteredOrders.length > 0 && selectedOrders.length === filteredOrders.length;
+  const isAllSelected = currentOrders.length > 0 && selectedOrders.length === currentOrders.length;
 
   return (
     <AdminLayout>
-      
-      {/* HEADER PAGE */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
             <h1 className="text-2xl font-bold text-gray-900">Quản Lý Đơn Hàng</h1>
@@ -140,18 +168,15 @@ export const AdminOrderPage = () => {
                 <Download className="w-4 h-4" /> Xuất CSV
             </button>
             <button 
-                    onClick={() => navigate('/admin/orders/create')} 
-                    className="flex items-center gap-2 px-4 py-2 bg-[#3D021E] text-white font-bold rounded-lg hover:bg-[#5a032d] shadow-md shadow-pink-200 transition-all text-sm"
-                 >
-                     <Plus className="w-4 h-4" /> Tạo đơn hàng mới
-                 </button>
+                onClick={() => navigate('/admin/orders/create')} 
+                className="flex items-center gap-2 px-4 py-2 bg-[#3D021E] text-white font-bold rounded-lg hover:bg-[#5a032d] shadow-md shadow-pink-200 transition-all text-sm"
+             >
+                <Plus className="w-4 h-4" /> Tạo đơn hàng
+            </button>
         </div>
       </div>
 
-      {/* ORDER LIST CARD */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-8">
-         
-         {/* Toolbar: Tabs */}
          <div className="p-4 border-b border-gray-100 flex flex-col lg:flex-row justify-between items-center gap-4">
              <div className="flex gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 no-scrollbar">
                  {tabs.map((tab) => (
@@ -173,14 +198,10 @@ export const AdminOrderPage = () => {
                  <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 w-full lg:w-auto justify-center">
                      <Calendar className="w-4 h-4" /> 30 ngày qua
                  </button>
-                 <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50">
-                     <Filter className="w-4 h-4 text-gray-500" />
-                 </button>
              </div>
          </div>
 
-         {/* Data Table */}
-         <div className="overflow-x-auto">
+         <div className="overflow-x-auto min-h-[400px]">
              <table className="w-full text-left text-sm">
                  <thead className="bg-gray-50 text-gray-500 uppercase tracking-wider text-xs font-bold">
                      <tr>
@@ -192,24 +213,29 @@ export const AdminOrderPage = () => {
                                 onChange={handleSelectAll}
                              />
                          </th>
-                         <th className="px-6 py-4">Mã Đơn</th>
+                         <th className="px-6 py-4 whitespace-nowrap">Mã Đơn</th>
                          <th className="px-6 py-4">Khách Hàng</th>
-                         <th className="px-6 py-4">Ngày Đặt</th>
-                         <th className="px-6 py-4">Trạng Thái</th>
-                         <th className="px-6 py-4 text-right">Tổng Tiền</th>
-                         <th className="px-6 py-4 text-right">Hành Động</th>
+                         <th className="px-6 py-4 whitespace-nowrap">Ngày Đặt</th>
+                         <th className="px-6 py-4 text-center">Trạng Thái</th>
+                         <th className="px-6 py-4 text-right whitespace-nowrap">Tổng Tiền</th>
+                         <th className="px-6 py-4 text-center">Hành Động</th>
                      </tr>
                  </thead>
                  <tbody className="divide-y divide-gray-100">
-                     {filteredOrders.length > 0 ? (
-                         filteredOrders.map((order) => (
-                             // 3. THÊM SỰ KIỆN CHUYỂN TRANG VÀO <tr>
+                     {isLoading ? (
+                         <tr>
+                             <td colSpan={7} className="px-6 py-12 text-center">
+                                 <Loader2 className="w-8 h-8 animate-spin text-[#3D021E] mx-auto mb-2" />
+                                 <span className="text-gray-500 font-medium">Đang tải dữ liệu...</span>
+                             </td>
+                         </tr>
+                     ) : currentOrders.length > 0 ? (
+                         currentOrders.map((order) => (
                              <tr 
                                 key={order.id} 
-                                onClick={() => navigate(`/admin/orders/${order.id.replace('#', '')}`)}
-                                className={`hover:bg-gray-50 transition-colors group cursor-pointer ${selectedOrders.includes(order.id) ? 'bg-red-50' : ''}`}
+                                onClick={() => navigate(`/admin/orders/${order.rawId}`)}
+                                className={`hover:bg-gray-50 transition-colors group cursor-pointer relative ${selectedOrders.includes(order.id) ? 'bg-red-50' : ''}`}
                              >
-                                 {/* 4. CHẶN SỰ KIỆN CLICK Ở CỘT CHECKBOX */}
                                  <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                                      <input 
                                         type="checkbox" 
@@ -218,62 +244,122 @@ export const AdminOrderPage = () => {
                                         onChange={() => handleSelectRow(order.id)}
                                      />
                                  </td>
-                                 <td className="px-6 py-4 font-bold text-[#E11D48] hover:underline">{order.id}</td>
+                                 <td className="px-6 py-4 font-bold text-[#E11D48] hover:underline whitespace-nowrap">{order.id}</td>
                                  <td className="px-6 py-4">
                                      <div className="flex items-center gap-3">
-                                         <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs">
+                                         <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs flex-shrink-0">
                                              {order.avatar}
                                          </div>
-                                         <span className="font-medium text-gray-700">{order.customer}</span>
+                                         <span className="font-medium text-gray-700 truncate max-w-[180px]">{order.customer}</span>
                                      </div>
                                  </td>
-                                 <td className="px-6 py-4 text-gray-500">{order.date}</td>
+                                 <td className="px-6 py-4 text-gray-500 whitespace-nowrap">{order.date}</td>
                                  <td className="px-6 py-4">
-                                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase flex items-center gap-1 w-fit ${order.color}`}>
-                                         <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-                                         {order.status}
-                                     </span>
+                                     <div className="flex justify-center">
+                                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase flex items-center gap-1 w-fit ${order.color}`}>
+                                            <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                            {order.status}
+                                        </span>
+                                     </div>
                                  </td>
-                                 <td className="px-6 py-4 text-right font-bold text-gray-900">
+                                 <td className="px-6 py-4 text-right font-bold text-gray-900 whitespace-nowrap">
                                      {order.total.toLocaleString('vi-VN')}đ
                                  </td>
                                  
-                                 {/* 5. CHẶN SỰ KIỆN CLICK Ở CỘT HÀNH ĐỘNG */}
-                                 <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                                     <button className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors">
+                                 {/* NÚT HÀNH ĐỘNG DROPDOWN */}
+                                 <td className="px-6 py-4 text-center relative" onClick={(e) => e.stopPropagation()}>
+                                     <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setOpenDropdownId(openDropdownId === order.id ? null : order.id);
+                                        }}
+                                        className={`p-2 rounded-full transition-colors ${openDropdownId === order.id ? 'bg-gray-200 text-gray-800' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+                                     >
                                          <MoreHorizontal className="w-4 h-4" />
                                      </button>
+
+                                     {/* Popup Menu */}
+                                     {openDropdownId === order.id && (
+                                         <div className="absolute right-12 top-10 w-44 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-2 text-left animate-in fade-in zoom-in-95">
+                                             <button 
+                                                onClick={() => navigate(`/admin/orders/${order.rawId}`)}
+                                                className="w-full px-4 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 hover:text-[#3D021E] flex items-center gap-2"
+                                             >
+                                                <Eye className="w-3.5 h-3.5" /> Xem chi tiết
+                                             </button>
+                                             <button 
+                                                onClick={() => { alert('Đang phát triển: Cập nhật nhanh'); setOpenDropdownId(null); }}
+                                                className="w-full px-4 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                             >
+                                                <Edit className="w-3.5 h-3.5" /> Sửa trạng thái
+                                             </button>
+                                             <div className="border-t border-gray-100 my-1"></div>
+                                             <button 
+                                                onClick={() => { alert('Đang phát triển: Hủy đơn hàng'); setOpenDropdownId(null); }}
+                                                className="w-full px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                             >
+                                                <Trash2 className="w-3.5 h-3.5" /> Hủy đơn này
+                                             </button>
+                                         </div>
+                                     )}
                                  </td>
                              </tr>
                          ))
                      ) : (
-                        <tr>
-                            <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                                Không tìm thấy đơn hàng nào ở trạng thái "{activeTab}".
-                            </td>
-                        </tr>
+                         <tr>
+                             <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                                 Không tìm thấy đơn hàng nào ở trạng thái "{activeTab}".
+                             </td>
+                         </tr>
                      )}
                  </tbody>
              </table>
          </div>
 
-         {/* Footer Pagination */}
-         <div className="p-4 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500">
-             <span>Hiển thị {filteredOrders.length} kết quả</span>
-             <div className="flex items-center gap-2">
-                 <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"><ChevronLeft className="w-4 h-4" /></button>
-                 <button className="w-8 h-8 flex items-center justify-center bg-[#3D021E] text-white font-bold rounded-lg shadow-md shadow-red-200">1</button>
-                 <button className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg hover:bg-gray-50">2</button>
-                 <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50"><ChevronRight className="w-4 h-4" /></button>
+         {/* FOOTER PAGINATION ĐÃ HOẠT ĐỘNG */}
+         {totalPages > 0 && (
+             <div className="p-4 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500">
+                 <span>Hiển thị {currentOrders.length} trên tổng {filteredOrders.length} kết quả</span>
+                 <div className="flex items-center gap-2">
+                     <button 
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                     >
+                        <ChevronLeft className="w-4 h-4" />
+                     </button>
+
+                     {/* Render số trang */}
+                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                        <button 
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`w-8 h-8 flex items-center justify-center font-bold rounded-lg transition-all
+                                ${currentPage === page 
+                                    ? 'bg-[#3D021E] text-white shadow-md shadow-red-200' 
+                                    : 'border border-gray-200 hover:bg-gray-50 text-gray-700'}
+                            `}
+                        >
+                            {page}
+                        </button>
+                     ))}
+
+                     <button 
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                     >
+                        <ChevronRight className="w-4 h-4" />
+                     </button>
+                 </div>
              </div>
-         </div>
+         )}
       </div>
 
-      {/* BOTTOM STATS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatCard title="Giá trị đơn trung bình" value="3.420.000đ" subtext="+12.5% so với tháng trước" trend={true} icon={DollarSign} iconColor="bg-red-500" />
-          <StatCard title="Khu vực giao hàng top đầu" value="TP. Hồ Chí Minh" subtext="28% tổng lượng đơn hàng" trend={false} icon={Truck} iconColor="bg-blue-500" />
-          <StatCard title="Tỷ lệ chuyển đổi đơn hàng" value="4.2%" subtext="-0.8% so với tháng trước" trend={false} icon={Zap} iconColor="bg-purple-500" />
+          <StatCard title="Giá trị đơn trung bình" value={`${avgOrderValue.toLocaleString('vi-VN')}đ`} subtext="Dữ liệu tính từ hệ thống" trend={true} icon={DollarSign} iconColor="bg-red-500" />
+          <StatCard title="Khu vực giao hàng top đầu" value="Toàn quốc" subtext="Đang thu thập dữ liệu..." trend={false} icon={Truck} iconColor="bg-blue-500" />
+          <StatCard title="Đơn hàng phát sinh lỗi" value="0%" subtext="Hoạt động ổn định" trend={true} icon={Zap} iconColor="bg-purple-500" />
       </div>
 
     </AdminLayout>

@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, Tag, Ticket, Percent, 
   DollarSign, CalendarClock, Settings, CheckCircle2, 
-  Wand2 // Icon for "Generate code"
+  Wand2, Loader2
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
+// import apiClient from '../../services/apiClient'; // Mở comment này khi có API thật
 
 export const AdminAddPromotionPage = () => {
   const navigate = useNavigate();
@@ -27,24 +28,70 @@ export const AdminAddPromotionPage = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Tự động in hoa và bỏ khoảng trắng cho Mã Code
+    if (name === 'code') {
+        setFormData(prev => ({ ...prev, [name]: value.toUpperCase().replace(/\s/g, '') }));
+    } else {
+        setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
-  // Mock function to generate random code
+  // Nút tạo mã ngẫu nhiên
   const handleGenerateCode = () => {
     const randomCode = 'GLOW' + Math.random().toString(36).substring(2, 8).toUpperCase();
     setFormData(prev => ({ ...prev, code: randomCode }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 1. VALIDATION CƠ BẢN
+    if (formData.discountType === 'percentage' && Number(formData.discountValue) > 100) {
+        return alert('Mức giảm theo phần trăm không được vượt quá 100%');
+    }
+    if (formData.discountType !== 'shipping' && Number(formData.discountValue) <= 0) {
+        return alert('Mức giảm giá phải lớn hơn 0');
+    }
+    if (formData.startDate && formData.endDate) {
+        if (new Date(formData.endDate) <= new Date(formData.startDate)) {
+            return alert('Thời gian kết thúc phải diễn ra sau thời gian bắt đầu!');
+        }
+    }
+
     setIsSubmitting(true);
     
-    // Simulate API Call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      navigate('/admin/promotions');
-    }, 1500);
+    // 2. CHUẨN BỊ PAYLOAD CHO API C#
+    const payload = {
+        name: formData.name,
+        code: formData.code,
+        description: formData.description,
+        discountType: formData.discountType === 'percentage' ? 1 : (formData.discountType === 'fixed' ? 2 : 3),
+        discountValue: formData.discountType === 'shipping' ? 0 : Number(formData.discountValue),
+        minOrderValue: formData.minPurchase ? Number(formData.minPurchase) : null,
+        maxUses: formData.usageLimit ? Number(formData.usageLimit) : null,
+        startDate: formData.startDate ? new Date(formData.startDate).toISOString() : null,
+        endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
+        isActive: formData.status === 'active'
+    };
+
+    try {
+        console.log("Chuẩn bị gửi dữ liệu Khuyến mãi:", payload);
+        
+        // KHI CÓ API, BỎ COMMENT DÒNG DƯỚI:
+        // await apiClient.post('/Coupons', payload);
+        
+        // Mô phỏng thời gian chờ của mạng
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        alert('Đã lưu mã khuyến mãi thành công!');
+        navigate('/admin/promotions');
+    } catch (error: any) {
+        console.error("Lỗi khi tạo khuyến mãi:", error);
+        alert(error.response?.data?.message || 'Có lỗi xảy ra khi lưu Khuyến mãi!');
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (
@@ -94,12 +141,12 @@ export const AdminAddPromotionPage = () => {
                                 <div className="relative flex-1">
                                     <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                     <input required type="text" name="code" placeholder="VD: SUMMER20" 
-                                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-[#3D021E] outline-none transition-colors uppercase"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-[#3D021E] outline-none transition-colors uppercase font-mono"
                                         value={formData.code} onChange={handleChange}
                                     />
                                 </div>
                                 <button type="button" onClick={handleGenerateCode} className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
-                                    <Wand2 className="w-4 h-4" /> Tạo mã
+                                    <Wand2 className="w-4 h-4" /> Tạo mã ngẫu nhiên
                                 </button>
                             </div>
                         </div>
@@ -142,7 +189,7 @@ export const AdminAddPromotionPage = () => {
                                     ) : (
                                         <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                     )}
-                                    <input required type="number" name="discountValue" placeholder="0" 
+                                    <input required type="number" name="discountValue" placeholder="0" min="1"
                                         className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-[#3D021E] outline-none transition-colors"
                                         value={formData.discountValue} onChange={handleChange}
                                     />
@@ -153,18 +200,18 @@ export const AdminAddPromotionPage = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Giá Trị Đơn Hàng Tối Thiểu</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Giá Trị Đơn Tối Thiểu</label>
                             <div className="relative">
                                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                <input type="number" name="minPurchase" placeholder="0 (Không áp dụng)" 
+                                <input type="number" name="minPurchase" placeholder="0 (Không áp dụng)" min="0"
                                     className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-[#3D021E] outline-none transition-colors"
                                     value={formData.minPurchase} onChange={handleChange}
                                 />
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Giới Hạn Sử Dụng (Tổng số lượt)</label>
-                            <input type="number" name="usageLimit" placeholder="Để trống nếu không giới hạn" 
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Giới Hạn Số Lần Sử Dụng</label>
+                            <input type="number" name="usageLimit" placeholder="Để trống nếu không giới hạn" min="1"
                                 className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-[#3D021E] outline-none transition-colors"
                                 value={formData.usageLimit} onChange={handleChange}
                             />
@@ -185,8 +232,8 @@ export const AdminAddPromotionPage = () => {
                     
                     <div className="space-y-5">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Thời Gian Bắt Đầu</label>
-                            <input type="datetime-local" name="startDate" 
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Thời Gian Bắt Đầu <span className="text-red-500">*</span></label>
+                            <input required type="datetime-local" name="startDate" 
                                 className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-[#3D021E] outline-none transition-colors text-gray-600"
                                 value={formData.startDate} onChange={handleChange}
                             />
@@ -209,23 +256,23 @@ export const AdminAddPromotionPage = () => {
                     </h2>
                     
                     <div className="space-y-4 mb-8">
-                        <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+                        <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
                             <input type="radio" name="status" value="active" 
                                 checked={formData.status === 'active'} onChange={handleChange}
-                                className="w-4 h-4 text-green-600 focus:ring-green-600"
+                                className="w-4 h-4 mt-0.5 text-green-600 focus:ring-green-600"
                             />
                             <div>
                                 <span className="block text-sm font-bold text-gray-900">Đang hoạt động</span>
-                                <span className="block text-xs text-gray-500">Khuyến mãi đang khả dụng với người dùng</span>
+                                <span className="block text-xs text-gray-500">Khuyến mãi sẽ chạy ngay khi đến giờ bắt đầu</span>
                             </div>
                         </label>
-                        <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+                        <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
                             <input type="radio" name="status" value="draft" 
                                 checked={formData.status === 'draft'} onChange={handleChange}
-                                className="w-4 h-4 text-gray-600 focus:ring-gray-600"
+                                className="w-4 h-4 mt-0.5 text-gray-600 focus:ring-gray-600"
                             />
                             <div>
-                                <span className="block text-sm font-bold text-gray-900">Bản nháp</span>
+                                <span className="block text-sm font-bold text-gray-900">Lưu bản nháp</span>
                                 <span className="block text-xs text-gray-500">Lưu lại để chỉnh sửa sau, chưa khả dụng</span>
                             </div>
                         </label>
@@ -237,7 +284,8 @@ export const AdminAddPromotionPage = () => {
                             disabled={isSubmitting}
                             className="w-full flex items-center justify-center gap-2 py-3 bg-[#3D021E] text-white font-bold rounded-xl hover:bg-[#5a032d] shadow-lg shadow-pink-200 transition-all disabled:opacity-70"
                         >
-                            {isSubmitting ? 'Đang lưu...' : <><CheckCircle2 className="w-5 h-5" /> Lưu Khuyến Mãi</>}
+                            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+                            {isSubmitting ? 'Đang lưu...' : 'Lưu Khuyến Mãi'}
                         </button>
                         <button 
                             type="button"
