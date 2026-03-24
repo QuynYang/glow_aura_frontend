@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Lock, ArrowRight, Banknote, Wallet, QrCode, Smartphone } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { useCart } from '../context/CartContext'; 
-import { orderService } from '../services/orderService';
+import apiClient from '../services/apiClient'; // Import apiClient để gọi trực tiếp
 
 const formatVND = (amount: number) => new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
 
@@ -42,6 +42,7 @@ export const CheckoutPage = () => {
   const discount = 0;
   const total = subTotal + shippingFee - discount;
 
+  // XỬ LÝ ĐẶT HÀNG & CHUYỂN HƯỚNG THANH TOÁN (HỖ TRỢ VNPAY SANDBOX)
   const handlePlaceOrder = async () => {
     if (!formData.fullName || !formData.phone || !formData.address || !formData.city || !formData.district) {
         alert("Vui lòng điền đầy đủ thông tin vận chuyển (có dấu *)!");
@@ -51,38 +52,62 @@ export const CheckoutPage = () => {
     setIsSubmitting(true);
 
     const paymentEnumMap: Record<string, number> = {
-        'cod': 0,
-        'momo': 1,
-        'vnpay': 2,
-        'zalopay': 3
+        'cod': 0, 'momo': 1, 'vnpay': 2, 'zalopay': 3
     };
     
     const orderPayload = {
-      receiverName: formData.fullName,
-      shippingPhone: formData.phone,
-      shippingAddress: `${formData.address}, ${formData.district}, ${formData.city}`,
-      paymentMethod: paymentEnumMap[paymentMethod], 
-      shippingMethod: shippingMethod === 'fast' ? 1 : 0, 
-      totalAmount: total,
+      // ÉP KIỂU CHUẨN 100% CHO BACKEND C# KHÔNG THỂ TỪ CHỐI
       items: cartItems.map(item => ({
-        productId: item.id,
-        quantity: item.quantity,
-        price: item.price
-      }))
+        productId: Number(item.id),
+        quantity: Number(item.quantity)
+      })),
+      shippingAddress: `${formData.address}, ${formData.district}, ${formData.city}`,
+      shippingPhone: formData.phone,
+      receiverName: formData.fullName,
+      paymentMethod: paymentEnumMap[paymentMethod], 
+      notes: shippingMethod === 'fast' ? "Giao hàng nhanh" : "Giao hàng tiêu chuẩn",
+      couponCode: promoCode || null
     };
 
     try {
-      const response = await orderService.createOrder(orderPayload);
-      const createdOrder = response.data || response;
+      // BƯỚC 1: TẠO ĐƠN HÀNG VỚI BUILDER PATTERN
+      const createRes = await apiClient.post('/Order', orderPayload);
+      const createdOrder = createRes.data?.data || createRes.data;
+      const orderId = createdOrder?.orderId || createdOrder?.id;
+
+      if (!orderId) throw new Error("Không nhận được mã đơn hàng từ máy chủ.");
+
+      // BƯỚC 2: GỌI API LẤY LINK THANH TOÁN (FACTORY PATTERN)
+      if (paymentMethod !== 'cod') {
+          const payPayload = {
+              paymentMethod: paymentEnumMap[paymentMethod],
+              returnUrl: window.location.origin + '/order-success'
+          };
+          
+          const payRes = await apiClient.post(`/Order/${orderId}/pay`, payPayload);
+          
+          // Bắt đúng biến redirectUrl từ class PaymentResponse của C#
+          const paymentUrl = payRes.data?.redirectUrl || payRes.data?.data?.redirectUrl;
+          
+          if (paymentUrl) {
+              clearCart(); // Xóa giỏ hàng
+              window.location.href = paymentUrl; // Đẩy thẳng sang web của VNPay/MoMo
+              return; 
+          }
+      }
       
-      setIsOrderCompleted(true);
+      // BƯỚC 3: NẾU LÀ COD THÌ VÀO TRANG SUCCESS LUÔN
       clearCart();
-      
+      setIsOrderCompleted(true);
       navigate('/order-success', { state: { order: createdOrder } });
       
     } catch (error: any) {
-      alert("Đặt hàng thất bại. Vui lòng thử lại sau.");
-      console.error("Chi tiết lỗi từ Backend:", error.response?.data || error.message);
+      // IN RA LỖI CHÍNH XÁC TỪ BACKEND ĐỂ DỄ BẮT BỆNH
+      const errorMsg = error.response?.data?.message 
+                    || error.response?.data?.title 
+                    || "Đặt hàng thất bại. Vui lòng kiểm tra lại.";
+      alert(errorMsg);
+      console.error("Chi tiết lỗi:", error.response?.data || error.message);
     } finally {
       setIsSubmitting(false);
     }

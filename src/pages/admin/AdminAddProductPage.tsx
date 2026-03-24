@@ -79,6 +79,7 @@ export const AdminAddProductPage = () => {
   };
 
   // --- XỬ LÝ LƯU SẢN PHẨM ---
+  // Xử lý submit form gọi API (BẢN VÁ LỖI 415)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -89,35 +90,25 @@ export const AdminAddProductPage = () => {
     if (discountNum > 0 && discountNum >= priceNum) {
         return alert('Giá khuyến mãi phải nhỏ hơn Giá bán gốc!');
     }
-    if (!formData.category.trim()) return alert('Vui lòng chọn hoặc nhập Danh mục sản phẩm!');
 
     setIsSubmitting(true);
 
     try {
-        const payload = new FormData();
-        payload.append('Name', formData.name);
-        payload.append('Description', formData.description);
-        payload.append('Category', formData.category); // Nếu là tên mới, C# sẽ tự tạo trong DB
-        payload.append('Brand', formData.brand);
-        payload.append('Price', formData.price);
-        payload.append('StockQuantity', formData.stockQuantity);
-        
-        if (formData.discountPrice) {
-            payload.append('DiscountedPrice', formData.discountPrice);
-        }
-        
-        // Phân nhánh cách gửi ảnh
-        if (imageMode === 'upload' && imageFile) {
-            payload.append('ImageFile', imageFile); 
-        } else if (imageMode === 'url' && imageUrlInput) {
-            payload.append('ImageUrl', imageUrlInput); // Truyền bằng link
-        }
+        // Gửi chuỗi JSON chuẩn mực để khớp với [FromBody] của C#
+        const payload = {
+            name: formData.name,
+            description: formData.description,
+            category: formData.category,
+            brand: formData.brand,
+            price: priceNum,
+            stock: Number(formData.stockQuantity),
+            // Nếu người dùng nhập link thì lấy link, nếu tải ảnh từ máy thì tạm thời dùng link ảnh giả định vì BE chưa hỗ trợ lưu file
+            imageUrl: imageMode === 'url' ? imageUrlInput : "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=200", 
+            skinType: 0 // 0 = SkinType.All (Mặc định)
+        };
 
-        await apiClient.post('/Products', payload, {
-            headers: {
-                'Content-Type': 'multipart/form-data' 
-            }
-        });
+        // Gửi POST request dạng JSON (Mặc định của axios là application/json)
+        await apiClient.post('/Products', payload);
 
         alert('Thêm sản phẩm thành công!');
         navigate('/admin/products'); 

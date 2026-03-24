@@ -115,6 +115,7 @@ export const AdminCreateOrderPage = () => {
   const total = Math.max(0, subTotal + currentShippingFee - discount);
 
   // 3. XỬ LÝ SUBMIT CREATE ORDER
+ 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) return alert('Vui lòng thêm sản phẩm vào đơn hàng!');
@@ -124,10 +125,10 @@ export const AdminCreateOrderPage = () => {
     
     setIsSubmitting(true);
     
-    // Map dữ liệu về đúng chuẩn CreateOrderRequest của C#
-    let finalPaymentMethod = 'COD';
-    if (paymentMethod === 'Chuyển khoản (VNPay)') finalPaymentMethod = 'VNPay';
-    if (paymentMethod === 'Ví MoMo') finalPaymentMethod = 'Momo';
+    // BẢN VÁ LỖI 400: Map đúng số của Enum PaymentMethod từ C#
+    let paymentMethodId = 0; // Mặc định 0 = COD
+    if (paymentMethod === 'Ví MoMo') paymentMethodId = 1; // Momo = 1
+    if (paymentMethod === 'Chuyển khoản (VNPay)') paymentMethodId = 2; // VNPay = 2
 
     const payload = {
         items: cart.map(item => ({
@@ -137,13 +138,13 @@ export const AdminCreateOrderPage = () => {
         shippingAddress: customer.address,
         shippingPhone: customer.phone,
         receiverName: customer.name,
-        paymentMethod: finalPaymentMethod, 
+        paymentMethod: paymentMethodId, // Đã sửa thành gửi số Int
         notes: orderNote,
         couponCode: couponCode || null
     };
 
     try {
-        const response = await apiClient.post('/Order', payload);
+        await apiClient.post('/Order', payload);
         alert('Tạo đơn hàng thành công!');
         navigate('/admin/orders');
     } catch (error: any) {
