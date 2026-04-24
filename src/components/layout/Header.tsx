@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { SearchOverlay } from './SearchOverlay';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
+import type { StoredUser } from '../../services/authService';
 import { useCart } from '../../context/CartContext';
 
 // --- Hàm chuyển đổi số VIP sang Nhãn và Màu sắc ---
@@ -75,7 +76,7 @@ export const Header = () => {
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Lấy thông tin user
-  const user = authService.getCurrentUser();
+  const user = authService.getCurrentUser() as StoredUser | null;
   const isAuthenticated = !!user;
 
   // Lấy thông tin VIP của user
@@ -92,9 +93,8 @@ export const Header = () => {
   }, []);
 
   const handleLogout = () => {
-    authService.logout(); 
-    setIsUserMenuOpen(false); 
-    navigate('/login'); 
+    setIsUserMenuOpen(false);
+    void authService.logout();
   };
 
   return (
@@ -198,7 +198,9 @@ export const Header = () => {
                             
                             {/* KHU VỰC HIỂN THỊ TÊN & VIP LEVEL */}
                             <div className="px-4 py-3 border-b border-gray-100">
-                                <p className="text-sm font-bold text-gray-800 truncate">{user.fullName || user.email || 'Khách hàng'}</p>
+                                <p className="text-sm font-bold text-gray-800 truncate">
+                                  {String(user.fullName || user.email || 'Khách hàng')}
+                                </p>
                                 <p className={`text-[11px] font-black mt-1 tracking-widest uppercase ${vipInfo.color}`}>
                                     {vipInfo.label}
                                 </p>

@@ -9,7 +9,7 @@ export const Footer = () => {
 
   return (
     <footer>
-      {/* 1. Dải cam kết */}
+      {/* Dải cam kết */}
       <div className="bg-[#F9F1F0] py-8 border-t border-gray-100">
         <div className="container mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
           <div className="flex flex-col items-center gap-2 group">
@@ -31,7 +31,7 @@ export const Footer = () => {
         </div>
       </div>
 
-      {/* 2. Main Footer */}
+      {/* Main Footer */}
       <div className="bg-primary text-white pt-16 pb-8">
         <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
           
@@ -82,7 +82,7 @@ export const Footer = () => {
           </div>
         </div>
 
-        {/* 3. Bottom Footer */}
+        {/* Bottom Footer */}
         <div className="container mx-auto px-4 border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-sm text-gray-300">
             <h4 className="font-bold uppercase mb-2 tracking-wider text-white">Liên hệ</h4>

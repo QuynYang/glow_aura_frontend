@@ -63,6 +63,7 @@ function App() {
   // ==========================================
 
   return (
+    <CartProvider>
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/best-sellers" element={<ProductListPage />} />
@@ -101,6 +102,7 @@ function App() {
       <Route path="/admin/promotions/add" element={<AdminAddPromotionPage />} />
       <Route path="/search" element={<SearchPage />} />
     </Routes>
+    </CartProvider>
   );
 }
 

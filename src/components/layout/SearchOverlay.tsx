@@ -12,7 +12,7 @@ export const SearchOverlay = ({ isOpen, onClose }: SearchOverlayProps) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Dữ liệu API động
+  // Dữ liệu API
   const [popularProducts, setPopularProducts] = useState<any[]>([]);
   const [trendingSearches, setTrendingSearches] = useState<string[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
@@ -23,13 +23,13 @@ export const SearchOverlay = ({ isOpen, onClose }: SearchOverlayProps) => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
       
-      // 1. Load sản phẩm nổi bật
+      // Load sản phẩm nổi bật
       if (popularProducts.length === 0) fetchPopularProducts();
       
-      // 2. Load danh mục làm "Đang thịnh hành"
+      // Load danh mục làm "Đang thịnh hành"
       if (trendingSearches.length === 0) fetchTrending();
 
-      // 3. Load lịch sử tìm kiếm từ bộ nhớ trình duyệt (LocalStorage)
+      // Load lịch sử tìm kiếm từ bộ nhớ trình duyệt (LocalStorage)
       const savedRecent = localStorage.getItem('glowaura_recent_searches');
       if (savedRecent) {
           setRecentSearches(JSON.parse(savedRecent));
@@ -79,7 +79,7 @@ export const SearchOverlay = ({ isOpen, onClose }: SearchOverlayProps) => {
       setRecentSearches(updatedRecent);
       localStorage.setItem('glowaura_recent_searches', JSON.stringify(updatedRecent)); // Lưu vào trình duyệt
 
-      onClose(); // Đóng overlay
+      onClose();
       navigate(`/search?keyword=${encodeURIComponent(newSearch)}`); 
       setSearchTerm(''); 
   };
@@ -125,7 +125,7 @@ export const SearchOverlay = ({ isOpen, onClose }: SearchOverlayProps) => {
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
                 
-                {/* Cột trái: TỰ ĐỘNG THAY ĐỔI THEO DỮ LIỆU */}
+                {/* Cột trái: Dữ liệu */}
                 <div className="col-span-1 space-y-10">
                     <div>
                         <h3 className="font-bold text-lg mb-4 text-[#3D021E]">Đang thịnh hành</h3>

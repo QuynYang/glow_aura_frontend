@@ -1,6 +1,6 @@
 import { 
   LayoutDashboard, ShoppingBag, Package, Users, BarChart2, Settings,
-  Search, Bell, LogOut, User as UserIcon, Menu, Tag // 1. Thêm icon Tag
+  Search, Bell, LogOut, User as UserIcon, Menu, Tag, Boxes
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -26,8 +26,8 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
     { label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
     { label: 'Đơn hàng', icon: ShoppingBag, path: '/admin/orders' },
     { label: 'Sản phẩm', icon: Package, path: '/admin/products' },
+    { label: 'Tồn kho', icon: Boxes, path: '/admin/inventory' },
     { label: 'Khách hàng', icon: Users, path: '/admin/customers' },
-    // 2. Bổ sung mục Khuyến mãi vào trước Thống kê
     { label: 'Khuyến mãi', icon: Tag, path: '/admin/promotions' }, 
     { label: 'Thống kê', icon: BarChart2, path: '/admin/analytics' },
     { label: 'Cài đặt', icon: Settings, path: '/admin/settings' },
@@ -36,7 +36,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
   return (
     <div className="min-h-screen bg-[#F3F4F6] font-sans text-gray-900 flex">
       
-      {/* === 1. SIDEBAR (Bên trái) === */}
+      {/* === SIDEBAR (Bên trái) === */}
       <aside className="w-64 bg-white border-r border-gray-200 fixed h-full z-20 hidden lg:flex flex-col">
         {/* Logo */}
         <div className="h-20 flex items-center px-8 border-b border-gray-100">
@@ -69,7 +69,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
         </nav>
       </aside>
 
-      {/* === 2. MAIN CONTENT (Bên phải) === */}
+      {/* === MAIN CONTENT (Bên phải) === */}
       <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
         
         {/* TOP BAR (Header) */}
@@ -104,7 +104,11 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
                         className="flex items-center gap-3 focus:outline-none"
                     >
                         <div className="text-right hidden sm:block">
-                            <p className="text-sm font-bold text-gray-900">{user?.name || 'Admin User'}</p>
+                            <p className="text-sm font-bold text-gray-900">
+                              {(user as { fullName?: string; name?: string })?.fullName ||
+                                (user as { name?: string })?.name ||
+                                'Admin User'}
+                            </p>
                             <p className="text-[10px] text-gray-500 uppercase">Quản trị viên</p>
                         </div>
                         <img 
