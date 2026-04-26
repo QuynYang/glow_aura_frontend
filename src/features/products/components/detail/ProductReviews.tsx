@@ -6,7 +6,7 @@ export const ProductReviews = () => {
   return (
     <section className="container mx-auto px-4 py-16 border-t border-gray-100">
       
-      {/* 1. Header: Điểm số & Nút bấm */}
+      {/* Header: Điểm số & Nút bấm */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
         <div className="flex items-center gap-6">
             <span className="text-6xl font-serif font-medium">4.8</span>
@@ -28,7 +28,7 @@ export const ProductReviews = () => {
         </div>
       </div>
 
-      {/* 2. Filter Tags (Giả lập) */}
+      {/* Filter Tags */}
       <div className="flex flex-wrap gap-2 mb-12 pb-8 border-b border-gray-100">
          {["Quality", "Value", "Effectiveness", "Packaging", "Scent"].map(tag => (
              <button key={tag} className="px-4 py-1 bg-gray-100 text-gray-600 text-xs hover:bg-gray-200 transition-colors">
@@ -37,7 +37,7 @@ export const ProductReviews = () => {
          ))}
       </div>
 
-      {/* 3. Review List */}
+      {/* Review List */}
       <div className="space-y-8">
         {reviews.map((review) => (
             <div key={review.id} className="border-b border-gray-100 pb-8 last:border-0">

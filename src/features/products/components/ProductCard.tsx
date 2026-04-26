@@ -35,7 +35,6 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation(); // Ngăn chuyển trang
 
-    // Tạo object sản phẩm truyền vào Context. 
     // Ưu tiên truyền giá đã giảm (nếu có Flash Sale)
     const productToAdd = {
         ...product,
@@ -43,7 +42,6 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         imageUrl: product.imageUrl || product.image
     };
 
-    // Gọi hàm từ Context. Hàm này đã có sẵn alert bên trong.
     addToCart(productToAdd, 1);
   };
 

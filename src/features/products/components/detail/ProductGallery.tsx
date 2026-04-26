@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 
-// 1. Đổi cổng nhận từ `images: string[]` sang nhận cả cục `product`
 interface ProductGalleryProps {
   product: any;
 }
 
 export const ProductGallery = ({ product }: ProductGalleryProps) => {
-  // 2. Lấy ảnh thật từ DB, fallback về ảnh mặc định nếu không có
+  // Lấy ảnh thật từ DB, fallback về ảnh mặc định nếu không có
   const mainImg = product?.imageUrl || product?.image || "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=600";
   
   // Tạm thời tạo mảng 3 ảnh giống nhau để giữ nguyên UI Gallery
@@ -34,7 +33,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
         ))}
       </div>
 
-      {/* 2. Ảnh lớn (Main Image) */}
+      {/* Ảnh lớn (Main Image) */}
       <div className="flex-1 bg-[#F9F9F9] aspect-[4/5] relative overflow-hidden group">
         <img 
           src={activeImage} 

@@ -18,7 +18,7 @@ export const AwardedBanner = () => {
         </ul>
       </div>
 
-      {/* Ảnh chai serum góc phải (Trang trí) */}
+      {/* Ảnh chai serum góc phải */}
       <div className="absolute bottom-0 right-0 w-1/2 h-3/4 translate-x-10 translate-y-10">
          <img 
             src="https://s3.eu-north-1.amazonaws.com/cdn-site.mediaplanet.com/app/uploads/sites/151/2022/09/08084638/Philosophy-Cleanser.jpg" 

@@ -1,10 +1,10 @@
 import { useState } from 'react'; 
-import { ShoppingCart, MapPin, Package, Truck, ShieldCheck, Heart } from 'lucide-react'; 
+import { ShoppingCart, Package, Truck, ShieldCheck, Heart } from 'lucide-react'; 
 import { Button } from '../../../../components/ui/Button';
 import { useCart } from '../../../../context/CartContext';
 
 
-// 1. Khai báo cổng nhận dữ liệu product
+//  Khai báo cổng nhận dữ liệu product
 interface ProductInfoProps {
     product: any;
 }
@@ -12,7 +12,6 @@ interface ProductInfoProps {
 export const ProductInfo = ({ product }: ProductInfoProps) => {
   const [isWishlist, setIsWishlist] = useState(false);
     const { addToCart } = useCart();
-  // Xử lý an toàn: Nếu Backend chưa có mảng tags hoặc sizes, ta dùng mảng mặc định để UI không vỡ
   const tags = product.tags || ['Mới', 'Bán chạy'];
   const sizes = product.sizes || ['Tiêu chuẩn'];
 

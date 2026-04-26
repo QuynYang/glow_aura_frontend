@@ -4,7 +4,7 @@ interface ProductTabsProps {
 }
 const tabs = ["Product Details", "How To Apply", "Ingredient", "What Makes It Advance"];
 
-export const ProductTabs = ({ product }: ProductTabsProps) => {
+export const ProductTabs = ({ product: _product }: ProductTabsProps) => {
   const [activeTab, setActiveTab] = useState(tabs[0]);
 
   return (

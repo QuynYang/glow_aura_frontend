@@ -1,13 +1,12 @@
 import { ProductCard } from '../ProductCard';
-import { products } from '../../../../data/mockData'; // Tái sử dụng list sản phẩm
-import { SectionHeading } from '../../../../components/ui/SectionHeading';
+import { products } from '../../../../data/mockData';
 
 export const SkincareRoutine = () => {
   // Lấy 4 sản phẩm bất kỳ làm Routine
   const routineItems = products.slice(0, 4);
 
   return (
-    <section className="bg-[#FAF9F6] py-20"> {/* Nền màu kem nhạt giống ảnh */}
+    <section className="bg-[#FAF9F6] py-20"> 
       <div className="container mx-auto px-4">
         {/* Tiêu đề & Pagination giả */}
         <div className="text-center mb-10">
@@ -22,7 +21,7 @@ export const SkincareRoutine = () => {
         {/* Grid Sản Phẩm */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {routineItems.map((item) => (
-                <div key={item.id} className="bg-white p-4"> {/* Thêm nền trắng cho card nổi bật */}
+                <div key={item.id} className="bg-white p-4"> 
                     <ProductCard product={item} />
                 </div>
             ))}

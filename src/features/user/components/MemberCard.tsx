@@ -1,6 +1,6 @@
 import { Crown, Sparkles, TrendingUp } from 'lucide-react';
 
-// 1. Định nghĩa các mốc điểm
+// Định nghĩa các mốc điểm
 const TIERS = {
   NONE: { min: 0, label: 'Thành viên mới', next: 100 },
   BRONZE: { min: 100, label: 'Hạng Đồng', next: 500 },
@@ -9,7 +9,6 @@ const TIERS = {
   PLATINUM: { min: 3000, label: 'Hạng Bạch Kim', next: null }, // Max level
 };
 
-// 2. Cấu hình giao diện cho từng hạng (Màu sắc, Gradient)
 const TIER_STYLES: Record<string, any> = {
   NONE: {
     bg: "bg-gradient-to-br from-gray-50 to-gray-200 border border-gray-200",
@@ -21,27 +20,27 @@ const TIER_STYLES: Record<string, any> = {
     glow: "",
   },
   BRONZE: {
-    bg: "bg-gradient-to-br from-[#5D4037] to-[#8D6E63]", // Nâu đất sang nâu sáng
-    text: "text-[#D7CCC8]", // Màu be nhạt
-    title: "text-[#FFAB91]", // Cam đồng
+    bg: "bg-gradient-to-br from-[#5D4037] to-[#8D6E63]", 
+    text: "text-[#D7CCC8]", 
+    title: "text-[#FFAB91]", 
     barBg: "bg-[#4E342E]",
     barFill: "bg-gradient-to-r from-[#FF7043] to-[#FFAB91]",
     iconColor: "text-[#FF8A65]",
     glow: "shadow-[0_4px_20px_rgba(141,110,99,0.4)]",
   },
   SILVER: {
-    bg: "bg-gradient-to-br from-[#455A64] to-[#78909C]", // Xám xanh kim loại
+    bg: "bg-gradient-to-br from-[#455A64] to-[#78909C]", 
     text: "text-[#ECEFF1]",
-    title: "text-[#B0BEC5]", // Bạc sáng
+    title: "text-[#B0BEC5]", 
     barBg: "bg-[#263238]",
     barFill: "bg-gradient-to-r from-[#CFD8DC] to-[#FFFFFF]",
     iconColor: "text-[#CFD8DC]",
     glow: "shadow-[0_4px_20px_rgba(120,144,156,0.4)]",
   },
   GOLD: {
-    bg: "bg-[#330511]", // Màu đỏ rượu gốc của bạn
+    bg: "bg-[#330511]", 
     text: "text-white",
-    title: "text-accent", // Màu vàng gold
+    title: "text-accent",
     barBg: "bg-gray-700",
     barFill: "bg-accent",
     iconColor: "text-accent",
@@ -63,7 +62,7 @@ interface MemberCardProps {
 }
 
 export const MemberCard = ({ currentPoints }: MemberCardProps) => {
-  // 3. Logic xác định hạng hiện tại
+  // Logic xác định hạng hiện tại
   const getCurrentTier = (points: number) => {
     if (points >= TIERS.PLATINUM.min) return 'PLATINUM';
     if (points >= TIERS.GOLD.min) return 'GOLD';
@@ -76,7 +75,7 @@ export const MemberCard = ({ currentPoints }: MemberCardProps) => {
   const tierInfo = TIERS[tierKey as keyof typeof TIERS];
   const styles = TIER_STYLES[tierKey];
 
-  // 4. Tính toán Progress Bar
+  // Tính toán Progress Bar
   let progressPercent = 100;
   let nextPointsNeeded = 0;
   

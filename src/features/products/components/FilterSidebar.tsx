@@ -2,7 +2,6 @@ import { ChevronDown, ChevronUp, X, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { productService } from '../../../services/productService'; // Import API gọi danh mục
 
-// --- Khoảng giá giữ nguyên code cứng vì nó là các mốc cố định ---
 const filters = {
     prices: [
         { label: "Dưới 500.000đ", value: "0-500000" },
@@ -13,7 +12,7 @@ const filters = {
     ]
 };
 
-// 1. Định nghĩa Props nhận từ Component cha (ProductListPage)
+// Định nghĩa Props nhận từ Component cha (ProductListPage)
 interface FilterSidebarProps {
     selectedCategories: string[];
     setSelectedCategories: React.Dispatch<React.SetStateAction<string[]>>;
@@ -30,7 +29,6 @@ export const FilterSidebar = ({
   const [openCategory, setOpenCategory] = useState(true);
   const [openPrice, setOpenPrice] = useState(true);
   
-  // STATE MỚI: Lưu danh mục lấy từ API
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
@@ -51,7 +49,7 @@ export const FilterSidebar = ({
     fetchCategories();
   }, []);
 
-  // 2. Hàm xử lý khi check/uncheck Danh mục
+  // Hàm xử lý khi check/uncheck Danh mục
   const handleCategoryChange = (category: string) => {
       setSelectedCategories(prev => {
           if (prev.includes(category)) {
@@ -62,7 +60,7 @@ export const FilterSidebar = ({
       });
   };
 
-  // 3. Hàm xử lý khi check/uncheck Giá
+  // Hàm xử lý khi check/uncheck Giá
   const handlePriceChange = (value: string) => {
       setSelectedPriceRanges(prev => {
           if (prev.includes(value)) {
@@ -73,7 +71,7 @@ export const FilterSidebar = ({
       });
   };
 
-  // 4. Hàm xóa tất cả bộ lọc
+  // Hàm xóa tất cả bộ lọc
   const clearAllFilters = () => {
       setSelectedCategories([]);
       setSelectedPriceRanges([]);
@@ -83,7 +81,7 @@ export const FilterSidebar = ({
     <div className="w-full pr-8 hidden md:block">
       <h3 className="text-xl font-bold font-serif mb-6 text-gray-900">Lọc</h3>
 
-      {/* 5. Render Nút Bộ lọc đã áp dụng MỘT CÁCH ĐỘNG */}
+      {/* Render Nút Bộ lọc đã áp dụng MỘT CÁCH ĐỘNG */}
       {(selectedCategories.length > 0 || selectedPriceRanges.length > 0) && (
           <div className="mb-8">
             <h4 className="font-bold text-sm mb-3 text-[#3D021E]">Bộ lọc đã áp dụng</h4>
