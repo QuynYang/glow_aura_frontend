@@ -4,7 +4,6 @@ import { Search, Loader2 } from 'lucide-react'; // Thêm icon
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix lỗi icon mặc định của Leaflet
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -43,14 +42,14 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({ onAddressCha
   const [position, setPosition] = useState<[number, number]>([10.7769, 106.6951]);
   const markerRef = useRef<any>(null);
 
-  // 1. Fetch Tỉnh/Thành
+  // Fetch Tỉnh/Thành
   useEffect(() => {
     fetch('https://provinces.open-api.vn/api/p/')
       .then(res => res.json())
       .then(data => setProvinces(data));
   }, []);
 
-  // 2. Fetch Quận/Huyện
+  // Fetch Quận/Huyện
   useEffect(() => {
     if (selectedProv.code) {
       fetch(`https://provinces.open-api.vn/api/p/${selectedProv.code}?depth=2`)
@@ -64,7 +63,7 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({ onAddressCha
     }
   }, [selectedProv.code]);
 
-  // 3. Fetch Phường/Xã
+  // Fetch Phường/Xã
   useEffect(() => {
     if (selectedDist.code) {
       fetch(`https://provinces.open-api.vn/api/d/${selectedDist.code}?depth=2`)
@@ -76,7 +75,7 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({ onAddressCha
     }
   }, [selectedDist.code]);
 
-  // 4. Update string địa chỉ về Form cha
+  // Update string địa chỉ về Form cha
   useEffect(() => {
     const fullAddress = [street, selectedWard.name, selectedDist.name, selectedProv.name, 'Việt Nam']
       .filter(Boolean)
@@ -87,7 +86,7 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({ onAddressCha
     }
   }, [selectedProv, selectedDist, selectedWard, street, onAddressChange]);
 
-  // 5. CHIỀU 1: GÕ ĐỊA CHỈ -> CẬP NHẬT MAP
+  //  GÕ ĐỊA CHỈ -> CẬP NHẬT MAP
   const handleSearchAddress = async () => {
     if (!street && !selectedWard.name) return;
     setIsSearching(true);
@@ -116,7 +115,7 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({ onAddressCha
     }
   };
 
-  // 6. CHIỀU 2: KÉO GHIM MAP -> CẬP NHẬT ĐỊA CHỈ (REVERSE GEOCODING)
+  // KÉO GHIM MAP -> CẬP NHẬT ĐỊA CHỈ (REVERSE GEOCODING)
   const eventHandlers = useMemo(
     () => ({
       async dragend() {

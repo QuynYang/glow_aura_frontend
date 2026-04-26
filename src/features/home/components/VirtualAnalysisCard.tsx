@@ -1,10 +1,9 @@
-import { ScanFace, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 export const VirtualAnalysisCard = () => {
   return (
     <div className="h-full min-h-[450px] bg-primary text-white p-8 flex flex-col relative overflow-hidden group cursor-pointer">
       
-      {/* Nội dung text */}
       <div className="relative z-10 space-y-4">
         <h3 className="text-2xl font-serif font-bold leading-tight">
           AI phân tích chăm sóc da
@@ -21,7 +20,6 @@ export const VirtualAnalysisCard = () => {
         </ul>
       </div>
 
-      {/* Hình ảnh cô gái scan mặt */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 h-56 mt-auto">
          {/* Giả lập vòng tròn scan khuôn mặt */}
          <div className="absolute inset-0 border border-white/30 rounded-[50%] animate-pulse"></div>

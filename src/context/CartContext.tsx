@@ -15,7 +15,7 @@ interface CartContextType {
   addToCart: (product: any, quantity?: number) => void;
   updateQuantity: (id: number | string, delta: number) => void; 
   removeFromCart: (id: number | string) => void; 
-  clearCart: () => void; // THÊM MỚI
+  clearCart: () => void; // Hàm xóa toàn bộ giỏ hàng
   totalItems: number; 
 }
 
@@ -70,7 +70,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     setCartItems(prevItems => prevItems.filter(item => item.id !== id));
   };
 
-  // --- HÀM CLEAR CART MỚI ---
+  // --- HÀM CLEAR CART ---
   const clearCart = () => {
     setCartItems([]);
     localStorage.removeItem('cart');

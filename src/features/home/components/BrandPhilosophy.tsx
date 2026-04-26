@@ -17,7 +17,7 @@ export const BrandPhilosophy = () => {
             </div>
           </div>
 
-          {/* Cột phải: Nội dung text (Đã Việt hóa) */}
+          {/* Cột phải: Nội dung text */}
           <div className="w-full md:w-1/2 space-y-8 animate-in slide-in-from-right duration-700 delay-200">
             <div>
               {/* Subtitle */}

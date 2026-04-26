@@ -14,7 +14,7 @@ export const products = [
     description: "Tinh chất chống lão hóa cao cấp, thanh lọc da",
     image: "https://cdn.vuahanghieu.com/unsafe/0x900/left/top/smart/filters:quality(90)/https://admin.vuahanghieu.com/upload/product/2023/05/sua-rua-mat-ket-hop-tay-trang-dior-prestige-la-mousse-micellaire-nettoyant-120g-646acb5b0aa85-22052023085435.jpg",
   },
-  // Lưu ý: Vị trí số 3 sẽ là Banner Expert
+  // Vị trí số 3 sẽ là Banner Expert
   {
     id: 3,
     name: "Beautya Prestige La Mousse Micellaire",
@@ -51,8 +51,6 @@ export const filters = {
     "Kem chống nắng", 
     "Chăm sóc mắt"
   ],
-  // Giữ nguyên USD nếu hệ thống tính tiền của bạn đang dùng USD.
-  // Nếu muốn đổi sang VND, bạn cần đổi cả logic tính toán trong code.
   prices: ["$50.00 - $150.00", "$150.00 - $250.00", "$250.00 - $350.00", "$350.00 - $450.00", "$450.00 - $550.00"]
 };
 
@@ -77,7 +75,7 @@ export const singleProduct = {
   rating: 4.8
 };
 
-// Reviews - Đã thay tên người dùng và nội dung bình luận sang tiếng Việt cho tự nhiên
+// Reviews 
 export const reviews = [
   {
     id: 1,

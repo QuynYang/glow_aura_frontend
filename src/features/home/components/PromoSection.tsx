@@ -25,7 +25,6 @@ export const PromoSection = () => {
                   <p className="font-bold text-sm uppercase tracking-widest">Quét mã bằng điện thoại</p>
                   <span className="text-xs text-gray-400">Hoặc</span>
                   
-                  {/* SỬA NÚT CHUYỂN HƯỚNG TẠI ĐÂY */}
                   <button 
                     onClick={() => navigate('/skin-quiz')}
                     className="border border-white text-white px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-white hover:text-[#3D021E] transition-colors w-fit"

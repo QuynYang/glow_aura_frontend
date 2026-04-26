@@ -2,7 +2,6 @@ import { ProductCard } from '../../products/components/ProductCard';
 import { VirtualAnalysisCard } from './VirtualAnalysisCard';
 import { SectionHeading } from '../../../components/ui/SectionHeading';
 
-// Khai báo kiểu dữ liệu truyền vào
 interface NewArrivalsProps {
   products: any[];
 }

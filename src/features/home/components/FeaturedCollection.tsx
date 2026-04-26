@@ -2,12 +2,11 @@ import { Button } from '../../../components/ui/Button';
 
 export const FeaturedCollection = () => {
   return (
-    // Sử dụng bg-secondary (màu hồng phấn nhạt) làm nền
     <section className="bg-secondary py-16 md:py-24">
       <div className="container mx-auto px-4">
         <div className="flex flex-col-reverse md:flex-row items-center gap-12 md:gap-16">
           
-          {/* --- Cột Trái: Nội dung Text (Chiếm 1/2 trên desktop) --- */}
+          {/* --- Cột Trái: Nội dung Text  --- */}
           <div className="w-full md:w-1/2 space-y-6 md:pr-12 text-center md:text-left">
             
             {/* Dòng chữ nhỏ trên cùng */}
@@ -18,11 +17,9 @@ export const FeaturedCollection = () => {
             {/* Tiêu đề chính */}
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-primary leading-tight">
               Khám phá dưỡng da <br />
-              {/* Xử lý chữ Autumn: màu accent, in nghiêng, font serif */}
+              {/* Xử lý chữ Autumn màu accent, in nghiêng, font serif */}
               <span className="text-accent italic font-serif relative pr-2">
                 Mùa Thu
-                {/* (Tùy chọn) Thêm một nét gạch chân trang trí nhẹ nếu muốn */}
-                {/* <span className="absolute bottom-1 left-0 w-full h-px bg-accent opacity-30"></span> */}
               </span> 
               
             </h2>
@@ -40,7 +37,7 @@ export const FeaturedCollection = () => {
             </div>
           </div>
 
-          {/* --- Cột Phải: Hình ảnh (Chiếm 1/2 trên desktop) --- */}
+          {/* --- Cột Phải: Hình ảnh  --- */}
           <div className="w-full md:w-1/2">
             {/* Tạo khung ảnh có bo góc nhẹ và bóng đổ tinh tế */}
             <div className="relative aspect-square md:aspect-[4/3] rounded-lg overflow-hidden shadow-xl ring-1 ring-black/5">
