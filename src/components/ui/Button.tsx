@@ -1,7 +1,6 @@
 import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  // Thêm 'solid-white' vào danh sách variant
   variant?: 'primary' | 'outline' | 'white' | 'solid-white'; 
 }
 

@@ -1,19 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-// Định nghĩa kiểu dữ liệu User
+import { authService } from '../services/authService';
+
 export interface User {
   id?: number;
   email: string;
   role: string;
   fullName: string;
-  vipLevel: number|String; // 0: None, 1: Bronze, 2: Silver, 3: Gold, 4: Platinum
-  phoneNumber?: string; 
-  address?: string;     
-  gender?: string;      
-  dateOfBirth?: string; 
-  avatarUrl?: string;   
+  vipLevel: number | string;
+  phoneNumber?: string;
+  address?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  avatarUrl?: string;
 }
 
-// Định nghĩa Context
 interface AuthContextType {
   user: User | null;
   login: (userData: User) => void;
@@ -23,29 +23,33 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function readStoredUser(): User | null {
+  const raw = localStorage.getItem('user') || localStorage.getItem('glow_user');
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as User;
+  } catch {
+    return null;
+  }
+}
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => readStoredUser());
 
-  // Khi web vừa tải, kiểm tra xem trong kho (localStorage) có user chưa
   useEffect(() => {
-    const storedUser = localStorage.getItem('glow_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    setUser(readStoredUser());
   }, []);
 
-  // Hàm Đăng nhập
   const login = (userData: User) => {
     setUser(userData);
-    localStorage.setItem('glow_user', JSON.stringify(userData)); 
+    const json = JSON.stringify(userData);
+    localStorage.setItem('user', json);
+    localStorage.setItem('glow_user', json);
   };
 
-  // Hàm Đăng xuất
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('glow_user');
-    localStorage.removeItem('accessToken');
+    void authService.logout();
   };
 
   return (
