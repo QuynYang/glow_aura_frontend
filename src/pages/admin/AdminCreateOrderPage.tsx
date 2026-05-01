@@ -34,7 +34,7 @@ export const AdminCreateOrderPage = () => {
       const fetchProducts = async () => {
           setIsLoadingProducts(true);
           try {
-              const response = await apiClient.get('/Products');
+              const response = await apiClient.get('/products');
               let pList = [];
               if (response.data && Array.isArray(response.data)) pList = response.data;
               else if (response.data?.data && Array.isArray(response.data.data)) pList = response.data.data;
@@ -125,7 +125,7 @@ export const AdminCreateOrderPage = () => {
     
     setIsSubmitting(true);
     
-    // BẢN VÁ LỖI 400: Map đúng số của Enum PaymentMethod từ C#
+    // Map đúng số của Enum PaymentMethod
     let paymentMethodId = 0; // Mặc định 0 = COD
     if (paymentMethod === 'Ví MoMo') paymentMethodId = 1; // Momo = 1
     if (paymentMethod === 'Chuyển khoản (VNPay)') paymentMethodId = 2; // VNPay = 2
@@ -138,13 +138,13 @@ export const AdminCreateOrderPage = () => {
         shippingAddress: customer.address,
         shippingPhone: customer.phone,
         receiverName: customer.name,
-        paymentMethod: paymentMethodId, // Đã sửa thành gửi số Int
+        paymentMethod: paymentMethodId,
         notes: orderNote,
         couponCode: couponCode || null
     };
 
     try {
-        await apiClient.post('/Order', payload);
+        await apiClient.post('/order', payload);
         alert('Tạo đơn hàng thành công!');
         navigate('/admin/orders');
     } catch (error: any) {

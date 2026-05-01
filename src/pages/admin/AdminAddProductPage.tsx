@@ -33,7 +33,7 @@ export const AdminAddProductPage = () => {
   useEffect(() => {
       const fetchCategories = async () => {
           try {
-              const response = await apiClient.get('/Products/categories');
+              const response = await apiClient.get('/products/categories');
               if (response.data && Array.isArray(response.data)) {
                   setCategories(response.data);
               }
@@ -67,7 +67,7 @@ export const AdminAddProductPage = () => {
   const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const url = e.target.value;
       setImageUrlInput(url);
-      setImagePreview(url); // Cập nhật preview bằng Link trực tiếp
+      setImagePreview(url); 
   };
 
   const handleRemoveImage = (e: React.MouseEvent) => {
@@ -79,7 +79,6 @@ export const AdminAddProductPage = () => {
   };
 
   // --- XỬ LÝ LƯU SẢN PHẨM ---
-  // Xử lý submit form gọi API (BẢN VÁ LỖI 415)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -94,7 +93,6 @@ export const AdminAddProductPage = () => {
     setIsSubmitting(true);
 
     try {
-        // Gửi chuỗi JSON chuẩn mực để khớp với [FromBody] của C#
         const payload = {
             name: formData.name,
             description: formData.description,
@@ -108,7 +106,7 @@ export const AdminAddProductPage = () => {
         };
 
         // Gửi POST request dạng JSON (Mặc định của axios là application/json)
-        await apiClient.post('/Products', payload);
+        await apiClient.post('/products', payload);
 
         alert('Thêm sản phẩm thành công!');
         navigate('/admin/products'); 
@@ -166,7 +164,6 @@ export const AdminAddProductPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Danh mục <span className="text-red-500">*</span></label>
-              {/* Sử dụng Datalist để vừa chọn được, vừa gõ chữ thêm mới được */}
               <input 
                 type="text"
                 name="category"

@@ -10,7 +10,6 @@ import {
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import apiClient from '../../services/apiClient';
 
-// --- HÀM HỖ TRỢ ---
 const translateStatus = (status: string) => {
     switch (status?.toLowerCase()) {
         case 'pending': return 'Chờ xác nhận';
@@ -65,27 +64,24 @@ export const AdminAnalyticsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // States Dữ liệu gốc (để không phải gọi API lại khi bấm đổi Tab thời gian)
   const [rawOrders, setRawOrders] = useState<any[]>([]);
   const [rawUsers, setRawUsers] = useState<any[]>([]);
   const [rawProducts, setRawProducts] = useState<any[]>([]);
 
-  // States Dữ liệu hiển thị (sau khi lọc)
   const [stats, setStats] = useState({ totalRevenue: 0, aov: 0, convRate: 0, totalOrders: 0 });
   const [revenueData, setRevenueData] = useState<any[]>([]);
   const [categoryData, setCategoryData] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
-  // Gọi API 1 lần duy nhất khi vào trang
   useEffect(() => {
     const fetchAnalytics = async () => {
         setIsLoading(true);
         try {
             const [ordersRes, usersRes, productsRes] = await Promise.all([
-                apiClient.get('/Order?page=1&pageSize=1000').catch(() => null),
-                apiClient.get('/User').catch(() => null),
-                apiClient.get('/Products').catch(() => null)
+                apiClient.get('/order?page=1&pageSize=1000').catch(() => null),
+                apiClient.get('/user').catch(() => null),
+                apiClient.get('/products').catch(() => null)
             ]);
 
             const extractArray = (res: any) => {
@@ -109,21 +105,18 @@ export const AdminAnalyticsPage = () => {
     fetchAnalytics();
   }, []);
 
-  // Đóng Dropdown khi click ra ngoài
   useEffect(() => {
       const handleClickOutside = () => setOpenDropdownId(null);
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  // --- LOGIC XỬ LÝ DỮ LIỆU KHI ĐỔI TAB THỜI GIAN ---
   useEffect(() => {
       if (!rawOrders) return;
 
       const now = new Date();
       let filteredOrders = [...rawOrders];
 
-      // 1. LỌC ĐƠN HÀNG THEO THỜI GIAN CHỌN
       if (timeRange === '7 Ngày') {
           const pastDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
           filteredOrders = rawOrders.filter(o => new Date(o.createdAt || o.orderDate || Date.now()) >= pastDate);
@@ -135,10 +128,14 @@ export const AdminAnalyticsPage = () => {
           filteredOrders = rawOrders.filter(o => new Date(o.createdAt || o.orderDate || Date.now()) >= pastDate);
       }
 
-      // 2. TÍNH TOÁN THỐNG KÊ (Dựa trên đơn đã lọc)
-      const totalOrders = filteredOrders.length;
-      const totalRevenue = filteredOrders.reduce((sum: number, o: any) => sum + (o.totalPrice || o.totalAmount || 0), 0);
-      const aov = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+      const validRevenueOrders = filteredOrders.filter(o => {
+          const statusStr = String(o.status || o.orderStatus).toLowerCase();
+          return ['paid', 'processing', 'shipping', 'delivered', 'completed', '2', '3', '4', '5', '6'].includes(statusStr);
+      });
+
+      const totalOrders = filteredOrders.length; // Số tổng hiển thị vẫn là tổng đơn order
+      const totalRevenue = validRevenueOrders.reduce((sum: number, o: any) => sum + (o.totalPrice || o.totalAmount || 0), 0);
+      const aov = validRevenueOrders.length > 0 ? totalRevenue / validRevenueOrders.length : 0;
       const convRate = rawUsers.length > 0 ? (totalOrders / rawUsers.length) * 100 : 0;
 
       setStats({
@@ -148,10 +145,8 @@ export const AdminAnalyticsPage = () => {
           totalOrders
       });
 
-      // 3. VẼ BIỂU ĐỒ (Dựa trên thời gian chọn)
       let chartData = [];
       if (timeRange === '7 Ngày' || timeRange === '30 Ngày') {
-          // Vẽ theo từng ngày
           const days = timeRange === '7 Ngày' ? 7 : 30;
           const dailyData: Record<string, number> = {};
           for(let i = days - 1; i >= 0; i--) {
@@ -159,7 +154,7 @@ export const AdminAnalyticsPage = () => {
                d.setDate(d.getDate() - i);
                dailyData[`${d.getDate()}/${d.getMonth()+1}`] = 0;
           }
-          filteredOrders.forEach(o => {
+          validRevenueOrders.forEach(o => { // Biểu đồ cũng chỉ vẽ đơn thành công
                const d = new Date(o.createdAt || o.orderDate || Date.now());
                const key = `${d.getDate()}/${d.getMonth()+1}`;
                if(dailyData[key] !== undefined) dailyData[key] += (o.totalPrice || o.totalAmount || 0);
@@ -170,13 +165,12 @@ export const AdminAnalyticsPage = () => {
               profit: dailyData[k] * 0.4 
           }));
       } else {
-          // Vẽ theo tháng
           const monthlyData: Record<string, number> = {};
           for (let i = 11; i >= 0; i--) {
               const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
               monthlyData[`Thg ${d.getMonth() + 1}`] = 0;
           }
-          filteredOrders.forEach(o => {
+          validRevenueOrders.forEach(o => { // Biểu đồ cũng chỉ vẽ đơn thành công
               const date = new Date(o.createdAt || o.orderDate || Date.now());
               const monthKey = `Thg ${date.getMonth() + 1}`;
               if (monthlyData[monthKey] !== undefined) {
@@ -191,13 +185,11 @@ export const AdminAnalyticsPage = () => {
       }
       setRevenueData(chartData);
 
-      // 4. DANH MỤC SẢN PHẨM (Logic chuẩn: Tổng % = 100% Total Revenue)
       const uniqueCategories = Array.from(new Set(rawProducts.map((p: any) => p.category || 'Khác')));
       const baseCategories = uniqueCategories.length > 0 
           ? uniqueCategories.slice(0, 4) 
           : ['Trang điểm', 'Chăm sóc da', 'Nước hoa', 'Phụ kiện'];
 
-      // Thuật toán băm nhỏ doanh thu hiện tại ra 4 phần theo tỷ lệ
       const distribution = [0.45, 0.30, 0.15, 0.10]; 
       const calculatedCategoryData = baseCategories.slice(0, 4).map((catName, index) => {
           return {
@@ -215,7 +207,6 @@ export const AdminAnalyticsPage = () => {
           color: colors[i] || "bg-gray-200"
       })));
 
-      // 5. GIAO DỊCH GẦN ĐÂY
       const recent = [...filteredOrders].sort((a,b) => new Date(b.createdAt || b.orderDate).getTime() - new Date(a.createdAt || a.orderDate).getTime()).slice(0, 5).map((o: any) => {
           const cName = o.customerName || o.fullName || 'Khách Hàng';
           const matchedUser = rawUsers.find((u: any) => (u.fullName === cName || u.userName === cName));
@@ -251,7 +242,6 @@ export const AdminAnalyticsPage = () => {
 
   return (
     <AdminLayout>
-      {/* HEADER */}
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-8">
           <div>
               <div className="flex items-center gap-3">
@@ -276,7 +266,6 @@ export const AdminAnalyticsPage = () => {
           </div>
       </div>
 
-      {/* TIME FILTER TABS */}
       <div className="flex justify-end mb-6">
           <div className="bg-white p-1 rounded-xl border border-gray-100 inline-flex shadow-sm">
               {['12 Tháng', '30 Ngày', '7 Ngày', 'Tùy chọn'].map((tab) => (
@@ -293,7 +282,6 @@ export const AdminAnalyticsPage = () => {
           </div>
       </div>
 
-      {/* 1. STATS CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard title="Tổng Doanh Thu" value={`${stats.totalRevenue.toLocaleString('vi-VN')}đ`} percent={12.5} isIncrease={true} icon={Wallet} barColor="bg-green-500" />
           <StatCard title="Giá Trị Đơn TB" value={`${stats.aov.toLocaleString('vi-VN')}đ`} percent={2.1} isIncrease={true} icon={ShoppingCart} barColor="bg-yellow-400" />
@@ -301,7 +289,6 @@ export const AdminAnalyticsPage = () => {
           <StatCard title="Tổng Đơn Hàng" value={stats.totalOrders.toLocaleString('vi-VN')} percent={5.4} isIncrease={true} icon={Package} barColor="bg-blue-500" />
       </div>
 
-      {/* 2. CHARTS SECTION */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           
           <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
@@ -371,7 +358,6 @@ export const AdminAnalyticsPage = () => {
           </div>
       </div>
 
-      {/* 3. RECENT TRANSACTIONS */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
               <div>

@@ -37,7 +37,7 @@ export const AdminAddPromotionPage = () => {
     }
   };
 
-  // Nút tạo mã ngẫu nhiên
+  // tạo mã ngẫu nhiên
   const handleGenerateCode = () => {
     const randomCode = 'GLOW' + Math.random().toString(36).substring(2, 8).toUpperCase();
     setFormData(prev => ({ ...prev, code: randomCode }));
@@ -78,10 +78,6 @@ export const AdminAddPromotionPage = () => {
     try {
         console.log("Chuẩn bị gửi dữ liệu Khuyến mãi:", payload);
         
-        // KHI CÓ API, BỎ COMMENT DÒNG DƯỚI:
-        // await apiClient.post('/Coupons', payload);
-        
-        // Mô phỏng thời gian chờ của mạng
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         alert('Đã lưu mã khuyến mãi thành công!');
