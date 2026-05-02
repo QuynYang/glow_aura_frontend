@@ -25,7 +25,6 @@ export const ChangePasswordPage = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Xóa thông báo lỗi khi user bắt đầu gõ lại
     setError('');
     setSuccess('');
   };
@@ -71,18 +70,15 @@ export const ChangePasswordPage = () => {
       setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err: any) {
       console.error("Lỗi đổi mật khẩu:", err);
-      // Hiển thị lỗi từ Backend (ví dụ: "Mật khẩu hiện tại không đúng")
-      // Hiển thị lỗi từ Backend (ví dụ: "Mật khẩu hiện tại không đúng")
       let errorMessage = 'Đổi mật khẩu thất bại. Vui lòng kiểm tra lại mật khẩu hiện tại.';
       const responseData = err.response?.data;
 
       if (responseData) {
           if (typeof responseData === 'string') {
-              errorMessage = responseData; // Nếu C# trả về string thuần
+              errorMessage = responseData; 
           } else if (responseData.message) {
-              errorMessage = responseData.message; // Nếu C# có trả message
+              errorMessage = responseData.message; 
           } else if (responseData.errors) {
-              // Nếu là lỗi Validation (400) từ C# -> Lấy dòng lỗi đầu tiên ra
               const firstErrorKey = Object.keys(responseData.errors)[0];
               errorMessage = responseData.errors[firstErrorKey][0];
           } else if (responseData.title) {

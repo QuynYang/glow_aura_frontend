@@ -1,29 +1,34 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Lock, ArrowRight, Banknote, Wallet, QrCode, Smartphone } from 'lucide-react';
+import { ArrowRight, Banknote, Wallet, QrCode, Smartphone } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { useCart } from '../context/CartContext'; 
-import apiClient from '../services/apiClient'; // Import apiClient để gọi trực tiếp
+import { useAuth } from '../context/AuthContext'; // THÊM DÒNG NÀY
+import apiClient from '../services/apiClient';
+import { checkoutService } from '../services/checkoutService';
+import { AddressMapPicker } from '../components/ui/AddressMapPicker';
 
 const formatVND = (amount: number) => new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
 
 export const CheckoutPage = () => {
   const navigate = useNavigate();
   const { cartItems, clearCart } = useCart();
+  const { user } = useAuth(); // LẤY THÔNG TIN NGƯỜI DÙNG ĐĂNG NHẬP (ĐỂ ĐIỀN SẴN VÀO FORM)  
   
   const [isOrderCompleted, setIsOrderCompleted] = useState(false);
   const [shippingMethod, setShippingMethod] = useState<'fast' | 'standard'>('fast');
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'momo' | 'zalopay' | 'vnpay'>('cod');
+  const [couponInput, setCouponInput] = useState(''); 
   const [promoCode, setPromoCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [preview, setPreview] = useState<any>(null);
+  const [warnings, setWarnings] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
-    fullName: '',
-    phone: '',
-    email: '',
-    address: '',
-    city: '',
-    district: ''
+    fullName: user?.fullName || '',
+    phone: user?.phoneNumber || '',
+    email: user?.email || '',
+    address: '', 
   });
 
   useEffect(() => {
@@ -37,77 +42,109 @@ export const CheckoutPage = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const subTotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shippingFee = shippingMethod === 'fast' ? 35000 : 0;
-  const discount = 0;
-  const total = subTotal + shippingFee - discount;
+  const handleAddressChange = useCallback((fullAddress: string) => {
+    setFormData(prev => {
+        if (prev.address === fullAddress) return prev; 
+        return { ...prev, address: fullAddress };
+    });
+}, []);
 
-  // XỬ LÝ ĐẶT HÀNG & CHUYỂN HƯỚNG THANH TOÁN (HỖ TRỢ VNPAY SANDBOX)
+  const subTotal = preview?.subTotal ?? cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const shippingFee = preview?.shippingFee ?? (shippingMethod === 'fast' ? 35000 : 0);
+  const discount = preview?.totalDiscount ?? 0;
+  const total = preview?.totalAmount ?? subTotal + shippingFee - discount;
+
+  const cartItemsJson = JSON.stringify(cartItems);
+  const formDataJson = JSON.stringify(formData);
+
+  useEffect(() => {
+    const canPreview = formData.fullName && formData.phone && formData.address.length > 10;
+    if (!canPreview || cartItems.length === 0) return;
+
+    const timeoutId = setTimeout(() => {
+      const fetchPreview = async () => {
+        try {
+          const data = await checkoutService.preview({
+            userId: user?.id || 0,
+            items: cartItems.map((item) => ({
+              productId: Number(item.id),
+              quantity: Number(item.quantity),
+            })),
+            shippingAddress: formData.address,
+            shippingPhone: formData.phone,
+            receiverName: formData.fullName,
+            paymentMethod: paymentMethod.toUpperCase(),
+            couponCode: promoCode || null,
+            notes: shippingMethod === 'fast' ? 'Giao hàng nhanh' : 'Giao hàng tiêu chuẩn',
+          } as any);
+          setPreview(data);
+          if (Array.isArray(data?.warnings)) setWarnings(data.warnings);
+          else setWarnings([]);
+        } catch (error) {
+          console.error("Lỗi Preview:", error);
+          setPreview(null);
+          setWarnings([]);
+        }
+      };
+      void fetchPreview();
+    }, 800); 
+
+    return () => clearTimeout(timeoutId);
+  }, [cartItemsJson, formDataJson, paymentMethod, promoCode, shippingMethod, user]);
+
+
   const handlePlaceOrder = async () => {
-    if (!formData.fullName || !formData.phone || !formData.address || !formData.city || !formData.district) {
+    if (!formData.fullName || !formData.phone || !formData.address) {
         alert("Vui lòng điền đầy đủ thông tin vận chuyển (có dấu *)!");
         return;
     }
     
     setIsSubmitting(true);
+    const methodString = paymentMethod.toUpperCase();
 
-    const paymentEnumMap: Record<string, number> = {
-        'cod': 0, 'momo': 1, 'vnpay': 2, 'zalopay': 3
-    };
-    
     const orderPayload = {
-      // ÉP KIỂU CHUẨN 100% CHO BACKEND C# KHÔNG THỂ TỪ CHỐI
+      userId: user?.id || 0,
       items: cartItems.map(item => ({
         productId: Number(item.id),
         quantity: Number(item.quantity)
       })),
-      shippingAddress: `${formData.address}, ${formData.district}, ${formData.city}`,
+      shippingAddress: formData.address,
       shippingPhone: formData.phone,
       receiverName: formData.fullName,
-      paymentMethod: paymentEnumMap[paymentMethod], 
+      paymentMethod: methodString, 
       notes: shippingMethod === 'fast' ? "Giao hàng nhanh" : "Giao hàng tiêu chuẩn",
       couponCode: promoCode || null
     };
 
     try {
-      // BƯỚC 1: TẠO ĐƠN HÀNG VỚI BUILDER PATTERN
-      const createRes = await apiClient.post('/Order', orderPayload);
-      const createdOrder = createRes.data?.data || createRes.data;
-      const orderId = createdOrder?.orderId || createdOrder?.id;
+      // Gọi thẳng API Checkout của C#
+      const createRes = await apiClient.post('/checkout', orderPayload); // ĐÃ SỬA API PATH
+      const result = createRes.data?.data || createRes.data;
 
-      if (!orderId) throw new Error("Không nhận được mã đơn hàng từ máy chủ.");
+      if (!result?.isSuccess) {
+          throw new Error(result?.message || "Đặt hàng thất bại");
+      }
 
-      // BƯỚC 2: GỌI API LẤY LINK THANH TOÁN (FACTORY PATTERN)
-      if (paymentMethod !== 'cod') {
-          const payPayload = {
-              paymentMethod: paymentEnumMap[paymentMethod],
-              returnUrl: window.location.origin + '/order-success'
-          };
-          
-          const payRes = await apiClient.post(`/Order/${orderId}/pay`, payPayload);
-          
-          // Bắt đúng biến redirectUrl từ class PaymentResponse của C#
-          const paymentUrl = payRes.data?.redirectUrl || payRes.data?.data?.redirectUrl;
-          
-          if (paymentUrl) {
-              clearCart(); // Xóa giỏ hàng
-              window.location.href = paymentUrl; // Đẩy thẳng sang web của VNPay/MoMo
-              return; 
-          }
+      if (result.paymentUrl) {
+          clearCart(); 
+          window.location.href = result.paymentUrl; 
+          return; 
       }
       
-      // BƯỚC 3: NẾU LÀ COD THÌ VÀO TRANG SUCCESS LUÔN
       clearCart();
       setIsOrderCompleted(true);
-      navigate('/order-success', { state: { order: createdOrder } });
+      navigate('/order-success', { state: { order: { 
+          orderNumber: result.orderNumber, 
+          totalAmount: result.totalAmount,
+          shippingAddress: formData.address 
+      }}});
       
     } catch (error: any) {
-      // IN RA LỖI CHÍNH XÁC TỪ BACKEND ĐỂ DỄ BẮT BỆNH
       const errorMsg = error.response?.data?.message 
                     || error.response?.data?.title 
+                    || error.message
                     || "Đặt hàng thất bại. Vui lòng kiểm tra lại.";
       alert(errorMsg);
-      console.error("Chi tiết lỗi:", error.response?.data || error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -140,39 +177,28 @@ export const CheckoutPage = () => {
         <div className="container mx-auto px-4 max-w-[1200px] pt-10">
           <div className="flex flex-col lg:flex-row gap-10">
             <div className="w-full lg:w-[60%] space-y-12">
+                
                 <section>
                     <SectionTitle number="1" title="Thông tin vận chuyển" />
                     <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-5">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Họ và tên <span className="text-red-500">*</span></label>
-                            <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} placeholder="Nguyễn Văn A" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:border-[#3D021E] outline-none transition-all" />
-                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Họ và tên <span className="text-red-500">*</span></label>
+                                <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} placeholder="Nguyễn Văn A" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:border-[#3D021E] outline-none transition-all" />
+                            </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Số điện thoại <span className="text-red-500">*</span></label>
                                 <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="0901 234 567" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:border-[#3D021E] outline-none" />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-                                <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="example@gmail.com" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:border-[#3D021E] outline-none" />
-                            </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Địa chỉ chi tiết <span className="text-red-500">*</span></label>
-                            <input type="text" name="address" value={formData.address} onChange={handleInputChange} placeholder="Số nhà, tên đường..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:border-[#3D021E] outline-none" />
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Email (Để nhận hóa đơn)</label>
+                            <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="example@gmail.com" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:border-[#3D021E] outline-none" />
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <select name="city" value={formData.city} onChange={handleInputChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none appearance-none cursor-pointer">
-                                <option value="">Chọn Tỉnh/Thành phố</option>
-                                <option value="Hà Nội">Hà Nội</option>
-                                <option value="Hồ Chí Minh">Hồ Chí Minh</option>
-                                <option value="Đà Nẵng">Đà Nẵng</option>
-                            </select>
-                            <select name="district" value={formData.district} onChange={handleInputChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none appearance-none cursor-pointer">
-                                <option value="">Chọn Quận/Huyện</option>
-                                <option value="1">Quận 1</option>
-                                <option value="3">Quận 3</option>
-                            </select>
+                        
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Địa chỉ giao hàng <span className="text-red-500">*</span></label>
+                            <AddressMapPicker onAddressChange={handleAddressChange} />
                         </div>
                     </div>
                 </section>
@@ -253,10 +279,43 @@ export const CheckoutPage = () => {
                         </div>
                     ))}
                 </div>
+                {/* --- CHÈN THÊM KHU VỰC MÃ GIẢM GIÁ VÀO ĐÂY --- */}
+                <div className="flex gap-2 mb-6 border-b border-gray-100 pb-6">
+                    <input 
+                        type="text" 
+                        placeholder="Nhập mã giảm giá (VD: SUMMER2024)" 
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value)}
+                        className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-[#3D021E] uppercase text-sm font-medium"
+                    />
+                    <button 
+                        type="button"
+                        onClick={() => setPromoCode(couponInput)}
+                        className="px-6 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-colors text-sm whitespace-nowrap shadow-sm"
+                    >
+                        ÁP DỤNG
+                    </button>
+                </div>
+                {/* ------------------------------------------- */}
                 <div className="space-y-3 text-sm text-gray-600 border-b border-gray-100 pb-6 mb-6">
                     <div className="flex justify-between"><span>Tạm tính</span><span className="font-medium text-gray-900">{formatVND(subTotal)}</span></div>
                     <div className="flex justify-between"><span>Phí vận chuyển</span><span className="font-medium text-[#147A42]">{shippingFee === 0 ? 'Miễn phí' : formatVND(shippingFee)}</span></div>
+                    <div className="flex justify-between"><span>Giảm giá</span><span className="font-medium text-red-600">-{formatVND(discount)}</span></div>
+                    {Array.isArray(preview?.itemDetails) &&
+                      preview.itemDetails.flatMap((i: any) => i.appliedDiscounts || []).map((d: string, idx: number) => (
+                        <div key={`${d}-${idx}`} className="flex justify-between text-xs">
+                          <span className="text-gray-500">{d}</span>
+                          <span className="font-semibold text-[#147A42]">Đã áp dụng</span>
+                        </div>
+                      ))}
                 </div>
+                {warnings.length > 0 && (
+                  <div className="mb-6 space-y-1">
+                    {warnings.map((w) => (
+                      <p key={w} className="text-xs text-orange-600 font-medium">{w}</p>
+                    ))}
+                  </div>
+                )}
                 <div className="flex justify-between items-end mb-8">
                     <span className="font-bold text-gray-900 text-lg">Tổng cộng</span>
                     <span className="text-2xl font-black text-[#3D021E]">{formatVND(total)}</span>
@@ -275,7 +334,7 @@ export const CheckoutPage = () => {
 
 function ChevronRightIcon(props: any) {
   return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="m9 18 6-6-6-6"/>
     </svg>
   );

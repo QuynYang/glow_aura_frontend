@@ -4,6 +4,8 @@ import { Trash2, Minus, Plus, ShieldCheck, Truck } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { useCart } from '../context/CartContext'; // Import Context Giỏ hàng
 import { productService } from '../services/productService'; // Import API Sản phẩm
+import { checkoutService } from '../services/checkoutService';
+import { authService } from '../services/authService';
 
 const formatVND = (amount: number) => {
   return new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
@@ -12,6 +14,8 @@ const formatVND = (amount: number) => {
 export const CartPage = () => {
   const [promoCode, setPromoCode] = useState('');
   const [recommended, setRecommended] = useState<any[]>([]); // Lưu sản phẩm gợi ý thật
+  const [preview, setPreview] = useState<any>(null);
+  const [previewWarnings, setPreviewWarnings] = useState<string[]>([]);
   const navigate = useNavigate();
 
   // 1. LẤY DỮ LIỆU TỪ GLOBAL STATE (CONTEXT)
@@ -33,8 +37,39 @@ export const CartPage = () => {
 
   // 3. TÍNH TOÁN TIỀN TỰ ĐỘNG
   const subTotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const discount = 0; 
-  const total = subTotal - discount;
+  const discount = preview?.totalDiscount || 0;
+  const total = preview?.totalAmount || subTotal - discount;
+
+  useEffect(() => {
+    const fetchPreview = async () => {
+      const currentUser = authService.getCurrentUser();
+      if (!currentUser || cartItems.length === 0) {
+        setPreview(null);
+        setPreviewWarnings([]);
+        return;
+      }
+      try {
+        const data = await checkoutService.preview({
+          items: cartItems.map((item) => ({
+            productId: Number(item.id),
+            quantity: Number(item.quantity),
+          })),
+          shippingAddress: 'Preview',
+          shippingPhone: currentUser.phoneNumber?.toString() || '0900000000',
+          receiverName: currentUser.fullName?.toString() || 'Khách hàng',
+          paymentMethod: 'COD',
+          couponCode: promoCode || null,
+          notes: 'Cart preview',
+        });
+        setPreview(data);
+        setPreviewWarnings(Array.isArray(data?.warnings) ? data.warnings : []);
+      } catch {
+        setPreview(null);
+        setPreviewWarnings([]);
+      }
+    };
+    void fetchPreview();
+  }, [cartItems, promoCode]);
 
   return (
     <MainLayout>
@@ -146,7 +181,24 @@ export const CartPage = () => {
                       <span>Giảm giá</span>
                       <span className="font-bold text-red-500">-{formatVND(discount)}</span>
                     </div>
+                    {Array.isArray(preview?.itemDetails) &&
+                      preview.itemDetails.flatMap((item: any) => item.appliedDiscounts || []).map((d: string, idx: number) => (
+                        <div key={`${d}-${idx}`} className="flex justify-between text-xs">
+                          <span className="text-gray-500">{d}</span>
+                          <span className="font-semibold text-[#147A42]">Đã áp dụng</span>
+                        </div>
+                      ))}
                   </div>
+
+                  {previewWarnings.length > 0 && (
+                    <div className="mb-5 space-y-2">
+                      {previewWarnings.map((w) => (
+                        <p key={w} className="text-xs text-orange-600 font-medium">
+                          {w}
+                        </p>
+                      ))}
+                    </div>
+                  )}
 
                   <div className="flex justify-between items-center mb-8">
                     <span className="text-base font-bold text-gray-900">Tổng cộng</span>

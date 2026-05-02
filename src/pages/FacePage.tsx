@@ -4,7 +4,7 @@ import { MainLayout } from '../components/layout/MainLayout';
 import { ProductCard } from '../features/products/components/ProductCard';
 import { productService } from '../services/productService'; 
 
-// Danh mục con (Đã bỏ đi các con số ảo)
+// Danh mục con
 const subCategories = [
   'Kem nền',
   'Phấn phủ',
@@ -30,8 +30,6 @@ export const FacePage = () => {
     const fetchCategoryProducts = async () => {
       setIsLoading(true);
       try {
-        // LƯU Ý QUAN TRỌNG: Bạn cần mở Database ra xem cột Category của mấy chai kem nền 
-        // đang ghi là gì. Ví dụ: "Mặt", "Trang điểm mặt", hay "Face". Sửa chữ dưới đây cho ĐÚNG Y HỆT.
         const payload = {
             category: "Trang điểm mặt", 
             pageNumber: 1,

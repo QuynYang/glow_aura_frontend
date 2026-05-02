@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
-import { ArrowLeft } from 'lucide-react'; // Icon mũi tên quay lại
+import { ArrowLeft } from 'lucide-react'; 
 
 export const ForgotPasswordPage = () => {
   return (
@@ -56,7 +56,7 @@ export const ForgotPasswordPage = () => {
           </div>
         </div>
 
-        {/* === CỘT PHẢI: ẢNH + SLOGAN (Giống thiết kế) === */}
+        {/* === CỘT PHẢI: ẢNH + SLOGAN === */}
         <div className="hidden md:block w-1/2 relative bg-gray-100">
            {/* Ảnh nền Full chiều cao */}
            <img 
@@ -65,10 +65,10 @@ export const ForgotPasswordPage = () => {
               className="absolute inset-0 w-full h-full object-cover"
            />
            
-           {/* Lớp phủ mờ nhẹ để chữ dễ đọc hơn */}
+           {/* Lớp phủ mờ nhẹ */}
            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
 
-           {/* Slogan nghệ thuật ở góc dưới (Giống ảnh mẫu) */}
+           {/* Slogan nghệ thuật */}
            <div className="absolute bottom-16 left-12 max-w-md text-white animate-in slide-in-from-bottom duration-1000 delay-300">
                <h3 className="text-4xl font-serif font-medium leading-tight italic">
                    "Đánh thức vẻ đẹp rạng ngời tiềm ẩn bên trong bạn cùng Glow Aura."

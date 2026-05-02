@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { ChevronDown, Heart, ShoppingCart, ChevronRight, Loader2 } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { Link } from 'react-router-dom';
-import { productService } from '../services/productService'; // Import API
-import { useCart } from '../context/CartContext'; // Import Cart Context
+import { productService } from '../services/productService';
+import { useCart } from '../context/CartContext';
 
 // Danh sách Tabs
 const tabs = [
@@ -25,12 +25,10 @@ export const EyesPage = () => {
   const [sortOption, setSortOption] = useState<string>('all');
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
 
-  // GỌI API LẤY SẢN PHẨM THEO DANH MỤC "Mắt"
   useEffect(() => {
     const fetchCategoryProducts = async () => {
       setIsLoading(true);
       try {
-        // Có thể thay "Mắt" bằng "Trang điểm mắt" tùy Database của bạn
         const payload = {
             category: "Mắt", 
             pageNumber: 1,
@@ -52,12 +50,11 @@ export const EyesPage = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  // LOGIC LỌC TABS VÀ SẮP XẾP TRÊN FRONTEND
+  // LOGIC LỌC TABS VÀ SẮP XẾP
   useEffect(() => {
       let result = [...allProducts];
 
-      // Lọc theo Tab (Có thể khớp bằng Brand, SubCategory hoặc Tag trong DB)
-      // Ở đây tạm dùng Description hoặc Name để lọc ví dụ nếu DB chưa phân loại kỹ
+      // Lọc theo Tab
       if (activeTab !== 'all') {
           result = result.filter(p => 
              p.name.toLowerCase().includes(activeTab.toLowerCase()) || 

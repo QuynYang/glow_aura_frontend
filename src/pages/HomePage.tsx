@@ -37,7 +37,6 @@ export const HomePage = () => {
 
         // Xử lý dữ liệu Flash Sale
         const flashSaleArray = Array.isArray(flashSaleData) ? flashSaleData : (flashSaleData?.items || flashSaleData?.data || []);
-        // Lấy tối đa 4 sản phẩm Flash Sale đưa ra trang chủ
         setFlashSaleProducts(flashSaleArray.slice(0, 4)); 
 
       } catch (error) {
@@ -85,7 +84,7 @@ export const HomePage = () => {
           </section>
       )}
 
-      {/* SECTION BÁN CHẠY (CŨ) */}
+      {/* SECTION BÁN CHẠY  */}
       <section className="container mx-auto px-4 py-10">
         <SectionHeading title="Sản Phẩm Bán Chạy" />
         

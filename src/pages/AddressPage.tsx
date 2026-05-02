@@ -2,7 +2,7 @@ import { Plus, Edit2, MapPin, Phone, User } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { ProfileSidebar } from '../features/user/components/ProfileSidebar';
 
-// 1. Mock Data (Giữ nguyên)
+// 1. Mock Data
 const savedAddresses = [
   {
     id: 1,
@@ -102,16 +102,10 @@ export const AddressPage = () => {
                             </div>
 
                             {/* === CỘT PHẢI: HÌNH ẢNH (ĐÃ SỬA) === */}
-                            {/* Thay đổi quan trọng:
-                                - h-48: Chiều cao cố định trên mobile (khoảng 192px)
-                                - md:h-52: Chiều cao cố định trên desktop (khoảng 208px) -> Giúp ảnh đều nhau
-                                - md:w-2/5: Tăng chiều rộng ảnh lên một chút cho cân đối
-                            */}
                             <div className="w-full md:w-2/5 h-48 md:h-52 relative rounded-lg overflow-hidden shadow-sm flex-shrink-0">
                                 <img 
                                     src={item.image} 
                                     alt={item.label} 
-                                    // object-cover: Đảm bảo ảnh phủ kín khung mà không bị méo
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                 />
                                 <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>

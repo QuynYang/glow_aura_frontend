@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { ProductCard } from '../features/products/components/ProductCard';
-import { productService } from '../services/productService'; // Import API
-
-// Bộ lọc màu sắc (Giữ nguyên phần UI)
+import { productService } from '../services/productService'; 
+// Bộ lọc màu sắc 
 const colors = [
   { id: 'red', hex: '#EF4444', label: 'Đỏ' },
   { id: 'nude', hex: '#D4A373', label: 'Nude' },
@@ -29,7 +28,6 @@ export const LipsPage = () => {
     const fetchCategoryProducts = async () => {
       setIsLoading(true);
       try {
-        // Có thể thay "Môi" bằng "Son môi" hoặc tên Category chính xác trong Database của bạn
         const payload = {
             category: "Môi", 
             pageNumber: 1,
@@ -98,7 +96,6 @@ export const LipsPage = () => {
           
           {/* 2. SIDEBAR FILTER */}
           <aside className="w-full lg:w-1/4 space-y-10">
-            {/* Loại sản phẩm (UI giả lập - có thể nâng cấp thành lọc Sub-category sau) */}
             <div>
                 <h3 className="font-serif font-bold text-[#3D021E] uppercase tracking-wider mb-4 text-sm">Loại sản phẩm</h3>
                 <div className="space-y-3">
@@ -126,7 +123,7 @@ export const LipsPage = () => {
                 </div>
             </div>
 
-            {/* Khoảng giá (Range Slider - Đã kết nối Logic) */}
+            {/* Khoảng giá (Range Slider) */}
             <div>
                 <h3 className="font-serif font-bold text-[#3D021E] uppercase tracking-wider mb-4 text-sm">Khoảng giá</h3>
                 <input 
@@ -198,7 +195,7 @@ export const LipsPage = () => {
                 </div>
             )}
 
-            {/* Pagination (Tạm thời giữ UI, vì đã load All 1 lần) */}
+            {/* Pagination  */}
             {displayedProducts.length > 0 && (
                 <div className="mt-16 flex justify-center gap-2">
                     <button className="w-10 h-10 border border-gray-200 rounded-lg flex items-center justify-center hover:border-[#3D021E] hover:text-[#3D021E] transition-colors shadow-sm">
