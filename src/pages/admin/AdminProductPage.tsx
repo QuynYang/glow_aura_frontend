@@ -50,7 +50,7 @@ export const AdminProductPage = () => {
     const fetchProducts = async () => {
         setIsLoading(true);
         try {
-            const response = await apiClient.get('/Products');
+            const response = await apiClient.get('/products');
             
             let productsList = [];
             if (response.data && Array.isArray(response.data)) productsList = response.data;
@@ -67,7 +67,9 @@ export const AdminProductPage = () => {
                 stock: p.stockQuantity || p.stock || 0,
                 maxStock: 100, 
                 status: (p.stockQuantity || p.stock || 0) === 0 ? "Hết hàng" : (p.stockQuantity || p.stock || 0) <= 5 ? "Sắp hết" : "Còn hàng",
-                image: p.imageUrl || p.image || "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=100"
+                image: p.imageUrl || p.image || "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=100",
+                isFlashSale: !!p.isFlashSale,
+                isExpiringSoon: !!p.isExpiringSoon,
             }));
 
             setProducts(formattedProducts);
@@ -127,7 +129,7 @@ export const AdminProductPage = () => {
   useEffect(() => { setCurrentPage(1); }, [activeTab, searchTerm, stockFilter]);
 
   // UI Helpers
-  const getStockBarColor = (current: number, max: number) => {
+  const getStockBarColor = (current: number, _max: number) => {
     if (current === 0) return 'bg-gray-200';
     if (current <= 5) return 'bg-red-500';
     return 'bg-[#3D021E]';
@@ -258,6 +260,10 @@ export const AdminProductPage = () => {
                                          <div>
                                              <h4 className="font-bold text-gray-900 line-clamp-1 max-w-[200px]">{product.name}</h4>
                                              <p className="text-xs text-gray-500">{product.variant}</p>
+                                             <div className="flex gap-1 mt-1">
+                                               {product.isFlashSale && <span className="text-[10px] px-2 py-0.5 rounded bg-red-100 text-red-600 font-bold">Flash Sale</span>}
+                                               {product.isExpiringSoon && <span className="text-[10px] px-2 py-0.5 rounded bg-orange-100 text-orange-600 font-bold">Cận Date</span>}
+                                             </div>
                                          </div>
                                      </div>
                                  </td>

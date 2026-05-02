@@ -4,12 +4,12 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
 import { 
-  Wallet, ShoppingCart, Users, PieChart, Download, Calendar, 
-  MoreHorizontal, ArrowUpRight, ArrowDownRight, Loader2, ChevronDown
+  Wallet, ShoppingCart, Users, PieChart, Download, Calendar,
+  ArrowUpRight, ArrowDownRight, Loader2, ChevronDown
 } from 'lucide-react';
 import apiClient from '../../services/apiClient';
 
-// --- DATA: Biểu đồ Sparkline (Sóng nhỏ trong thẻ) ---
+// --- Biểu đồ Sparkline  ---
 const sparkData1 = [{v: 40}, {v: 30}, {v: 60}, {v: 40}, {v: 70}, {v: 60}, {v: 80}]; 
 const sparkData2 = [{v: 80}, {v: 60}, {v: 50}, {v: 40}, {v: 30}, {v: 40}, {v: 30}]; 
 const sparkData3 = [{v: 20}, {v: 40}, {v: 30}, {v: 50}, {v: 40}, {v: 60}, {v: 70}]; 
@@ -48,12 +48,11 @@ const StatCard = ({ title, value, percent, isIncrease, icon: Icon, colorClass, c
     </div>
 );
 
-// Trích xuất tên khách hàng siêu "trâu bò"
 const getCustomerName = (o: any) => {
     if (o.shippingAddress?.fullName) return o.shippingAddress.fullName;
     if (o.shippingAddress?.name) return o.shippingAddress.name;
     if (o.user?.fullName) return o.user.fullName;
-    if (o.user?.email) return o.user.email.split('@')[0]; // Lấy phần trước @ của email
+    if (o.user?.email) return o.user.email.split('@')[0];
     if (o.customerName) return o.customerName;
     if (o.fullName) return o.fullName;
     if (o.email) return o.email.split('@')[0];
@@ -63,42 +62,43 @@ const getCustomerName = (o: any) => {
 };
 
 const translateStatus = (status: string) => {
-    switch (status?.toLowerCase()) {
-        case 'pending': return 'Chờ xác nhận';
-        case 'processing': return 'Đang xử lý';
-        case 'shipped': return 'Đang giao';
-        case 'delivered': return 'Đã giao';
-        case 'cancelled': return 'Đã hủy';
-        default: return status || 'Mới';
-    }
+    const s = (status || '').toLowerCase();
+    const map: Record<string, string> = {
+        pending: 'Chờ xác nhận',
+        confirmed: 'Đã xác nhận',
+        paid: 'Đã thanh toán',
+        processing: 'Đang xử lý',
+        shipping: 'Đang giao hàng',
+        delivered: 'Đã giao hàng',
+        completed: 'Hoàn thành',
+        cancelled: 'Đã hủy',
+        refunded: 'Đã hoàn tiền',
+        paymentfailed: 'Thanh toán thất bại',
+    };
+    return map[s] || status || 'Mới';
 };
 
 export const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
-  
-  // States gốc lưu toàn bộ dữ liệu từ API để không phải gọi lại khi lọc
   const [rawOrders, setRawOrders] = useState<any[]>([]);
   const [rawUsersCount, setRawUsersCount] = useState(0);
 
-  // States hiển thị trên UI
   const [stats, setStats] = useState({ totalRevenue: 0, totalOrders: 0, newCustomers: 0, conversionRate: "0.0" });
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [topProducts, setTopProducts] = useState<any[]>([]);
   const [revenueChartData, setRevenueChartData] = useState<any[]>([]);
   
-  // State lọc thời gian
   const [daysFilter, setDaysFilter] = useState<number>(30);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // 1. Fetch API đúng 1 lần khi vào trang
   useEffect(() => {
     const fetchDashboardData = async () => {
         setIsLoading(true);
         try {
             const [ordersRes, usersRes, productsRes] = await Promise.all([
-                apiClient.get('/Order').catch((e) => { console.error("Lỗi tải Đơn hàng", e); return null; }),
-                apiClient.get('/User').catch((e) => { console.error("Lỗi tải User", e); return null; }),
-                apiClient.get('/Products').catch((e) => { console.error("Lỗi tải Sản phẩm", e); return null; })
+                apiClient.get('/order?page=1&pageSize=1000').catch((e) => { console.error("Lỗi tải Đơn hàng", e); return null; }),
+                apiClient.get('/user').catch((e) => { console.error("Lỗi tải User", e); return null; }),
+                apiClient.get('/products').catch((e) => { console.error("Lỗi tải Sản phẩm", e); return null; })
             ]);
 
             const extractArray = (res: any) => {
@@ -115,7 +115,6 @@ export const AdminDashboard = () => {
             const usersList = extractArray(usersRes);
             setRawUsersCount(usersList.length);
 
-            // Xử lý Sản phẩm bán chạy (Cái này không ảnh hưởng bởi thời gian)
             const productsList = extractArray(productsRes);
             const realTopProducts = productsList.slice(0, 4).map((p: any) => ({
                 id: p.id,
@@ -137,14 +136,12 @@ export const AdminDashboard = () => {
     fetchDashboardData();
   }, []);
 
-  // 2. Xử lý Logic Lọc Thời gian, Tính Doanh thu & Vẽ Biểu đồ (Chạy lại mỗi khi đổi Filter hoặc có Raw Data)
   useEffect(() => {
       if (!rawOrders) return;
 
       const now = new Date();
       let filteredOrders = rawOrders;
 
-      // Nếu không phải là "Tất cả" (daysFilter > 0) thì tiến hành lọc
       if (daysFilter > 0) {
           const pastDate = new Date();
           pastDate.setDate(now.getDate() - daysFilter);
@@ -155,9 +152,14 @@ export const AdminDashboard = () => {
           });
       }
 
-      // Tính tổng Doanh thu & Số lượng
-      const totalOrders = filteredOrders.length;
-      const totalRevenue = filteredOrders.reduce((sum: number, o: any) => sum + (o.totalPrice || o.totalAmount || 0), 0);
+      // Lọc ra các đơn hợp lệ để tính doanh thu (Bỏ Hủy, Pending, Fail)
+      const validRevenueOrders = filteredOrders.filter(o => {
+          const statusStr = String(o.status || o.orderStatus).toLowerCase();
+          return ['paid', 'processing', 'shipping', 'delivered', 'completed', '2', '3', '4', '5', '6'].includes(statusStr);
+      });
+
+      const totalOrders = filteredOrders.length; // Giữ nguyên tổng số lượng đơn
+      const totalRevenue = validRevenueOrders.reduce((sum: number, o: any) => sum + (o.totalPrice || o.totalAmount || 0), 0); // Chỉ cộng tiền đơn hợp lệ
       const cvRate = rawUsersCount > 0 ? ((totalOrders / rawUsersCount) * 100).toFixed(1) : "0.0";
 
       setStats({
@@ -167,7 +169,6 @@ export const AdminDashboard = () => {
           conversionRate: cvRate
       });
 
-      // Tạo danh sách đơn hàng gần đây
       const formattedOrders = [...filteredOrders].sort((a,b) => new Date(b.createdAt || b.orderDate).getTime() - new Date(a.createdAt || a.orderDate).getTime()).slice(0, 5).map((o: any) => ({
           id: o.orderNumber || o.id || 'N/A',
           customer: getCustomerName(o),
@@ -177,11 +178,9 @@ export const AdminDashboard = () => {
       }));
       setRecentOrders(formattedOrders);
 
-      // TẠO DATA CHO BIỂU ĐỒ (Nhóm doanh thu theo ngày)
+      // BIỂU ĐỒ DOANH THU
       if (daysFilter > 0 && daysFilter <= 30) {
           const chartMap: Record<string, number> = {};
-          
-          // Tạo trục X rỗng cho đủ số ngày
           for(let i = daysFilter - 1; i >= 0; i--) {
               const d = new Date();
               d.setDate(now.getDate() - i);
@@ -189,8 +188,7 @@ export const AdminDashboard = () => {
               chartMap[dateStr] = 0;
           }
 
-          // Nhồi tiền vào đúng ngày
-          filteredOrders.forEach(o => {
+          validRevenueOrders.forEach(o => {
               const d = new Date(o.createdAt || o.orderDate || Date.now());
               const dateStr = d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
               if (chartMap[dateStr] !== undefined) {
@@ -198,16 +196,14 @@ export const AdminDashboard = () => {
               }
           });
 
-          // Convert qua mảng cho Recharts
           const chartData = Object.keys(chartMap).map(key => ({
               name: key,
               current: chartMap[key]
           }));
           setRevenueChartData(chartData);
       } else {
-          // Nếu chọn "Tất cả" hoặc thời gian dài, vẽ bằng dữ liệu thực tế đang có
           const chartMap: Record<string, number> = {};
-          filteredOrders.forEach(o => {
+          validRevenueOrders.forEach(o => {
               const d = new Date(o.createdAt || o.orderDate || Date.now());
               const dateStr = d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year:'2-digit' });
               chartMap[dateStr] = (chartMap[dateStr] || 0) + (o.totalPrice || o.totalAmount || 0);
@@ -215,9 +211,8 @@ export const AdminDashboard = () => {
           const chartData = Object.keys(chartMap).map(key => ({
               name: key,
               current: chartMap[key]
-          })).slice(-15); // Chỉ lấy 15 điểm cuối cho khỏi nát biểu đồ
+          })).slice(-15); 
           
-          // Tránh lỗi biểu đồ rỗng nếu chưa có đơn
           if(chartData.length === 0) chartData.push({name: 'Chưa có', current: 0});
           setRevenueChartData(chartData);
       }
@@ -243,8 +238,6 @@ export const AdminDashboard = () => {
             <p className="text-sm text-gray-500 mt-1">Dữ liệu được trích xuất 100% từ Database hệ thống.</p>
         </div>
         <div className="flex items-center gap-3">
-            
-            {/* NÚT LỌC THỜI GIAN ĐÃ HOẠT ĐỘNG */}
             <div className="relative">
                 <button 
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -270,52 +263,14 @@ export const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* STATS CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-         <StatCard 
-            title="Tổng Doanh Thu" 
-            value={`${stats.totalRevenue.toLocaleString('vi-VN')}đ`} 
-            percent={12.5} 
-            isIncrease={true} 
-            icon={Wallet} 
-            colorClass="bg-[#3D021E]"
-            chartData={sparkData1}
-            chartColor="#3D021E"
-         />
-         <StatCard 
-            title="Tổng Đơn Hàng" 
-            value={stats.totalOrders.toLocaleString('vi-VN')} 
-            percent={5.0} 
-            isIncrease={true} 
-            icon={ShoppingCart} 
-            colorClass="bg-yellow-500" 
-            chartData={sparkData2}
-            chartColor="#EAB308" 
-         />
-         <StatCard 
-            title="Tổng Khách Hàng" 
-            value={stats.newCustomers.toLocaleString('vi-VN')} 
-            percent={2.4} 
-            isIncrease={true} 
-            icon={Users} 
-            colorClass="bg-red-500" 
-            chartData={sparkData3}
-            chartColor="#EF4444" 
-         />
-         <StatCard 
-            title="Tỷ Lệ Chuyển Đổi" 
-            value={`${stats.conversionRate}%`} 
-            percent={1.2} 
-            isIncrease={true} 
-            icon={PieChart} 
-            colorClass="bg-purple-600" 
-            chartData={sparkData4}
-            chartColor="#9333EA" 
-         />
+         <StatCard title="Tổng Doanh Thu" value={`${stats.totalRevenue.toLocaleString('vi-VN')}đ`} percent={12.5} isIncrease={true} icon={Wallet} colorClass="bg-[#3D021E]" chartData={sparkData1} chartColor="#3D021E" />
+         <StatCard title="Tổng Đơn Hàng" value={stats.totalOrders.toLocaleString('vi-VN')} percent={5.0} isIncrease={true} icon={ShoppingCart} colorClass="bg-yellow-500" chartData={sparkData2} chartColor="#EAB308" />
+         <StatCard title="Tổng Khách Hàng" value={stats.newCustomers.toLocaleString('vi-VN')} percent={2.4} isIncrease={true} icon={Users} colorClass="bg-red-500" chartData={sparkData3} chartColor="#EF4444" />
+         <StatCard title="Tỷ Lệ Chuyển Đổi" value={`${stats.conversionRate}%`} percent={1.2} isIncrease={true} icon={PieChart} colorClass="bg-purple-600" chartData={sparkData4} chartColor="#9333EA" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-         {/* BIỂU ĐỒ DOANH THU THẬT */}
          <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="font-bold text-lg text-gray-900">Doanh Thu Theo Thời Gian</h3>

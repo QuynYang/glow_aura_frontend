@@ -13,15 +13,15 @@ export const AdminOrderDetailPage = () => {
 
   const [order, setOrder] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false); // Trạng thái loading khi bấm nút
+  const [isProcessing, setIsProcessing] = useState(false); 
   const [internalNotes, setInternalNotes] = useState('');
 
   // 1. GỌI API LẤY CHI TIẾT ĐƠN HÀNG
   const fetchOrderDetails = async () => {
       setIsLoading(true);
       try {
-          const response = await apiClient.get(`/Order/${id}`);
-          const data = response.data?.data || response.data; // Tùy cấu trúc C#
+          const response = await apiClient.get(`/order/${id}`);
+          const data = response.data?.data || response.data;
           setOrder(data);
           setInternalNotes(data.notes || '');
       } catch (error) {
@@ -45,7 +45,7 @@ export const AdminOrderDetailPage = () => {
       setIsProcessing(true);
       try {
           // Gửi fee ship mặc định 30k (hoặc lấy từ order)
-          await apiClient.post(`/Order/${id}/confirm`, { shippingFee: 30000 });
+          await apiClient.post(`/order/${id}/confirm`, { shippingFee: 30000 });
           await fetchOrderDetails(); 
       } catch (error: any) {
           console.error(error);
@@ -56,7 +56,6 @@ export const AdminOrderDetailPage = () => {
   };
 
   // Xác nhận thanh toán qua API Cổng Thanh Toán (Confirmed -> Paid)
-  // HÀM MỚI: Xử lý thanh toán có kèm Optimistic UI Update
   const handlePayOrder = async () => {
       if (!window.confirm("Xác nhận thanh toán cho đơn hàng này?")) return;
       setIsProcessing(true);
@@ -73,7 +72,7 @@ export const AdminOrderDetailPage = () => {
           };
 
           // Gọi cổng Pay chính thức
-          const response = await apiClient.post(`/Order/${id}/pay`, payload);
+          const response = await apiClient.post(`/order/${id}/pay`, payload);
           
           if (response.data?.redirectUrl) {
               window.location.href = response.data.redirectUrl;
@@ -81,12 +80,10 @@ export const AdminOrderDetailPage = () => {
               alert("Đã xác nhận thanh toán hợp lệ!");
               
               // 1. Gọi API lấy data mới
-              const res = await apiClient.get(`/Order/${id}`);
+              const res = await apiClient.get(`/order/${id}`);
               let freshData = res.data?.data || res.data;
 
-              // 2. OPTIMISTIC UPDATE: Bù đắp lỗ hổng logic của Backend
-              // Nếu Backend báo Pay thành công nhưng vẫn kẹt ở 'Confirmed' (Đã xác nhận)
-              // Frontend sẽ tự động ép data lên 'Paid' (Đã thanh toán) để Admin đi tiếp!
+                // 2. Cập nhật trạng thái Paid nếu API chưa kịp cập nhật (Optimistic UI)
               const currentStatus = freshData.status || freshData.orderStatus;
               if (currentStatus === 'Confirmed' || currentStatus === 1) {
                   freshData = { 
@@ -111,7 +108,6 @@ export const AdminOrderDetailPage = () => {
       if (!window.confirm(`Chuyển trạng thái đơn hàng sang: ${newStatus}?`)) return;
       setIsProcessing(true);
       try {
-          // Map đúng số của Enum OrderStatus từ C#
           const statusMap: Record<string, number> = {
               'Pending': 0, 
               'Confirmed': 1, 
@@ -128,7 +124,7 @@ export const AdminOrderDetailPage = () => {
           const statusCode = statusMap[newStatus];
 
           // Gọi API cập nhật
-          await apiClient.patch(`/Order/${id}/status?newStatus=${statusCode}`);
+          await apiClient.patch(`/order/${id}/status?newStatus=${statusCode}`);
           await fetchOrderDetails();
       } catch (error: any) {
           console.error(error);
@@ -146,7 +142,7 @@ export const AdminOrderDetailPage = () => {
 
       setIsProcessing(true);
       try {
-          await apiClient.post(`/Order/${id}/cancel`, { reason });
+          await apiClient.post(`/order/${id}/cancel`, { reason });
           await fetchOrderDetails();
       } catch (error: any) {
           console.error(error);
@@ -176,6 +172,18 @@ export const AdminOrderDetailPage = () => {
   const status = order.status || 'Pending';
   const isCancelled = status === 'Cancelled';
   const isPaid = !!order.paidAt || status === 'Paid' || status === 'Processing' || status === 'Shipping' || status === 'Delivered' || status === 'Completed';
+  const availableActions: string[] = order.availableActions || ({
+      Pending: ['Confirm', 'Cancel'],
+      Confirmed: ['Pay', 'Cancel'],
+      PaymentFailed: ['Pay', 'Cancel'],
+      Paid: ['StartProcessing', 'Refund'],
+      Processing: ['Ship', 'Refund'],
+      Shipping: ['Deliver'],
+      Delivered: ['Complete'],
+      Completed: [],
+      Cancelled: [],
+      Refunded: [],
+  } as Record<string, string[]>)[status] || [];
 
   // Logic hiển thị thanh Progress
   const getStatusProgress = () => {
@@ -350,47 +358,53 @@ export const AdminOrderDetailPage = () => {
                     {order.paidAt && <p className="text-[10px] text-gray-400 mt-2">Lúc: {new Date(order.paidAt).toLocaleString('vi-VN')}</p>}
                 </div>
 
-                {/* BẢNG ĐIỀU KHIỂN HÀNH ĐỘNG (THAY ĐỔI THEO TRẠNG THÁI BE) */}
+                {/* BẢNG ĐIỀU KHIỂN HÀNH ĐỘNG */}
                 <div className="space-y-3 pt-4 border-t border-gray-100">
                     {isProcessing && <p className="text-sm text-center text-gray-500 animate-pulse mb-2">Đang xử lý hệ thống...</p>}
                     
-                    {/* Luồng 1: Xác nhận đơn */}
-                    {status === 'Pending' && (
+                    {availableActions.includes('Confirm') && (
                         <button onClick={handleConfirmOrder} disabled={isProcessing} className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-[#E11D48] text-white font-bold rounded-xl hover:bg-[#BE123C] shadow-md shadow-red-200 transition-all disabled:opacity-50">
                             <CheckCircle className="w-5 h-5" /> Duyệt đơn hàng
                         </button>
                     )}
 
-                    {/* Luồng 2: Xác nhận đã thanh toán (Gọi cổng /pay) */}
-                    {status === 'Confirmed' && !isPaid && (
+                    {availableActions.includes('Pay') && !isPaid && (
                         <button onClick={handlePayOrder} disabled={isProcessing} className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-indigo-500 text-white font-bold rounded-xl hover:bg-indigo-600 shadow-md shadow-indigo-200 transition-all disabled:opacity-50">
                             <CheckCircle2 className="w-5 h-5" /> Xác nhận Đã Nhận Tiền
                         </button>
                     )}
 
-                    {/* Luồng 3: Đóng gói (Bắt buộc phải Paid mới được hiện) */}
-                    {status === 'Paid' && (
+                    {availableActions.includes('StartProcessing') && (
                         <button onClick={() => handleUpdateStatus('Processing')} disabled={isProcessing} className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 shadow-md shadow-orange-200 transition-all disabled:opacity-50">
                             <Package className="w-5 h-5" /> Bắt đầu đóng gói
                         </button>
                     )}
 
-                    {/* Luồng 4: Giao hàng */}
-                    {status === 'Processing' && (
+                    {availableActions.includes('Ship') && (
                         <button onClick={() => handleUpdateStatus('Shipping')} disabled={isProcessing} className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-600 shadow-md shadow-blue-200 transition-all disabled:opacity-50">
                             <Truck className="w-5 h-5" /> Giao cho ĐVVC
                         </button>
                     )}
 
-                    {/* Luồng 5: Giao thành công */}
-                    {status === 'Shipping' && (
+                    {availableActions.includes('Deliver') && (
                         <button onClick={() => handleUpdateStatus('Delivered')} disabled={isProcessing} className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 shadow-md shadow-green-200 transition-all disabled:opacity-50">
                             <CheckCircle2 className="w-5 h-5" /> Xác nhận Giao Thành Công
                         </button>
                     )}
 
-                    {/* Nút Hủy: Dựa theo hàm CanCancel() trong C# (Pending, Confirmed, PaymentFailed) */}
-                    {['Pending', 'Confirmed', 'PaymentFailed'].includes(status) && (
+                    {availableActions.includes('Complete') && (
+                        <button onClick={() => handleUpdateStatus('Completed')} disabled={isProcessing} className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-md transition-all disabled:opacity-50">
+                            <CheckCircle2 className="w-5 h-5" /> Hoàn tất đơn hàng
+                        </button>
+                    )}
+
+                    {availableActions.includes('Refund') && (
+                        <button onClick={() => alert('API hoàn tiền chuyên dụng chưa mở ở controller. Vui lòng bổ sung endpoint refund để bật thao tác này.')} disabled={isProcessing} className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-white border border-amber-200 text-amber-700 font-bold rounded-xl hover:bg-amber-50 transition-all disabled:opacity-50">
+                            Hoàn tiền
+                        </button>
+                    )}
+
+                    {availableActions.includes('Cancel') && (
                         <button onClick={handleCancelOrder} disabled={isProcessing} className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-white border border-red-200 text-red-600 font-bold rounded-xl hover:bg-red-50 transition-all disabled:opacity-50">
                             <XCircle className="w-5 h-5" /> Hủy đơn hàng
                         </button>
@@ -426,7 +440,6 @@ export const AdminOrderDetailPage = () => {
   );
 };
 
-// SVG Icon Component thủ công
 function Clock(props: any) {
   return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
 }

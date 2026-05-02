@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Plus, Download, Filter, ChevronLeft, ChevronRight, 
+  Plus, Download, ChevronLeft, ChevronRight, 
   MoreHorizontal, Calendar, Truck, DollarSign, Zap, Loader2, 
   Eye, Edit, Trash2
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import apiClient from '../../services/apiClient';
 
-// Danh sách Tabs trạng thái (Đã cập nhật đầy đủ các case của C#)
+// Danh sách Tabs trạng thái
 const tabs = ["Tất cả đơn hàng", "Chờ xác nhận", "Đã thanh toán", "Đang xử lý", "Đang giao", "Đã giao", "Đã hủy"];
 
 const StatCard = ({ title, value, subtext, icon: Icon, iconColor, trend }: any) => (
@@ -26,7 +26,7 @@ const StatCard = ({ title, value, subtext, icon: Icon, iconColor, trend }: any) 
     </div>
 );
 
-// HÀM DỊCH TRẠNG THÁI (Đã cập nhật đủ các trạng thái C# trả về)
+// HÀM DỊCH TRẠNG THÁI
 const translateStatus = (status: string) => {
     switch (status?.toLowerCase()) {
         case 'pending': return 'Chờ xác nhận';
@@ -84,7 +84,7 @@ export const AdminOrderPage = () => {
     const fetchOrders = async () => {
         setIsLoading(true);
         try {
-            const response = await apiClient.get('/Order?page=1&pageSize=100');
+            const response = await apiClient.get('/order?page=1&pageSize=100');
             
             let ordersList = [];
             if (response.data && Array.isArray(response.data)) ordersList = response.data;

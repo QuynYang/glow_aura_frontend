@@ -55,8 +55,6 @@ export const AdminPromotionPage = () => {
       const fetchCoupons = async () => {
           setIsLoading(true);
           try {
-              // Gọi API lấy danh sách Coupon (Giả sử endpoint là /Coupons)
-              // Nếu Backend C# của bạn dùng tên khác (như /Discounts), hãy sửa lại nhé!
               const response = await apiClient.get('/Coupons').catch(() => ({ data: [] })); 
               
               let couponsList = [];
