@@ -2,10 +2,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { useState } from 'react';
 import { authService } from '../services/authService';
+import { useAuth } from '../context/AuthContext';
+import type { User } from '../context/AuthContext';
 import { Loader2, Eye, EyeOff } from 'lucide-react'; 
 
 export const RegisterPage = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   // Quản lý State cho form
   const [fullName, setFullName] = useState('');
@@ -25,7 +28,6 @@ export const RegisterPage = () => {
     e.preventDefault();
     setError('');
 
-    // Kiểm tra nhanh ở Frontend trước khi gửi API
     if (password !== confirmPassword) {
         setError('Mật khẩu xác nhận không khớp!');
         return;
@@ -35,7 +37,7 @@ export const RegisterPage = () => {
 
     try {
         // GỌI API ĐĂNG KÝ
-        await authService.register({
+        const data = await authService.register({
             fullName,
             email,
             phoneNumber,
@@ -43,13 +45,15 @@ export const RegisterPage = () => {
             confirmPassword
         });
 
+        if (data?.user) {
+            login(data.user as User);
+        }
+
         alert('Đăng ký thành công! Chào mừng bạn đến với Glow Aura.');
-        navigate('/'); // Đăng ký xong (có token luôn) thì về Trang chủ
+        navigate('/');
     } catch (err: any) {
         console.error("Lỗi đăng ký:", err);
-        // Backend có thể trả về lỗi dạng mảng (nhiều lỗi) hoặc chuỗi
         if (err.errors && typeof err.errors === 'object') {
-             // Lấy lỗi đầu tiên trong mảng lỗi validation của ASP.NET
              const firstErrorKey = Object.keys(err.errors)[0];
              setError(err.errors[firstErrorKey][0]);
         } else {

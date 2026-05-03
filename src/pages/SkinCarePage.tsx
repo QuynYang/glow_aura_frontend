@@ -4,7 +4,6 @@ import { MainLayout } from '../components/layout/MainLayout';
 import { ProductCard } from '../features/products/components/ProductCard';
 import { productService } from '../services/productService'; // Import API
 
-// Danh mục phụ bên trái (Tạm giữ cứng vì UI)
 const subCategories = [
   "Làm Sạch (Cleanser)",
   "Tinh Chất (Serums)",
@@ -41,11 +40,10 @@ export const SkinCarePage = () => {
     const fetchCategoryProducts = async () => {
       setIsLoading(true);
       try {
-        // ĐỔI CHỮ NÀY cho khớp chính xác với Category Name trong DB của bạn
         const payload = {
             category: "Dưỡng da", 
             pageNumber: 1,
-            pageSize: 100 // Lấy nhiều để lọc FE
+            pageSize: 100
         };
         const response = await productService.advancedSearch(payload);
         const items = Array.isArray(response) ? response : (response?.items || response?.data || []);
@@ -76,8 +74,6 @@ export const SkinCarePage = () => {
       // Lọc theo Skin Type (Nếu User có tích chọn)
       if (selectedSkinTypes.length > 0) {
           result = result.filter(p => {
-              // Giả sử API trả về thuộc tính skinType (VD: "oily", "dry"...)
-              // Nếu DB lưu "All" thì sản phẩm đó hợp mọi loại da
               if (!p.skinType || p.skinType.toLowerCase() === 'all') return true; 
               return selectedSkinTypes.includes(p.skinType.toLowerCase());
           });
@@ -94,14 +90,6 @@ export const SkinCarePage = () => {
 
       setDisplayedProducts(result);
   }, [priceRange, sortOption, selectedSkinTypes, allProducts]);
-
-  // Xử lý Click checkbox SkinType
-  const handleSkinTypeToggle = (id: string) => {
-      setSelectedSkinTypes(prev => {
-          if (prev.includes(id)) return prev.filter(t => t !== id);
-          return [...prev, id];
-      });
-  };
 
   return (
     <MainLayout>

@@ -1,10 +1,10 @@
-import { X } from 'lucide-react'; // Dùng icon X để xóa
+import { X } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { ProfileSidebar } from '../features/user/components/ProfileSidebar';
 import { Button } from '../components/ui/Button';
 import { ProductCard } from '../features/products/components/ProductCard'; 
 
-// Mock Data (Cần khớp cấu trúc với ProductCard của bạn)
+// Mock Data
 const wishlistItems = [
   {
     id: 1,
@@ -52,10 +52,8 @@ export const WishlistPage = () => {
             {/* Main Content */}
             <div className="w-full lg:w-3/4">
               {wishlistItems.length > 0 ? (
-                // Sử dụng Grid giống hệt trang Product List
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                   {wishlistItems.map((item) => (
-                    // Bọc trong div relative để đặt nút Xóa
                     <div key={item.id} className="relative group">
                       
                       {/* 2. TÁI SỬ DỤNG PRODUCT CARD CŨ */}
@@ -77,7 +75,6 @@ export const WishlistPage = () => {
                   ))}
                 </div>
               ) : (
-                // Giao diện khi danh sách trống
                 <div className="bg-white rounded-xl p-12 text-center shadow-sm">
                     <p className="text-gray-500 mb-4">Danh sách yêu thích của bạn đang trống.</p>
                     <Button variant="outline">Tiếp tục mua sắm</Button>

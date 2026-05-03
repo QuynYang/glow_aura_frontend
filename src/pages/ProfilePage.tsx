@@ -51,7 +51,7 @@ export const ProfilePage = () => {
       // 2. Gọi lại API GET /api/User/me để lấy cục data mới nhất từ Database
       const updatedUser = await userService.getCurrentUser();
       
-      // 3. Cập nhật lại Context (Giả lập việc đăng nhập lại để làm mới data)
+      // 3. Cập nhật lại Context
       login(updatedUser);
       
       setIsEditing(false);
@@ -69,12 +69,26 @@ export const ProfilePage = () => {
     return value ? value : <span className="text-gray-400 italic">Chưa cập nhật</span>;
   };
 
-  // Hàm Helper format hiển thị ngày sinh ra giao diện chính (VD: 15 / 08 / 1996)
+  // Hàm Helper format hiển thị ngày sinh
   const formatDisplayDate = (dateString?: string) => {
     if (!dateString) return null;
     const date = new Date(dateString);
     return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' / ');
   };
+
+  const vipLevels = ['None', 'Bronze', 'Silver', 'Gold', 'Platinum'];
+  const currentVip = String(user?.vipLevel || 'None');
+  const vipIndex = Math.max(0, vipLevels.findIndex((v) => v.toLowerCase() === currentVip.toLowerCase()));
+  const vipProgress = (vipIndex / (vipLevels.length - 1)) * 100;
+  const nextVipTargets: Record<string, number> = {
+    None: 1_000_000,
+    Bronze: 5_000_000,
+    Silver: 10_000_000,
+    Gold: 20_000_000,
+    Platinum: 0,
+  };
+  const totalSpent = Number((user as any)?.totalSpent || 0);
+  const toNext = Math.max(0, (nextVipTargets[currentVip] ?? 0) - totalSpent);
 
   return (
     <MainLayout>
@@ -153,7 +167,37 @@ export const ProfilePage = () => {
                     </div>
                 </div>
 
-                {/* Liên kết MXH (Giữ nguyên giao diện của bạn) */}
+                <div className="mb-10 border-b border-gray-100 pb-10">
+                  <h4 className="font-serif font-bold text-gray-900 mb-4 text-lg">Hạng thành viên & AI Skin Profile</h4>
+                  <div className="bg-[#FAF7F8] border border-[#F3EAF0] rounded-2xl p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm font-bold text-[#3D021E]">VIP {currentVip}</p>
+                      <p className="text-xs text-gray-500">
+                        {toNext > 0 ? `Cần thêm ${toNext.toLocaleString('vi-VN')}đ để lên hạng` : 'Bạn đã đạt hạng cao nhất'}
+                      </p>
+                    </div>
+                    <div className="w-full h-2 bg-white rounded-full overflow-hidden mb-2">
+                      <div className="h-full bg-[#3D021E]" style={{ width: `${vipProgress}%` }}></div>
+                    </div>
+                    <div className="flex justify-between text-[10px] text-gray-500 uppercase font-bold tracking-wider">
+                      {vipLevels.map((lv) => (
+                        <span key={lv}>{lv}</span>
+                      ))}
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-[#F3EAF0] flex items-center justify-between">
+                      <p className="text-sm text-gray-700">
+                        Loại da: <span className="font-bold">{(user as any)?.skinType || 'Chưa xác định'}</span>
+                      </p>
+                      {(user as any)?.hasCompletedSkinQuiz && (
+                        <span className="bg-green-50 text-green-700 border border-green-200 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">
+                          Đã xác thực qua AI
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Liên kết MXH  */}
                 <h4 className="font-serif font-bold text-gray-900 mb-4 text-lg">Liên kết mạng xã hội</h4>
                 <div className="flex flex-wrap gap-4">
                      <div className="flex items-center gap-3 px-5 py-2.5 border border-gray-100 rounded-xl bg-gray-50 shadow-sm">
@@ -185,9 +229,7 @@ export const ProfilePage = () => {
           </div>
         </div>
 
-        {/* ========================================= */}
         {/* === MODAL POPUP CHỈNH SỬA THÔNG TIN === */}
-        {/* ========================================= */}
         {isEditing && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Lớp mờ nền */}
@@ -277,7 +319,7 @@ export const ProfilePage = () => {
   );
 };
 
-// Icon Check (Giữ nguyên)
+// Icon Check
 const CheckIcon = () => (
     <svg className="w-4 h-4 text-green-500 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />

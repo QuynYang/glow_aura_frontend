@@ -5,7 +5,8 @@ import {
   Smile, Info, ArrowRight, Wand2, CheckSquare, Tag, Loader2 
 } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
-import { skinQuizService } from '../services/skinQuizService'; // Import API Service
+import { skinQuizService } from '../services/skinQuizService';
+import { authService } from '../services/authService';
 
 type TestStatus = 'loading' | 'answering' | 'analyzing' | 'error';
 
@@ -34,12 +35,13 @@ export const SkinQuizTestPage = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step, status]);
 
-  const handleSelect = (optionValue: any) => {
-    setAnswers({ ...answers, [questions[step].id]: optionValue });
+  const handleSelect = (questionId: number, selectedOptionId: string) => {
+    setAnswers({ ...answers, [questionId]: selectedOptionId });
   };
 
   const handleNext = async () => {
-    if (!answers[questions[step].id]) return alert("Vui lòng chọn một đáp án!");
+    const qid = questions[step].id;
+    if (!answers[qid]) return alert("Vui lòng chọn một đáp án!");
     
     if (step < questions.length - 1) {
       setStep(step + 1);
@@ -47,17 +49,23 @@ export const SkinQuizTestPage = () => {
       // Đã trả lời xong -> Gửi lên C# phân tích
       setStatus('analyzing');
       try {
+        const u = authService.getCurrentUser() as { id?: number } | null;
         const payload = {
-          answers: Object.keys(answers).map(qId => ({
-            questionId: qId,
-            selectedOption: answers[qId]
-          }))
+          userId: u?.id ?? null,
+          answers: Object.entries(answers).map(([qId, selectedOptionId]) => ({
+            questionId: Number(qId),
+            selectedOptionId: String(selectedOptionId),
+          })),
         };
 
         const result = await skinQuizService.analyzeSkin(payload);
-        
-        // Chuyển trang và mang theo loại da (ví dụ: 'OILY', 'DRY')
-        navigate('/skin-quiz/result', { state: { skinType: result.skinType || result } });
+
+        navigate('/skin-quiz/result', {
+          state: {
+            skinType: result.skinType,
+            quizResult: result,
+          },
+        });
         
       } catch (error) {
         alert("Có lỗi xảy ra khi phân tích. Vui lòng thử lại!");
@@ -123,13 +131,13 @@ export const SkinQuizTestPage = () => {
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1 mb-10">
                         {currentQ?.options?.map((option: any, idx: number) => {
-                            const optionValue = option.id || option; 
+                            const optionId = option.optionId || option.id || String(idx);
                             const optionText = option.text || option.content || option;
-                            const isSelected = answers[currentQ.id] === optionValue;
+                            const isSelected = answers[currentQ.id] === optionId;
                             const Icon = icons[idx % icons.length];
                             
                             return (
-                                <div key={idx} onClick={() => handleSelect(optionValue)}
+                                <div key={idx} onClick={() => handleSelect(currentQ.id, optionId)}
                                     className={`p-6 rounded-2xl border-2 cursor-pointer transition-all duration-200 flex flex-col items-start gap-4 group
                                         ${isSelected ? 'border-[#3D021E] bg-white shadow-md' : 'border-gray-100 hover:border-[#3D021E]/30 hover:bg-gray-50'}
                                     `}

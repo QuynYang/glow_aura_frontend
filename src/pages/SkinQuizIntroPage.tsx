@@ -9,15 +9,11 @@ export const SkinQuizIntroPage = () => {
     <MainLayout>
       <div className="font-sans min-h-screen bg-white">
         
-        {/* ========================================== */}
         {/* 1. HERO BANNER  */}
-        {/* ========================================== */}
         <div className="max-w-[1200px] mx-auto px-4 pt-10 mb-20">
           <div className="bg-[#3D021E] rounded-[2.5rem] relative overflow-hidden flex min-h-[500px] shadow-lg">
             
-            {/* Ảnh bên phải với Gradient mờ dần sang trái */}
             <div className="absolute top-0 right-0 w-full md:w-[60%] h-full">
-                {/* Lớp phủ gradient để hòa trộn ảnh với nền đỏ mận */}
                 <div className="absolute inset-0 bg-gradient-to-r from-[#3D021E] via-[#3D021E]/80 to-transparent z-10"></div>
                 <img 
                     src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1200" 
@@ -26,7 +22,6 @@ export const SkinQuizIntroPage = () => {
                 />
             </div>
             
-            {/* Nội dung Text bên trái */}
             <div className="relative z-20 p-10 md:p-20 w-full md:w-[65%] flex flex-col justify-center items-start">
                 <span className="bg-white/10 backdrop-blur-sm border border-white/10 text-white text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest w-fit mb-6">
                     CÁ NHÂN HÓA BỞI AI
@@ -50,9 +45,7 @@ export const SkinQuizIntroPage = () => {
           </div>
         </div>
 
-        {/* ========================================== */}
         {/* 2. LỢI ÍCH ĐỘC QUYỀN  */}
-        {/* ========================================== */}
         <div className="max-w-[1100px] mx-auto px-4 mb-24">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-serif font-bold text-[#3D021E]">Lợi ích độc quyền</h2>
@@ -76,9 +69,7 @@ export const SkinQuizIntroPage = () => {
           </div>
         </div>
 
-        {/* ========================================== */}
         {/* 3. QUY TRÌNH THỰC HIỆN */}
-        {/* ========================================== */}
         <div className="w-full bg-[#3D021E] py-24 px-4 border-y border-gray-100">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-serif font-bold text-white mb-3">Quy trình thực hiện</h2>
@@ -107,9 +98,7 @@ export const SkinQuizIntroPage = () => {
           </div>
         </div>
 
-        {/* ========================================== */}
-        {/* 4. CALL TO ACTION (Giống ảnh image_0b1db4.png) */}
-        {/* ========================================== */}
+        {/* 4. CALL TO ACTION */}
         <div className="max-w-[1000px] mx-auto px-4 py-24">
           <div className="bg-[#3D021E] rounded-[2.5rem] p-16 md:p-20 text-center text-white shadow-2xl relative overflow-hidden">
             {/* Nội dung */}
