@@ -11,7 +11,7 @@ import { Loader2 } from 'lucide-react';
 export const ProductListPage = () => {
   // 1. Quản lý State cho Dữ liệu (Từ API)
   const [products, setProducts] = useState<any[]>([]); 
-  const [displayedProducts, setDisplayedProducts] = useState<any[]>([]); // Dùng để render và sắp xếp FE
+  const [displayedProducts, setDisplayedProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // 2. Quản lý State cho Bộ lọc & Sắp xếp
@@ -38,9 +38,8 @@ export const ProductListPage = () => {
             maxPrice = Math.max(...allMaxs);
         }
 
-        // Đóng gói Payload theo chuẩn C#
         const payload = {
-            keyword: null, // Bỏ trống vì trang này không dùng text search
+            keyword: null, 
             category: selectedCategories.length > 0 ? selectedCategories[0] : null, 
             minPrice: minPrice,
             maxPrice: maxPrice === 999999999 ? null : maxPrice,

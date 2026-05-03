@@ -9,11 +9,11 @@ import { SectionHeading } from '../components/ui/SectionHeading';
 import { ProductCard } from '../features/products/components/ProductCard';
 import { ProductReviews } from '../features/products/components/detail/ProductReviews';
 import { SkincareRoutine } from '../features/products/components/detail/SkincareRoutine';
-import { productService } from '../services/productService'; // Import API Service
-import { Loader2 } from 'lucide-react'; // Import Icon Loading
+import { productService } from '../services/productService';
+import { Loader2 } from 'lucide-react';
 
 export const ProductDetailPage = () => {
-  // 1. Lấy ID sản phẩm từ URL (ví dụ: /product/5 -> lấy số 5)
+  // 1. Lấy ID sản phẩm từ URL 
   const { id } = useParams<{ id: string }>();
 
   // 2. State quản lý dữ liệu sản phẩm
@@ -33,10 +33,9 @@ export const ProductDetailPage = () => {
         // Gọi API lấy chi tiết sản phẩm
         if (id) {
           const data = await productService.getById(id);
-          setProduct(data.data || data); // Tùy cấu trúc BE trả về
+          setProduct(data.data || data);
         }
         
-        // Gọi thêm API lấy list sản phẩm để làm mục "Bạn cũng có thể thích"
         const allData = await productService.getAll();
         const productsArray = Array.isArray(allData) ? allData : (allData.items || allData.data || []);
         setRelatedProducts(productsArray);
@@ -78,7 +77,6 @@ export const ProductDetailPage = () => {
     <MainLayout>
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
-            {/* Truyền dữ liệu thật xuống các Component con (Hiện sẽ báo lỗi đỏ cho đến khi ta sửa file con) */}
             <ProductGallery product={product} />
             <ProductInfo product={product} />
         </div>
@@ -124,7 +122,6 @@ export const ProductDetailPage = () => {
       <ProductReviews />
       <SkincareRoutine />
 
-      {/* You May Also Like - Dữ liệu thật */}
       <div className="container mx-auto px-4 py-20">
          <SectionHeading title="Bạn cũng có thể thích" />
          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">

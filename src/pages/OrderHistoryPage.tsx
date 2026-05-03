@@ -5,24 +5,49 @@ import { ProfileSidebar } from '../features/user/components/ProfileSidebar';
 import { useNavigate } from 'react-router-dom';
 import { orderService } from '../services/orderService'; 
 
-// CHUẨN HÓA ENUM: Dịch chính xác từ số (0-9) sang Tiếng Việt theo C#
 const getStatusLabel = (statusValue: number | string) => {
   switch (String(statusValue)) {
-    case '0': return 'Chờ xác nhận';
-    case '1': return 'Đã xác nhận';
-    case '2': return 'Đã thanh toán';
-    case '3': return 'Đang xử lý';
-    case '4': return 'Đang giao hàng';
-    case '5': return 'Đã giao hàng';
-    case '6': return 'Hoàn thành';
-    case '7': return 'Đã hủy';
-    case '8': return 'Đã hoàn tiền';
-    case '9': return 'Thanh toán thất bại';
-    default: return 'Không xác định';
+    case '0':
+    case 'Pending':
+      return 'Chờ xác nhận';
+    case '1':
+    case 'Confirmed':
+      return 'Đã xác nhận';
+    case '2':
+    case 'Paid':
+      return 'Đã thanh toán';
+    case '3':
+    case 'Processing':
+      return 'Đang xử lý';
+    case '4':
+    case 'Shipping':
+      return 'Đang giao hàng';
+    case '5':
+    case 'Delivered':
+      return 'Đã giao hàng';
+    case '6':
+    case 'Completed':
+      return 'Hoàn thành';
+    case '7':
+    case 'Cancelled':
+      return 'Đã hủy';
+    case '8':
+    case 'Refunded':
+      return 'Đã hoàn tiền';
+    case '9':
+    case 'PaymentFailed':
+      return 'Thanh toán thất bại';
+    default:
+      return 'Không xác định';
   }
 };
 
-// CHUẨN HÓA MÀU SẮC: Gom nhóm các trạng thái vào các tông màu phù hợp
+const getOrderStatusLabel = (order: { status?: string | number; statusDescription?: string }) => {
+  if (order.statusDescription) return order.statusDescription;
+  return getStatusLabel(order.status ?? '');
+};
+
+// CHUẨN HÓA MÀU SẮC CHO CÁC TRẠNG THÁI ĐƠN HÀNG
 const getStatusColor = (statusLabel: string) => {
   switch (statusLabel) {
     // Nhóm Thành công / Tích cực (Xanh lá)
@@ -52,7 +77,7 @@ const getStatusColor = (statusLabel: string) => {
   }
 };
 
-// Cập nhật Bộ lọc (Gom các trạng thái chính để user dễ lọc)
+// Cập nhật Bộ lọc
 const FILTER_OPTIONS = [
     'Tất cả', 
     'Chờ xác nhận', 
@@ -101,9 +126,10 @@ export const OrderHistoryPage = () => {
     return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
-  const filteredOrders = filterStatus === 'Tất cả' 
-    ? orders 
-    : orders.filter(order => getStatusLabel(order.status) === filterStatus);
+  const filteredOrders =
+    filterStatus === 'Tất cả'
+      ? orders
+      : orders.filter((order) => getOrderStatusLabel(order) === filterStatus);
 
   return (
     <MainLayout>
@@ -171,7 +197,7 @@ export const OrderHistoryPage = () => {
                             <p className="text-lg font-medium text-gray-900 mb-2">Bạn chưa có đơn hàng nào</p>
                             <p className="text-sm mb-6 text-center max-w-sm">Hãy khám phá các sản phẩm tuyệt vời của chúng tôi và đặt hàng ngay nhé!</p>
                             <button 
-                                onClick={() => navigate('/products')}
+                                onClick={() => navigate('/best-sellers')}
                                 className="bg-[#3D021E] text-white px-8 py-3 rounded-xl font-bold uppercase tracking-wider text-sm hover:bg-[#5a032d] transition-colors shadow-md"
                             >
                                 Bắt đầu mua sắm
@@ -192,7 +218,7 @@ export const OrderHistoryPage = () => {
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
                                         {filteredOrders.map((order) => {
-                                            const statusLabel = getStatusLabel(order.status);
+                                            const statusLabel = getOrderStatusLabel(order);
                                             return (
                                                 <tr key={order.id} className="hover:bg-gray-50/50 transition-colors">
                                                     <td className="px-6 md:px-8 py-5 font-bold text-gray-900 whitespace-nowrap">

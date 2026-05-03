@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle2, Ticket, Truck, ShoppingCart, Receipt, Clock, Info } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
 
@@ -8,12 +8,10 @@ const formatVND = (amount: number) => new Intl.NumberFormat('vi-VN').format(amou
 export const OrderSuccessPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  // Lấy dữ liệu đơn hàng thật từ state truyền sang
   const order = location.state?.order;
   // Cuộn lên đầu trang khi load
   useEffect(() => {
     window.scrollTo(0, 0);
-    // Nếu truy cập trực tiếp trang này mà không có dữ liệu order, đá về trang chủ
     if (!order) {
         navigate('/');
     }

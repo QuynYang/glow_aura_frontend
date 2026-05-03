@@ -3,6 +3,8 @@ import { Facebook, Loader2, Eye, EyeOff } from 'lucide-react'; // 1. Import thê
 import { Header } from '../components/layout/Header';
 import { useState } from 'react';
 import { authService } from '../services/authService';
+import { useAuth } from '../context/AuthContext';
+import type { User } from '../context/AuthContext';
 
 const GoogleIcon = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12.5S6.42 23 12.1 23c5.83 0 8.84-4.15 8.84-10.24 0-.68-.04-1.09-.04-1.09z"/></svg>
@@ -10,6 +12,7 @@ const GoogleIcon = () => (
 
 export const LoginPage = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,23 +28,13 @@ export const LoginPage = () => {
     setIsLoading(true);
 
     try {
-        // GỌI API ĐĂNG NHẬP THẬT TỪ BACKEND
         const data = await authService.login(email, password);
 
-        // --- BẮT ĐẦU ĐOẠN THÊM MỚI ---
-        // 1. Lấy token thật từ API (theo đúng cấu trúc JSON bạn chụp) và cất vào localStorage
-        if (data.token && data.token.accessToken) {
-            localStorage.setItem('accessToken', data.token.accessToken);
-        }
-        
-        // 2. Cất luôn thông tin user thật để AuthContext và Header đọc được
         if (data.user) {
-            localStorage.setItem('glow_user', JSON.stringify(data.user));
+            login(data.user as User);
         }
-        // --- KẾT THÚC ĐOẠN THÊM MỚI ---
 
-        // Kiểm tra role trả về từ user object
-        if (data.user?.role === 'Admin') {
+        if (String(data.user?.role).toLowerCase() === 'admin') {
             alert('Chào mừng Quản trị viên!');
             navigate('/admin');
         } else {
@@ -139,7 +132,7 @@ export const LoginPage = () => {
 
           <div className="hidden md:block w-1/2 relative">
              <img 
-                src="https://int.filorga.com/wp-content/uploads/sites/2/2024/11/FILORGA-prend-soin-de-la-peau-des-femmes-et-des-hommes-1079x1080.jpg" 
+                src="https://img.freepik.com/premium-photo/beauty-skincare-black-woman-with-facial-product-cream-her-face-studio-with-brown-background-smile-afro-happy-african-model-with-natural-lotion-glowing-smooth-soft-skin_590464-94166.jpg" 
                 alt="Login Cover" 
                 className="absolute inset-0 w-full h-full object-cover"
              />

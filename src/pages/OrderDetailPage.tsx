@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, Download, RefreshCw, Check, Package, 
+  ArrowLeft, RefreshCw, Check, Package, 
   Truck, MapPin, CreditCard, Receipt, Ticket, Loader2, XCircle
 } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
-import { orderService } from '../services/orderService'; // Import API
+import { orderService } from '../services/orderService';
 
 const formatVND = (amount: number) => new Intl.NumberFormat('vi-VN').format(amount || 0) + 'đ';
 
@@ -16,8 +16,8 @@ export const OrderDetailPage = () => {
   const [order, setOrder] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCanceling, setIsCanceling] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
 
-  // Gọi API lấy chi tiết đơn hàng
   useEffect(() => {
     const fetchOrderDetail = async () => {
       if (!id) return;
@@ -44,13 +44,48 @@ export const OrderDetailPage = () => {
         setIsCanceling(true);
         await orderService.cancelOrder(id!);
         alert("Hủy đơn hàng thành công!");
-        // Gọi lại API để load trạng thái mới nhất
         const updatedData = await orderService.getOrderById(id!);
         setOrder(updatedData);
     } catch (error: any) {
         alert(error.response?.data?.message || "Hủy đơn thất bại. Đơn hàng có thể đã được xử lý.");
     } finally {
         setIsCanceling(false);
+    }
+  };
+
+  const getAvailableActions = (status: string) => {
+    const map: Record<string, string[]> = {
+      Pending: ['Cancel'],
+      Confirmed: ['Cancel', 'Pay'],
+      PaymentFailed: ['Cancel', 'Pay'],
+      Paid: ['StartProcessing', 'Refund'],
+      Processing: ['Ship', 'Refund'],
+      Shipping: ['Deliver'],
+      Delivered: ['Complete'],
+    };
+    return map[status] || [];
+  };
+
+  const handleRepay = async (forceCod = false) => {
+    try {
+      setIsPaying(true);
+      const paymentMethodMap: Record<string, number> = { COD: 0, Momo: 1, VNPay: 2, ZaloPay: 3 };
+      const method = forceCod ? 0 : (paymentMethodMap[order.paymentMethod] ?? 2);
+      const data = await orderService.payOrder(id!, {
+        paymentMethod: method,
+        returnUrl: `${window.location.origin}/payment-result?orderId=${order.id}`,
+      });
+      const redirectUrl = data?.redirectUrl || data?.data?.redirectUrl;
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+        return;
+      }
+      const updatedData = await orderService.getOrderById(id!);
+      setOrder(updatedData);
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Không thể thanh toán lại đơn hàng.');
+    } finally {
+      setIsPaying(false);
     }
   };
 
@@ -70,9 +105,22 @@ export const OrderDetailPage = () => {
   // Dữ liệu hiển thị
   const orderNumber = order.orderNumber || order.id;
   const orderDate = new Date(order.createdAt || order.orderDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  const statusInt = typeof order.status === 'number' ? order.status : parseInt(order.status);
+  const statusCodeMap: Record<string, number> = {
+    Pending: 0,
+    Confirmed: 1,
+    Paid: 2,
+    Processing: 3,
+    Shipping: 4,
+    Delivered: 5,
+    Completed: 6,
+    Cancelled: 7,
+    Refunded: 8,
+    PaymentFailed: 9,
+  };
+  const statusInt = typeof order.status === 'number' ? order.status : (statusCodeMap[order.status] ?? -1);
+  const availableActions = order.availableActions || getAvailableActions(order.status);
   
-  // Logic Timeline (Ánh xạ từ Enum C#)
+  // Logic Timeline 
   // 0: Pending, 1: Confirmed, 2: Paid, 3: Processing, 4: Shipping, 5: Delivered, 6: Completed, 7: Cancelled
   const isCancelled = statusInt === 7 || statusInt === 8;
   const stepPlaced = !isCancelled; 
@@ -85,9 +133,7 @@ export const OrderDetailPage = () => {
       <div className="bg-[#FDFBFB] min-h-screen pb-24 pt-8 font-sans text-gray-900">
         <div className="container mx-auto px-4 max-w-[1200px]">
             
-            {/* ========================================== */}
             {/* 1. HEADER & TOP ACTIONS */}
-            {/* ========================================== */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
                 <div>
                     <button 
@@ -106,7 +152,7 @@ export const OrderDetailPage = () => {
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     {/* CHỈ CHO PHÉP HỦY NẾU TRẠNG THÁI LÀ PENDING (0) HOẶC CONFIRMED (1) */}
-                    {(statusInt === 0 || statusInt === 1) && (
+                    {availableActions.includes('Cancel') && (
                         <button 
                             onClick={handleCancelOrder}
                             disabled={isCanceling}
@@ -116,21 +162,37 @@ export const OrderDetailPage = () => {
                             Hủy đơn hàng
                         </button>
                     )}
+                    {availableActions.includes('Pay') && (
+                        <>
+                            <button
+                              onClick={() => handleRepay(false)}
+                              disabled={isPaying}
+                              className="flex items-center gap-2 px-5 py-2.5 bg-[#3D021E] text-white rounded-xl font-bold text-sm hover:bg-[#5a032d] transition-colors shadow-md disabled:opacity-60"
+                            >
+                              {isPaying ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                              Thanh toán lại
+                            </button>
+                            <button
+                              onClick={() => handleRepay(true)}
+                              disabled={isPaying}
+                              className="flex items-center gap-2 px-5 py-2.5 border border-gray-200 bg-white text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-60"
+                            >
+                              Đổi sang COD
+                            </button>
+                        </>
+                    )}
                     <button className="flex items-center gap-2 px-5 py-2.5 bg-[#3D021E] text-white rounded-xl font-bold text-sm hover:bg-[#5a032d] transition-colors shadow-md">
                         <RefreshCw className="w-4 h-4" /> Mua lại đơn hàng
                     </button>
                 </div>
             </div>
 
-            {/* ========================================== */}
             {/* 2. TIMELINE THEO DÕI ĐƠN HÀNG */}
-            {/* ========================================== */}
             {!isCancelled && (
                 <div className="bg-white rounded-3xl p-8 mb-8 border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] overflow-hidden">
                     <div className="relative max-w-4xl mx-auto">
                         <div className="absolute top-6 left-[10%] right-[10%] h-1 bg-gray-100 -z-0 rounded-full"></div>
                         
-                        {/* Thanh Progress chạy theo trạng thái */}
                         <div className={`absolute top-6 left-[10%] h-1 bg-[#3D021E] -z-0 rounded-full transition-all duration-1000 ${
                             stepDelivered ? 'w-[80%]' : stepShipping ? 'w-[53%]' : stepProcessing ? 'w-[26%]' : 'w-[0%]'
                         }`}></div>
@@ -172,9 +234,7 @@ export const OrderDetailPage = () => {
                 </div>
             )}
 
-            {/* ========================================== */}
             {/* 3. KHỐI THÔNG TIN (ĐỊA CHỈ - THANH TOÁN - VẬN CHUYỂN) */}
-            {/* ========================================== */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 {/* Thẻ Địa chỉ */}
                 <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex flex-col">
@@ -221,9 +281,7 @@ export const OrderDetailPage = () => {
                 </div>
             </div>
 
-            {/* ========================================== */}
             {/* 4. SẢN PHẨM & TỔNG KẾT ĐƠN HÀNG */}
-            {/* ========================================== */}
             <div className="flex flex-col lg:flex-row gap-8">
                 
                 {/* Cột trái: Danh sách sản phẩm */}
