@@ -1,8 +1,10 @@
 import axios from 'axios';
 
-// 1. Tạo một instance của axios với cấu hình mặc định
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5278/api';
+
+// Tạo một instance của axios với cấu hình mặc định
 const apiClient = axios.create({
-    baseURL: 'http://localhost:5278/api', 
+    baseURL: API_BASE.replace(/\/$/, ''),
     headers: {
         'Content-Type': 'application/json',
     },
@@ -36,7 +38,14 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config;
 
     // Kiểm tra: Nếu lỗi là 401 (Unauthorized) VÀ API này chưa từng được "thử lại" lần nào
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const url = String(originalRequest?.url || '');
+    const isAuthRoute =
+      url.includes('/auth/refresh-token') ||
+      url.includes('/Auth/refresh-token') ||
+      url.includes('/auth/login') ||
+      url.includes('/auth/register');
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
       originalRequest._retry = true; // Đánh dấu là "Đang thử lại" để tránh lặp vô hạn (Infinite Loop)
 
       try {
@@ -48,8 +57,7 @@ apiClient.interceptors.response.use(
         }
 
         // GỌI API REFRESH TOKEN
-        // Lưu ý: Dùng `axios.post` thuần túy, KHÔNG dùng `apiClient.post` để tránh bị đánh chặn lại bởi chính Interceptor này
-        const refreshResponse = await axios.post('http://localhost:5278/api/Auth/refresh-token', {
+        const refreshResponse = await axios.post(`${API_BASE.replace(/\/$/, '')}/auth/refresh-token`, {
           accessToken: accessToken,
           refreshToken: refreshToken
         });
@@ -78,6 +86,7 @@ apiClient.interceptors.response.use(
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
+        localStorage.removeItem('glow_user');
         
         // Đá người dùng văng ra trang Login
         window.location.href = '/login';
