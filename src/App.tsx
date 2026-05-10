@@ -1,6 +1,4 @@
-import { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import apiClient from './services/apiClient';
 
 import { HomePage } from './pages/HomePage';
 import { ProductListPage } from './pages/ProductListPage';
@@ -37,33 +35,12 @@ import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
 import { OrderDetailPage } from './pages/OrderDetailPage';
-import { CartProvider } from './context/CartContext';
 import { SearchPage } from './pages/SearchPage';
-
-
+import { PaymentResultPage } from './pages/PaymentResultPage';
+import { AdminInventoryPage } from './pages/admin/AdminInventoryPage';
 
 function App() {
-
-  // ==========================================
-  // TEST KẾT NỐI API TỪ BACKEND
-  // ==========================================
-  useEffect(() => {
-    const testConnection = async () => {
-      try {
-        console.log("Đang gọi API lấy danh sách sản phẩm...");
-        const response = await apiClient.get('/products'); 
-        console.log("🎉 Thành công! Dữ liệu từ Backend:", response.data);
-      } catch (error) {
-        console.error("❌ Lỗi gọi API:", error);
-      }
-    };
-
-    testConnection();
-  }, []);
-  // ==========================================
-
   return (
-    <CartProvider>
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/best-sellers" element={<ProductListPage />} />
@@ -78,6 +55,7 @@ function App() {
       <Route path="/profile/change-password" element={<ChangePasswordPage />} />
       <Route path="/profile/address" element={<AddressPage />} />
       <Route path="/order-success" element={<OrderSuccessPage />} />
+      <Route path="/payment-result" element={<PaymentResultPage />} />
       <Route path="/profile/orders/:id" element={<OrderDetailPage />} />
       <Route path="/cart" element={<CartPage />} />
       <Route path="/moi" element={<LipsPage />} />
@@ -90,6 +68,7 @@ function App() {
       <Route path="/skin-quiz/test" element={<SkinQuizTestPage />} />
       <Route path="/skin-quiz/result" element={<SkinQuizResultPage />} />
       <Route path="/admin/products" element={<AdminProductPage />} />
+      <Route path="/admin/inventory" element={<AdminInventoryPage />} />
       <Route path="/admin/products/add" element={<AdminAddProductPage />} />
       <Route path="/admin/orders" element={<AdminOrderPage />} />
       <Route path="/admin/orders/create" element={<AdminCreateOrderPage />} />
@@ -102,7 +81,6 @@ function App() {
       <Route path="/admin/promotions/add" element={<AdminAddPromotionPage />} />
       <Route path="/search" element={<SearchPage />} />
     </Routes>
-    </CartProvider>
   );
 }
 

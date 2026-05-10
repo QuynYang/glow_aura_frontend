@@ -2,7 +2,6 @@ import axios from 'axios';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5278/api';
 
-// Tạo một instance của axios với cấu hình mặc định
 const apiClient = axios.create({
     baseURL: API_BASE.replace(/\/$/, ''),
     headers: {
@@ -10,14 +9,11 @@ const apiClient = axios.create({
     },
 });
 
-// Middleware 1: Tự động đính kèm Token (nếu có) vào mỗi request gửi đi
 apiClient.interceptors.request.use(
   (config) => {
-    // Tìm thẻ thành viên (token) trong localStorage
     const token = localStorage.getItem('accessToken'); 
     
     if (token) {
-      // Nếu có token, dán nó vào Header Authorization
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -27,17 +23,14 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Middleware 2: Đánh chặn lỗi 401 (Hết hạn Token) và Tự động gọi Refresh Token
 apiClient.interceptors.response.use(
   (response) => {
-    // Nếu API gọi thành công (200), cho qua bình thường
     return response;
   },
   async (error) => {
-    // Lấy lại cái cấu hình của API vừa bị lỗi
     const originalRequest = error.config;
 
-    // Kiểm tra: Nếu lỗi là 401 (Unauthorized) VÀ API này chưa từng được "thử lại" lần nào
+    // Nếu lỗi là 401 (Unauthorized) VÀ API này chưa từng được "thử lại" lần nào
     const url = String(originalRequest?.url || '');
     const isAuthRoute =
       url.includes('/auth/refresh-token') ||
@@ -66,20 +59,17 @@ apiClient.interceptors.response.use(
         const newTokens = refreshResponse.data?.token || refreshResponse.data?.data?.token || refreshResponse.data;
 
         if (newTokens && newTokens.accessToken) {
-          // 1. Lưu token mới vào ổ cứng
           localStorage.setItem('accessToken', newTokens.accessToken);
           if (newTokens.refreshToken) {
             localStorage.setItem('refreshToken', newTokens.refreshToken);
           }
 
-          // 2. Gắn Token mới vào cái API cũ vừa bị lỗi 401 lúc nãy
           originalRequest.headers.Authorization = `Bearer ${newTokens.accessToken}`;
 
-          // 3. Thực hiện lại request cũ với cái chìa khóa mới!
           return apiClient(originalRequest);
         }
       } catch (refreshError) {
-        // Nếu việc làm mới Token cũng thất bại (Ví dụ: Refresh Token hết hạn nốt)
+        // Nếu việc làm mới Token cũng thất bại
         console.error("Refresh Token thất bại. Bắt buộc đăng nhập lại.", refreshError);
         
         // Dọn dẹp rác

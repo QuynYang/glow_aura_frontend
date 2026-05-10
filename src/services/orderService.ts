@@ -1,48 +1,42 @@
 import apiClient from './apiClient';
 
 export const orderService = {
-  // Gửi dữ liệu tạo đơn hàng mới
-  createOrder: async (orderData: any) => {
-    try {
-      const response = await apiClient.post('/Order', orderData);
-      return response.data;
-    } catch (error) {
-      console.error('Lỗi khi tạo đơn hàng:', error);
-      throw error;
-    }
+  createOrder: async (orderData: Record<string, unknown>) => {
+    const response = await apiClient.post('/order', orderData);
+    return response.data;
   },
 
-  // Lấy chi tiết một đơn hàng theo ID
   getOrderById: async (id: string | number) => {
-    try {
-      const response = await apiClient.get(`/Order/${id}`);
-      return response.data;
-    } catch (error) {
-      console.error(`Lỗi khi lấy đơn hàng ${id}:`, error);
-      throw error;
-    }
+    const response = await apiClient.get(`/order/${id}`);
+    return response.data;
   },
 
-  // Lấy danh sách lịch sử đơn hàng của User
   getMyOrders: async () => {
-    try {
-      const response = await apiClient.get('/Order/my-orders');
-      // Nếu Backend bọc data trong response.data thì lấy ra, không thì trả về nguyên cục
-      return response.data?.data || response.data; 
-    } catch (error) {
-      console.error('Lỗi khi lấy lịch sử đơn hàng:', error);
-      throw error;
-    }
+    const response = await apiClient.get('/order/my-orders');
+    return response.data;
   },
 
-  // Gọi API Hủy đơn hàng
-  cancelOrder: async (id: string | number) => {
-    try {
-      const response = await apiClient.post(`/Order/${id}/cancel`);
-      return response.data?.data || response.data;
-    } catch (error) {
-      console.error(`Lỗi khi hủy đơn hàng ${id}:`, error);
-      throw error;
-    }
+  cancelOrder: async (id: string | number, reason: string = 'Khách hàng yêu cầu hủy') => {
+    const response = await apiClient.post(`/order/${id}/cancel`, { reason });
+    return response.data;
+  },
+
+  payOrder: async (
+    id: string | number,
+    payload: { paymentMethod: number; returnUrl?: string }
+  ) => {
+    const response = await apiClient.post(`/order/${id}/pay`, payload);
+    return response.data;
+  },
+
+  /** Admin / Staff */
+  getAllOrders: async (params?: { page?: number; pageSize?: number; status?: string }) => {
+    const response = await apiClient.get('/order', { params });
+    return response.data;
+  },
+
+  getOrderStats: async () => {
+    const response = await apiClient.get('/order/stats');
+    return response.data;
   },
 };
