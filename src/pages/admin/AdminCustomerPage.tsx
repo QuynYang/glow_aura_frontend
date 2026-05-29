@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { 
-  Search, Filter, Download, UserPlus, Mail, Phone, Lock, Unlock, Edit, Trash2, 
+  Search, Filter, Download, UserPlus, Phone, Lock, Unlock, Edit, Trash2, 
   ChevronLeft, ChevronRight, Loader2
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
