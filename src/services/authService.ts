@@ -1,4 +1,4 @@
-import apiClient from './apiClient';
+import apiClient, { getLoginUrl } from './apiClient';
 
 const USER_KEY = 'user';
 
@@ -72,7 +72,7 @@ export const authService = {
             localStorage.removeItem('refreshToken');
             localStorage.removeItem(USER_KEY);
             localStorage.removeItem('glow_user');
-            window.location.href = '/login';
+            window.location.href = getLoginUrl();
         }
     },
 
@@ -81,7 +81,7 @@ export const authService = {
         localStorage.removeItem('refreshToken');
         localStorage.removeItem(USER_KEY);
         localStorage.removeItem('glow_user');
-        window.location.href = '/login';
+        window.location.href = getLoginUrl();
     },
 
     getCurrentUser: (): StoredUser | null => {

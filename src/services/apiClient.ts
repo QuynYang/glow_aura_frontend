@@ -1,6 +1,18 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5278/api';
+/** Chuẩn hóa base URL: luôn kết thúc bằng /api (backend ASP.NET dùng route /api/...) */
+function resolveApiBase(): string {
+  const raw = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5278/api').trim().replace(/\/$/, '');
+  return raw.endsWith('/api') ? raw : `${raw}/api`;
+}
+
+const API_BASE = resolveApiBase();
+
+/** Đường dẫn login tương thích GitHub Pages (HashRouter) */
+export function getLoginUrl(): string {
+  const base = import.meta.env.BASE_URL || '/';
+  return `${base.replace(/\/?$/, '/')}#/login`;
+}
 
 const apiClient = axios.create({
     baseURL: API_BASE.replace(/\/$/, ''),
@@ -79,7 +91,7 @@ apiClient.interceptors.response.use(
         localStorage.removeItem('glow_user');
         
         // Đá người dùng văng ra trang Login
-        window.location.href = '/login';
+        window.location.href = getLoginUrl();
         
         return Promise.reject(refreshError);
       }
