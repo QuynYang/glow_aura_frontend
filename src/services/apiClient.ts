@@ -1,8 +1,13 @@
 import axios from 'axios';
 
+/** API production (Railway) — dùng khi build production mà không có VITE_API_BASE_URL */
+const PRODUCTION_API_HOST = 'https://glowauraapimongodb-production.up.railway.app';
+
 /** Chuẩn hóa base URL: luôn kết thúc bằng /api (backend ASP.NET dùng route /api/...) */
 function resolveApiBase(): string {
-  const raw = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5278/api').trim().replace(/\/$/, '');
+  const fromEnv = (import.meta.env.VITE_API_BASE_URL || '').trim();
+  const host = fromEnv || (import.meta.env.PROD ? PRODUCTION_API_HOST : 'http://localhost:5278');
+  const raw = host.replace(/\/$/, '');
   return raw.endsWith('/api') ? raw : `${raw}/api`;
 }
 
