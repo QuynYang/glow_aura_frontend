@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import apiClient from '../../services/apiClient';
+import { formatVnd, getSellingPrice, hasProductDiscount } from '../../utils/productPrice';
 
 const StatCard = ({ label, value, colorClass }: any) => (
     <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex-1">
@@ -57,20 +58,28 @@ export const AdminProductPage = () => {
             else if (response.data?.data && Array.isArray(response.data.data)) productsList = response.data.data;
             else if (response.data?.items && Array.isArray(response.data.items)) productsList = response.data.items;
 
-            const formattedProducts = productsList.map((p: any) => ({
+            const formattedProducts = productsList.map((p: any) => {
+                const originalPrice = p.price || 0;
+                const discountedPrice = p.discountedPrice ?? null;
+                const sellingPrice = getSellingPrice(originalPrice, discountedPrice);
+
+                return {
                 id: p.id,
                 name: p.name,
                 variant: p.brand || p.description?.substring(0, 30) + '...',
                 sku: p.sku || `SKU-${p.id.toString().padStart(5, '0')}`,
                 category: p.category || 'Khác',
-                price: p.discountedPrice || p.price || 0,
+                originalPrice,
+                discountedPrice,
+                sellingPrice,
                 stock: p.stockQuantity || p.stock || 0,
                 maxStock: 100, 
                 status: (p.stockQuantity || p.stock || 0) === 0 ? "Hết hàng" : (p.stockQuantity || p.stock || 0) <= 5 ? "Sắp hết" : "Còn hàng",
                 image: p.imageUrl || p.image || "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=100",
                 isFlashSale: !!p.isFlashSale,
                 isExpiringSoon: !!p.isExpiringSoon,
-            }));
+            };
+            });
 
             setProducts(formattedProducts);
 
@@ -83,7 +92,7 @@ export const AdminProductPage = () => {
             formattedProducts.forEach((p: any) => {
                 if (p.stock === 0) out++;
                 else if (p.stock <= 5) low++;
-                value += (p.price * p.stock);
+                value += (p.sellingPrice * p.stock);
             });
 
             setStats({
@@ -275,8 +284,13 @@ export const AdminProductPage = () => {
                                  <td className="px-6 py-4 text-gray-600">
                                      {product.category}
                                  </td>
-                                 <td className="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">
-                                     {product.price.toLocaleString('vi-VN')}đ
+                                 <td className="px-6 py-4 whitespace-nowrap">
+                                     <div className="font-bold text-gray-900">{formatVnd(product.sellingPrice)}</div>
+                                     {hasProductDiscount(product.originalPrice, product.discountedPrice) && (
+                                       <div className="text-xs text-gray-400 line-through">
+                                         {formatVnd(product.originalPrice)}
+                                       </div>
+                                     )}
                                  </td>
                                  <td className="px-6 py-4">
                                      <div className="flex items-center justify-between mb-1 text-xs">

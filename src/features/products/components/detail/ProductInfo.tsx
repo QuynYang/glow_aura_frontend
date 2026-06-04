@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ShoppingCart, Package, Truck, ShieldCheck, Heart } from 'lucide-react'; 
 import { Button } from '../../../../components/ui/Button';
 import { useCart } from '../../../../context/CartContext';
+import { formatVnd, getSellingPrice, hasProductDiscount } from '../../../../utils/productPrice';
 
 
 //  Khai báo cổng nhận dữ liệu product
@@ -14,6 +15,9 @@ export const ProductInfo = ({ product }: ProductInfoProps) => {
     const { addToCart } = useCart();
   const tags = product.tags || ['Mới', 'Bán chạy'];
   const sizes = product.sizes || ['Tiêu chuẩn'];
+  const originalPrice = product.price || 0;
+  const sellingPrice = getSellingPrice(originalPrice, product.discountedPrice);
+  const onPromotion = hasProductDiscount(originalPrice, product.discountedPrice);
 
   return (
     <div className="space-y-6">
@@ -37,16 +41,23 @@ export const ProductInfo = ({ product }: ProductInfoProps) => {
       {/* Price & Size */}
       <div className="border-t border-b border-gray-100 py-6">
         <div className="flex justify-between items-center mb-4">
-            <span className="text-3xl font-bold text-gray-900">
-                {product.price?.toLocaleString('vi-VN')}đ
-            </span>
+            <div className="flex items-baseline gap-3">
+              <span className="text-3xl font-bold text-gray-900">
+                {formatVnd(sellingPrice)}
+              </span>
+              {onPromotion && (
+                <span className="text-lg text-gray-400 line-through">
+                  {formatVnd(originalPrice)}
+                </span>
+              )}
+            </div>
         </div>
         
         {/* Size Selector Mockup */}
         <div className="relative">
             <select className="w-full border-b border-gray-300 py-3 text-sm font-medium bg-transparent outline-none cursor-pointer appearance-none">
                 {sizes.map((size: string) => (
-                    <option key={size} value={size}>{size} - {product.price?.toLocaleString('vi-VN')}đ</option>
+                    <option key={size} value={size}>{size} - {formatVnd(sellingPrice)}</option>
                 ))}
             </select>
         </div>

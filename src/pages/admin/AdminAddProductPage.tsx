@@ -4,6 +4,7 @@ import { Upload, ArrowLeft, CheckCircle2, Loader2, Image as ImageIcon, Link as L
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import apiClient from '../../services/apiClient';
 import { SKIN_TYPE_OPTIONS, SkinType } from '../../constants/skinType';
+import { calcDiscountPercent, getSellingPrice } from '../../utils/productPrice';
 
 function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -22,8 +23,8 @@ export const AdminAddProductPage = () => {
     description: '',
     category: '',
     brand: '',
-    price: '',
-    discountPrice: '',
+    originalPrice: '',
+    discountedPrice: '',
     stockQuantity: '10',
     skinType: String(SkinType.All),
     expiryDate: '',
@@ -118,12 +119,12 @@ export const AdminAddProductPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const priceNum = Number(formData.price);
-    const discountNum = Number(formData.discountPrice);
+    const originalPriceNum = Number(formData.originalPrice);
+    const promotionalPriceNum = formData.discountedPrice ? Number(formData.discountedPrice) : 0;
 
-    if (priceNum <= 0) return alert('Giá bán phải lớn hơn 0đ!');
-    if (discountNum > 0 && discountNum >= priceNum) {
-      return alert('Giá khuyến mãi phải nhỏ hơn Giá bán gốc!');
+    if (originalPriceNum <= 0) return alert('Giá gốc phải lớn hơn 0đ!');
+    if (promotionalPriceNum > 0 && promotionalPriceNum >= originalPriceNum) {
+      return alert('Giá khuyến mãi phải nhỏ hơn giá gốc!');
     }
 
     const imageUrl = await resolveImageUrl();
@@ -138,12 +139,10 @@ export const AdminAddProductPage = () => {
     setIsSubmitting(true);
 
     try {
-      const salePrice = discountNum > 0 && discountNum < priceNum ? discountNum : priceNum;
-
       const payload = {
         name: formData.name.trim(),
         description: formData.description.trim(),
-        price: salePrice,
+        price: originalPriceNum,
         stock: Number(formData.stockQuantity),
         brand: formData.brand.trim(),
         category: formData.category.trim(),
@@ -155,7 +154,24 @@ export const AdminAddProductPage = () => {
         volume: formData.volume.trim(),
       };
 
-      await apiClient.post('/products', payload);
+      const response = await apiClient.post('/products', payload);
+      const productId = response.data?.id as string | undefined;
+
+      if (promotionalPriceNum > 0 && productId) {
+        try {
+          const discountPercent = calcDiscountPercent(originalPriceNum, promotionalPriceNum);
+          const endTime = new Date(formData.expiryDate).toISOString();
+          await apiClient.post(`/products/${productId}/flash-sale`, {
+            discountPercent,
+            endTime,
+          });
+        } catch (flashSaleError) {
+          console.error('Lỗi áp dụng giá khuyến mãi:', flashSaleError);
+          alert(
+            'Sản phẩm đã được tạo với giá gốc, nhưng không áp dụng được giá khuyến mãi. Vui lòng kiểm tra lại trên trang quản lý sản phẩm.',
+          );
+        }
+      }
 
       alert('Thêm sản phẩm thành công!');
       navigate('/admin/products');
@@ -171,6 +187,10 @@ export const AdminAddProductPage = () => {
 
   const inputClass =
     'w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:outline-none focus:border-[#3D021E] focus:ring-1 focus:ring-[#3D021E] transition-colors';
+
+  const originalPriceNum = Number(formData.originalPrice) || 0;
+  const promotionalPriceNum = Number(formData.discountedPrice) || 0;
+  const previewSellingPrice = getSellingPrice(originalPriceNum, promotionalPriceNum || null);
 
   return (
     <AdminLayout>
@@ -246,34 +266,44 @@ export const AdminAddProductPage = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Giá gốc (VNĐ) <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
-                name="price"
+                name="originalPrice"
                 required
                 min="1000"
                 placeholder="Ví dụ: 500000"
-                value={formData.price}
+                value={formData.originalPrice}
                 onChange={handleChange}
                 className={inputClass}
               />
+              <p className="text-xs text-gray-400 mt-1">Giá niêm yết trước khuyến mãi</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Giá khuyến mãi (VNĐ)</label>
               <input
                 type="number"
-                name="discountPrice"
+                name="discountedPrice"
                 placeholder="Ví dụ: 450000"
                 min="1000"
-                value={formData.discountPrice}
+                value={formData.discountedPrice}
                 onChange={handleChange}
                 className={inputClass}
               />
-              <p className="text-xs text-gray-400 mt-1">Nếu có, giá này sẽ gửi lên API làm giá bán</p>
+              <p className="text-xs text-gray-400 mt-1">Để trống nếu không giảm giá</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Giá bán (VNĐ)</label>
+              <div className="w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-lg text-sm font-bold text-[#3D021E]">
+                {originalPriceNum > 0
+                  ? previewSellingPrice.toLocaleString('vi-VN')
+                  : '—'}
+              </div>
+              <p className="text-xs text-gray-400 mt-1">Giá khách hàng thực tế thanh toán</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
