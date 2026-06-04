@@ -53,11 +53,26 @@ npm install -D @types/react @types/react-dom
 ```
 
 
-### 3. Chạy server
+### 3. Cấu hình API (Railway / local)
+
+Sao chép `.env.example` thành `.env` rồi chỉnh `VITE_API_BASE_URL`:
+
+- **Dev + backend local:** `http://localhost:5278`
+- **Dev + backend Railway:** `https://glowauraapimongodb-production.up.railway.app/api`
+
+Build production (`npm run build`, GitHub Pages) dùng `.env.production` — tự trỏ Railway.
+
+### 4. Chạy server
 Sau khi cài đặt xong các bước trên, khởi chạy dự án bằng lệnh:
 ```bash
 npm run dev
 ```
+
+### 5. Deploy GitHub Pages
+
+Push lên nhánh `main` → workflow **Deploy GitHub Pages** build và publish. Có thể chạy lại thủ công trong tab **Actions** → **Run workflow**.
+
+Sau deploy, mở site và **Ctrl+F5** để tránh cache bundle cũ (lỗi `localhost:5278`).
 
 
 

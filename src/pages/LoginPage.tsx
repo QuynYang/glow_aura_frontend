@@ -30,20 +30,27 @@ export const LoginPage = () => {
     try {
         const data = await authService.login(email, password);
 
-        if (data.user) {
-            login(data.user as User);
+        if (!data?.user) {
+            setError(data?.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
+            return;
         }
 
-        if (String(data.user?.role).toLowerCase() === 'admin') {
+        login(data.user as User);
+
+        if (String(data.user.role).toLowerCase() === 'admin') {
             alert('Chào mừng Quản trị viên!');
             navigate('/admin');
         } else {
             alert('Đăng nhập thành công!');
             navigate('/'); 
         }
-    } catch (err: any) {
-        console.error("Lỗi đăng nhập:", err);
-        setError(err.message || 'Email hoặc mật khẩu không chính xác!');
+    } catch (err: unknown) {
+        const message =
+            err && typeof err === 'object' && 'message' in err
+                ? String((err as { message?: string }).message)
+                : 'Email hoặc mật khẩu không chính xác!';
+        console.error('Lỗi đăng nhập:', err);
+        setError(message || 'Email hoặc mật khẩu không chính xác!');
     } finally {
         setIsLoading(false);
     }

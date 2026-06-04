@@ -1,4 +1,5 @@
 import apiClient, { getLoginUrl } from './apiClient';
+import { toApiError, type ApiErrorPayload } from '../utils/apiError';
 
 const USER_KEY = 'user';
 
@@ -32,13 +33,18 @@ export const authService = {
         try {
             const response = await apiClient.post('/auth/login', { email, password });
 
-            if (response.data?.isSuccess && response.data.token) {
+            if (!response.data?.isSuccess) {
+                throw { message: response.data?.message || 'Đăng nhập thất bại' } satisfies ApiErrorPayload;
+            }
+            if (response.data.token) {
                 persistSession(response.data);
             }
             return response.data;
         } catch (error: unknown) {
-            const err = error as { response?: { data?: { message?: string } } };
-            throw err.response?.data || { message: 'Có lỗi xảy ra khi đăng nhập' };
+            if (error && typeof error === 'object' && 'message' in error && !('response' in error)) {
+                throw error;
+            }
+            throw toApiError(error, 'Có lỗi xảy ra khi đăng nhập');
         }
     },
 
@@ -52,13 +58,18 @@ export const authService = {
         try {
             const response = await apiClient.post('/auth/register', userData);
 
-            if (response.data?.isSuccess && response.data.token) {
+            if (!response.data?.isSuccess) {
+                throw { message: response.data?.message || 'Đăng ký thất bại' } satisfies ApiErrorPayload;
+            }
+            if (response.data.token) {
                 persistSession(response.data);
             }
             return response.data;
         } catch (error: unknown) {
-            const err = error as { response?: { data?: { message?: string } } };
-            throw err.response?.data || { message: 'Có lỗi xảy ra khi đăng ký' };
+            if (error && typeof error === 'object' && 'message' in error && !('response' in error)) {
+                throw error;
+            }
+            throw toApiError(error, 'Có lỗi xảy ra khi đăng ký');
         }
     },
 
