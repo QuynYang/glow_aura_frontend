@@ -4,6 +4,7 @@ import { MainLayout } from '../components/layout/MainLayout';
 import { useAuth } from '../context/AuthContext'; 
 import { ProfileSidebar } from '../features/user/components/ProfileSidebar'; 
 import { userService } from '../services/userService';
+import { getSkinTypeLabel } from '../constants/skinType';
 
 export const ProfilePage = () => {
   const { user, login } = useAuth(); // Dùng hàm login để cập nhật lại state user sau khi lưu
@@ -186,7 +187,12 @@ export const ProfilePage = () => {
                     </div>
                     <div className="mt-4 pt-4 border-t border-[#F3EAF0] flex items-center justify-between">
                       <p className="text-sm text-gray-700">
-                        Loại da: <span className="font-bold">{(user as any)?.skinType || 'Chưa xác định'}</span>
+                        Loại da:{' '}
+                        <span className="font-bold">
+                          {(user as { skinType?: number | string })?.skinType != null
+                            ? getSkinTypeLabel((user as { skinType?: number | string }).skinType)
+                            : 'Chưa xác định'}
+                        </span>
                       </p>
                       {(user as any)?.hasCompletedSkinQuiz && (
                         <span className="bg-green-50 text-green-700 border border-green-200 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">

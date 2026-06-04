@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { ChevronDown, ChevronRight, Check, Loader2 } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { ProductCard } from '../features/products/components/ProductCard';
-import { productService } from '../services/productService'; // Import API
+import { productService } from '../services/productService';
+import { SKIN_TYPE_FILTER_OPTIONS, SkinType, normalizeSkinType } from '../constants/skinType';
 
 const subCategories = [
   "Làm Sạch (Cleanser)",
@@ -13,14 +14,8 @@ const subCategories = [
   "Đặc Trị (Treatments)"
 ];
 
-// Loại da
-const skinTypes = [
-  { id: 'all', label: 'Mọi loại da' },
-  { id: 'oily', label: 'Da Dầu (Oily)' },
-  { id: 'dry', label: 'Da Khô (Dry)' },
-  { id: 'sensitive', label: 'Da Nhạy Cảm' },
-  { id: 'combo', label: 'Da Hỗn Hợp' },
-];
+// Loại da — khớp enum SkinType backend (bỏ All trong bộ lọc)
+const skinTypes = SKIN_TYPE_FILTER_OPTIONS;
 
 export const SkinCarePage = () => {
   // 1. Quản lý State dữ liệu
@@ -32,7 +27,7 @@ export const SkinCarePage = () => {
   const [priceRange, setPriceRange] = useState<number>(5000000);
   const [sortOption, setSortOption] = useState<string>('all');
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
-  const [selectedSkinTypes, setSelectedSkinTypes] = useState<string[]>([]);
+  const [selectedSkinTypes, setSelectedSkinTypes] = useState<SkinType[]>([]);
   const [selectedSubCat, setSelectedSubCat] = useState<string>('');
 
   // 3. GỌI API LẤY SẢN PHẨM THEO DANH MỤC "Dưỡng da"
@@ -73,9 +68,10 @@ export const SkinCarePage = () => {
 
       // Lọc theo Skin Type (Nếu User có tích chọn)
       if (selectedSkinTypes.length > 0) {
-          result = result.filter(p => {
-              if (!p.skinType || p.skinType.toLowerCase() === 'all') return true; 
-              return selectedSkinTypes.includes(p.skinType.toLowerCase());
+          result = result.filter((p) => {
+              const productSkinType = normalizeSkinType(p.skinType);
+              if (productSkinType === SkinType.All) return true;
+              return selectedSkinTypes.includes(productSkinType);
           });
       }
 
@@ -121,9 +117,19 @@ export const SkinCarePage = () => {
                 <h3 className="font-bold text-gray-900 uppercase tracking-widest mb-5 text-xs">Loại Da (Skin Type)</h3>
                 <div className="space-y-3">
                     {skinTypes.map((type) => {
-                        const isChecked = selectedSkinTypes.includes(type.id);
+                        const isChecked = selectedSkinTypes.includes(type.value);
                         return (
-                            <label key={type.id} className="flex items-center gap-3 cursor-pointer group">
+                            <label
+                                key={type.value}
+                                className="flex items-center gap-3 cursor-pointer group"
+                                onClick={() => {
+                                    setSelectedSkinTypes((prev) =>
+                                        prev.includes(type.value)
+                                            ? prev.filter((v) => v !== type.value)
+                                            : [...prev, type.value],
+                                    );
+                                }}
+                            >
                                 <div className={`w-4 h-4 border rounded-sm flex items-center justify-center transition-all
                                     ${isChecked 
                                         ? 'bg-[#A41C4E] border-[#A41C4E]' 
