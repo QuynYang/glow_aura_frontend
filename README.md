@@ -112,6 +112,6 @@ client_web/
 
 - **Họ tên**: Vũ Ngọc Quỳnh Giang
 - **MSSV**: 22DH114506
-- **Môn học**: Mẫu thiết kế phần mềm
+- **Môn học**: Mẫu thiết kế phần mềm - Khóa luận tốt nghiệp
 
 ---
