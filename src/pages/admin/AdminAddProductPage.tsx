@@ -4,7 +4,7 @@ import { Upload, ArrowLeft, CheckCircle2, Loader2, Image as ImageIcon, Link as L
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import apiClient from '../../services/apiClient';
 import { SKIN_TYPE_OPTIONS, SkinType } from '../../constants/skinType';
-import { calcDiscountPercent, getSellingPrice } from '../../utils/productPrice';
+import { calcDiscountPercent } from '../../utils/productPrice';
 
 function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -24,7 +24,8 @@ export const AdminAddProductPage = () => {
     category: '',
     brand: '',
     originalPrice: '',
-    discountedPrice: '',
+    discountAmount: '', // SỐ TIỀN được giảm (VNĐ), không phải giá cuối cùng
+    isFlashSale: false, // đánh dấu rõ ràng có kích hoạt Flash Sale hay không
     stockQuantity: '10',
     skinType: String(SkinType.All),
     expiryDate: '',
@@ -79,6 +80,15 @@ export const AdminAddProductPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleFlashSaleToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked;
+    setFormData((prev) => ({
+      ...prev,
+      isFlashSale: checked,
+      discountAmount: checked ? prev.discountAmount : '',
+    }));
+  };
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -120,11 +130,13 @@ export const AdminAddProductPage = () => {
     e.preventDefault();
 
     const originalPriceNum = Number(formData.originalPrice);
-    const promotionalPriceNum = formData.discountedPrice ? Number(formData.discountedPrice) : 0;
+    const discountAmountNum = formData.isFlashSale ? Number(formData.discountAmount || 0) : 0;
 
     if (originalPriceNum <= 0) return alert('Giá gốc phải lớn hơn 0đ!');
-    if (promotionalPriceNum > 0 && promotionalPriceNum >= originalPriceNum) {
-      return alert('Giá khuyến mãi phải nhỏ hơn giá gốc!');
+
+    if (formData.isFlashSale) {
+      if (discountAmountNum <= 0) return alert('Vui lòng nhập số tiền giảm giá cho Flash Sale!');
+      if (discountAmountNum >= originalPriceNum) return alert('Số tiền giảm giá phải nhỏ hơn giá gốc!');
     }
 
     const imageUrl = await resolveImageUrl();
@@ -157,18 +169,19 @@ export const AdminAddProductPage = () => {
       const response = await apiClient.post('/products', payload);
       const productId = response.data?.id as string | undefined;
 
-      if (promotionalPriceNum > 0 && productId) {
+      if (formData.isFlashSale && discountAmountNum > 0 && productId) {
         try {
-          const discountPercent = calcDiscountPercent(originalPriceNum, promotionalPriceNum);
+          const sellingPrice = originalPriceNum - discountAmountNum;
+          const discountPercent = calcDiscountPercent(originalPriceNum, sellingPrice);
           const endTime = new Date(formData.expiryDate).toISOString();
           await apiClient.post(`/products/${productId}/flash-sale`, {
             discountPercent,
             endTime,
           });
         } catch (flashSaleError) {
-          console.error('Lỗi áp dụng giá khuyến mãi:', flashSaleError);
+          console.error('Lỗi áp dụng Flash Sale:', flashSaleError);
           alert(
-            'Sản phẩm đã được tạo với giá gốc, nhưng không áp dụng được giá khuyến mãi. Vui lòng kiểm tra lại trên trang quản lý sản phẩm.',
+            'Sản phẩm đã được tạo với giá gốc, nhưng không áp dụng được Flash Sale. Vui lòng kiểm tra lại trên trang quản lý sản phẩm.',
           );
         }
       }
@@ -189,8 +202,10 @@ export const AdminAddProductPage = () => {
     'w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:outline-none focus:border-[#3D021E] focus:ring-1 focus:ring-[#3D021E] transition-colors';
 
   const originalPriceNum = Number(formData.originalPrice) || 0;
-  const promotionalPriceNum = Number(formData.discountedPrice) || 0;
-  const previewSellingPrice = getSellingPrice(originalPriceNum, promotionalPriceNum || null);
+  const discountAmountNum = formData.isFlashSale ? (Number(formData.discountAmount) || 0) : 0;
+  const previewSellingPrice = originalPriceNum > 0
+    ? Math.max(originalPriceNum - discountAmountNum, 0)
+    : 0;
 
   return (
     <AdminLayout>
@@ -283,19 +298,34 @@ export const AdminAddProductPage = () => {
               />
               <p className="text-xs text-gray-400 mt-1">Giá niêm yết trước khuyến mãi</p>
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Giá khuyến mãi (VNĐ)</label>
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <input
+                  type="checkbox"
+                  checked={formData.isFlashSale}
+                  onChange={handleFlashSaleToggle}
+                  className="w-4 h-4 rounded border-gray-300 text-[#3D021E] focus:ring-[#3D021E]"
+                />
+                Đánh dấu là Flash Sale
+              </label>
               <input
                 type="number"
-                name="discountedPrice"
-                placeholder="Ví dụ: 450000"
+                name="discountAmount"
+                placeholder="Ví dụ: 50000"
                 min="1000"
-                value={formData.discountedPrice}
+                disabled={!formData.isFlashSale}
+                value={formData.discountAmount}
                 onChange={handleChange}
-                className={inputClass}
+                className={`${inputClass} ${!formData.isFlashSale ? 'opacity-50 cursor-not-allowed' : ''}`}
               />
-              <p className="text-xs text-gray-400 mt-1">Để trống nếu không giảm giá</p>
+              <p className="text-xs text-gray-400 mt-1">
+                {formData.isFlashSale
+                  ? 'Số tiền được giảm (VNĐ), không phải giá bán cuối cùng'
+                  : 'Bật Flash Sale để nhập số tiền giảm giá'}
+              </p>
             </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Giá bán (VNĐ)</label>
               <div className="w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-lg text-sm font-bold text-[#3D021E]">
@@ -303,8 +333,9 @@ export const AdminAddProductPage = () => {
                   ? previewSellingPrice.toLocaleString('vi-VN')
                   : '—'}
               </div>
-              <p className="text-xs text-gray-400 mt-1">Giá khách hàng thực tế thanh toán</p>
+              <p className="text-xs text-gray-400 mt-1">Giá gốc − số tiền giảm (nếu có Flash Sale)</p>
             </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Số lượng tồn kho <span className="text-red-500">*</span>
