@@ -6,10 +6,13 @@ import { CheckCircle2, XCircle } from 'lucide-react';
 function isSuccessFromQuery(search: URLSearchParams) {
   const vnp = search.get('vnp_ResponseCode');
   const momo = search.get('resultCode');
+  const payosCode = search.get('code');  
+  const payosCancel = search.get('cancel');
   const status = search.get('status');
   if (vnp) return vnp === '00';
   if (momo) return momo === '0';
-  if (status) return status.toLowerCase() === 'success' || status === '1';
+  if (payosCode) return payosCode === '00' && payosCancel !== 'true';
+  if (status) return ['success', 'paid', '1'].includes(status.toLowerCase());
   return false;
 }
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, Banknote, Wallet, QrCode, Smartphone } from 'lucide-react';
+import { ArrowRight, Banknote, Wallet, QrCode, Smartphone, Landmark } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { useCart } from '../context/CartContext'; 
 import { useAuth } from '../context/AuthContext'; // THÊM DÒNG NÀY
@@ -17,7 +17,7 @@ export const CheckoutPage = () => {
   
   const [isOrderCompleted, setIsOrderCompleted] = useState(false);
   const [shippingMethod, setShippingMethod] = useState<'fast' | 'standard'>('fast');
-  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'momo' | 'zalopay' | 'vnpay'>('cod');
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'momo' | 'zalopay' | 'vnpay' | 'payos'>('cod');
   const [couponInput, setCouponInput] = useState(''); 
   const [promoCode, setPromoCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -243,6 +243,7 @@ export const CheckoutPage = () => {
                             { id: 'momo', icon: Wallet, title: 'Ví điện tử MoMo', desc: 'Thanh toán nhanh qua ứng dụng MoMo' },
                             { id: 'zalopay', icon: Smartphone, title: 'Ví ZaloPay', desc: 'Thanh toán tiện lợi qua ứng dụng ZaloPay' },
                             { id: 'vnpay', icon: QrCode, title: 'Cổng thanh toán VNPay', desc: 'Quét mã QR qua ứng dụng ngân hàng' },
+                            { id: 'payos', icon: Landmark, title: 'PayOS (QR / Chuyển khoản)', desc: 'Quét mã QR hoặc chuyển khoản ngân hàng qua PayOS' },
                         ].map((method) => (
                             <label key={method.id} className={`flex items-center gap-4 p-4 rounded-2xl border-[1.5px] cursor-pointer transition-all ${paymentMethod === method.id ? 'border-[#3D021E] bg-[#3D021E]/5' : 'border-gray-200 bg-white'}`}>
                                 <input type="radio" name="payment" className="hidden" checked={paymentMethod === method.id} onChange={() => setPaymentMethod(method.id as any)} />
