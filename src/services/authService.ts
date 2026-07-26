@@ -48,6 +48,34 @@ export const authService = {
         }
     },
 
+    loginWithGoogle: async (idToken: string) => {
+        try {
+            const response = await apiClient.post('/auth/google', { idToken });
+            if (!response.data?.isSuccess) {
+                throw { message: response.data?.message || 'Đăng nhập Google thất bại' } satisfies ApiErrorPayload;
+            }
+            if (response.data.token) persistSession(response.data);
+            return response.data;
+        } catch (error: unknown) {
+            if (error && typeof error === 'object' && 'message' in error && !('response' in error)) throw error;
+            throw toApiError(error, 'Có lỗi xảy ra khi đăng nhập Google');
+        }
+    },
+
+    loginWithFacebook: async (accessToken: string) => {
+        try {
+            const response = await apiClient.post('/auth/facebook', { accessToken });
+            if (!response.data?.isSuccess) {
+                throw { message: response.data?.message || 'Đăng nhập Facebook thất bại' } satisfies ApiErrorPayload;
+            }
+            if (response.data.token) persistSession(response.data);
+            return response.data;
+        } catch (error: unknown) {
+            if (error && typeof error === 'object' && 'message' in error && !('response' in error)) throw error;
+            throw toApiError(error, 'Có lỗi xảy ra khi đăng nhập Facebook');
+        }
+    },
+
     register: async (userData: {
         email: string;
         password: string;

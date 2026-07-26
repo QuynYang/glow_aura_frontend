@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Facebook, Loader2, Eye, EyeOff } from 'lucide-react'; // 1. Import thêm Eye và EyeOff
+import { Facebook, Loader2, Eye, EyeOff } from 'lucide-react';
 import { Header } from '../components/layout/Header';
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { authService } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import type { User } from '../context/AuthContext';
@@ -13,47 +13,124 @@ const GoogleIcon = () => (
 export const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  
-  // 2. Thêm state để quản lý trạng thái ẩn/hiện mật khẩu
   const [showPassword, setShowPassword] = useState(false);
 
+  const googleBtnRef = useRef<HTMLDivElement>(null);
+
+  // Xử lý chung sau khi có data user + token trả về từ backend
+  const handleAuthSuccess = useCallback((data: { user?: unknown; message?: string }) => {
+    if (!data?.user) {
+      setError(data?.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
+      return;
+    }
+    login(data.user as User);
+    const role = String((data.user as User).role).toLowerCase();
+    navigate(role === 'admin' ? '/admin' : '/');
+  }, [login, navigate]);
+
+  const handleError = (err: unknown, fallback: string) => {
+    const message =
+      err && typeof err === 'object' && 'message' in err
+        ? String((err as { message?: string }).message)
+        : fallback;
+    setError(message || fallback);
+  };
+
+  // ----- LOGIN THƯỜNG -----
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-
     try {
-        const data = await authService.login(email, password);
-
-        if (!data?.user) {
-            setError(data?.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
-            return;
-        }
-
-        login(data.user as User);
-
-        if (String(data.user.role).toLowerCase() === 'admin') {
-            alert('Chào mừng Quản trị viên!');
-            navigate('/admin');
-        } else {
-            alert('Đăng nhập thành công!');
-            navigate('/'); 
-        }
+      const data = await authService.login(email, password);
+      handleAuthSuccess(data);
     } catch (err: unknown) {
-        const message =
-            err && typeof err === 'object' && 'message' in err
-                ? String((err as { message?: string }).message)
-                : 'Email hoặc mật khẩu không chính xác!';
-        console.error('Lỗi đăng nhập:', err);
-        setError(message || 'Email hoặc mật khẩu không chính xác!');
+      handleError(err, 'Email hoặc mật khẩu không chính xác!');
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
+  };
+
+  // ----- GOOGLE -----
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId || !window.google || !googleBtnRef.current) return;
+
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: async (response) => {
+        setError('');
+        setIsLoading(true);
+        try {
+          const data = await authService.loginWithGoogle(response.credential);
+          handleAuthSuccess(data);
+        } catch (err) {
+          handleError(err, 'Đăng nhập Google thất bại');
+        } finally {
+          setIsLoading(false);
+        }
+      },
+    });
+
+    // Google chỉ cho render nút theo giao diện của họ -> ta render nút thật
+    // (ẩn đi) rồi "bấm hộ" khi user click nút tự thiết kế của mình.
+    window.google.accounts.id.renderButton(googleBtnRef.current, {
+      theme: 'outline',
+      size: 'large',
+      width: 280,
+    });
+  }, [handleAuthSuccess]);
+
+  const triggerGoogleLogin = () => {
+    const realButton = googleBtnRef.current?.querySelector<HTMLElement>('div[role="button"]');
+    realButton?.click();
+  };
+
+  // ----- FACEBOOK -----
+  useEffect(() => {
+    const appId = import.meta.env.VITE_FACEBOOK_APP_ID;
+    if (!appId) return;
+
+    if (!document.getElementById('facebook-jssdk')) {
+      const script = document.createElement('script');
+      script.id = 'facebook-jssdk';
+      script.src = 'https://connect.facebook.net/vi_VN/sdk.js';
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+
+    window.fbAsyncInit = () => {
+      window.FB?.init({ appId, cookie: true, xfbml: false, version: 'v21.0' });
+    };
+  }, []);
+
+  const handleFacebookLogin = () => {
+    if (!window.FB) {
+      setError('Facebook SDK chưa sẵn sàng, vui lòng thử lại sau giây lát.');
+      return;
+    }
+    setError('');
+    setIsLoading(true);
+    window.FB.login(async (response) => {
+      if (response.authResponse) {
+        try {
+          const data = await authService.loginWithFacebook(response.authResponse.accessToken);
+          handleAuthSuccess(data);
+        } catch (err) {
+          handleError(err, 'Đăng nhập Facebook thất bại');
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setIsLoading(false);
+      }
+    }, { scope: 'public_profile,email' });
   };
 
   return (
@@ -63,7 +140,7 @@ export const LoginPage = () => {
           <div className="w-full md:w-1/2 bg-[#330511] flex items-center justify-center p-8">
             <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md animate-in slide-in-from-left duration-700">
                 <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6">Đăng nhập vào Glow Aura</h2>
-                
+
                 {error && (
                     <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 text-sm rounded">
                         {error}
@@ -72,8 +149,8 @@ export const LoginPage = () => {
 
                 <form className="space-y-4" onSubmit={handleLogin}>
                     <div>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             placeholder="Email"
                             className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors rounded-sm"
                             value={email}
@@ -82,12 +159,12 @@ export const LoginPage = () => {
                             required
                         />
                     </div>
-                    
+
                     <div className="relative">
-                        <input 
-                            type={showPassword ? "text" : "password"} // Thay đổi type dựa trên state
+                        <input
+                            type={showPassword ? "text" : "password"}
                             placeholder="Mật khẩu"
-                            className="w-full border border-gray-300 px-4 py-3 pr-10 text-sm focus:outline-none focus:border-primary transition-colors rounded-sm" 
+                            className="w-full border border-gray-300 px-4 py-3 pr-10 text-sm focus:outline-none focus:border-primary transition-colors rounded-sm"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             disabled={isLoading}
@@ -98,11 +175,7 @@ export const LoginPage = () => {
                             onClick={() => setShowPassword(!showPassword)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
                         >
-                            {showPassword ? (
-                                <EyeOff className="w-5 h-5" />
-                            ) : (
-                                <Eye className="w-5 h-5" />
-                            )}
+                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
                     </div>
 
@@ -112,7 +185,7 @@ export const LoginPage = () => {
                         </Link>
                     </div>
 
-                    <button 
+                    <button
                         type="submit"
                         disabled={isLoading}
                         className="w-full flex justify-center items-center gap-2 bg-black text-white py-3 text-sm font-bold uppercase tracking-wider hover:bg-primary transition-colors disabled:opacity-70"
@@ -122,13 +195,26 @@ export const LoginPage = () => {
                     </button>
 
                     <div className="grid grid-cols-2 gap-4 mt-4">
-                        <button type="button" className="flex items-center justify-center gap-2 bg-[#333] text-white py-2 text-xs hover:bg-black transition-colors">
+                        <button
+                            type="button"
+                            onClick={triggerGoogleLogin}
+                            disabled={isLoading}
+                            className="flex items-center justify-center gap-2 bg-[#333] text-white py-2 text-xs hover:bg-black transition-colors disabled:opacity-70"
+                        >
                              <GoogleIcon /> Google
                         </button>
-                        <button type="button" className="flex items-center justify-center gap-2 bg-[#3b5998] text-white py-2 text-xs hover:opacity-90 transition-colors">
+                        <button
+                            type="button"
+                            onClick={handleFacebookLogin}
+                            disabled={isLoading}
+                            className="flex items-center justify-center gap-2 bg-[#3b5998] text-white py-2 text-xs hover:opacity-90 transition-colors disabled:opacity-70"
+                        >
                              <Facebook className="w-4 h-4" /> Facebook
                         </button>
                     </div>
+
+                    {/* Nút Google thật của Google, ẩn đi — được "bấm hộ" khi user bấm nút custom phía trên */}
+                    <div ref={googleBtnRef} style={{ position: 'absolute', top: '-9999px', left: '-9999px' }} />
                 </form>
 
                 <div className="mt-6 text-center text-xs text-gray-500">
@@ -138,9 +224,9 @@ export const LoginPage = () => {
           </div>
 
           <div className="hidden md:block w-1/2 relative">
-             <img 
-                src="https://img.freepik.com/premium-photo/beauty-skincare-black-woman-with-facial-product-cream-her-face-studio-with-brown-background-smile-afro-happy-african-model-with-natural-lotion-glowing-smooth-soft-skin_590464-94166.jpg" 
-                alt="Login Cover" 
+             <img
+                src="https://img.freepik.com/premium-photo/beauty-skincare-black-woman-with-facial-product-cream-her-face-studio-with-brown-background-smile-afro-happy-african-model-with-natural-lotion-glowing-smooth-soft-skin_590464-94166.jpg"
+                alt="Login Cover"
                 className="absolute inset-0 w-full h-full object-cover"
              />
           </div>

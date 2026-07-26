@@ -1,11 +1,14 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { authService } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import type { User } from '../context/AuthContext';
-import { Loader2, Eye, EyeOff } from 'lucide-react'; 
+import { Loader2, Eye, EyeOff, Facebook } from 'lucide-react';
 
+const GoogleIcon = () => (
+  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12.5S6.42 23 12.1 23c5.83 0 8.84-4.15 8.84-10.24 0-.68-.04-1.09-.04-1.09z"/></svg>
+);
 export const RegisterPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -22,6 +25,102 @@ export const RegisterPage = () => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const googleBtnRef = useRef<HTMLDivElement>(null);
+
+  // Xử lý chung sau khi có data user + token trả về từ backend (dùng chung cho Google/Facebook)
+  const handleSocialAuthSuccess = useCallback((data: { user?: unknown; message?: string }) => {
+    if (!data?.user) {
+      setError(data?.message || 'Đăng ký/Đăng nhập thất bại. Vui lòng thử lại.');
+      return;
+    }
+    login(data.user as User);
+    alert('Đăng nhập thành công!');
+    navigate('/');
+  }, [login, navigate]);
+
+  const handleSocialError = (err: unknown, fallback: string) => {
+    const message =
+      err && typeof err === 'object' && 'message' in err
+        ? String((err as { message?: string }).message)
+        : fallback;
+    setError(message || fallback);
+  };
+
+  // ----- GOOGLE -----
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId || !window.google || !googleBtnRef.current) return;
+
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: async (response) => {
+        setError('');
+        setIsLoading(true);
+        try {
+          const data = await authService.loginWithGoogle(response.credential);
+          handleSocialAuthSuccess(data);
+        } catch (err) {
+          handleSocialError(err, 'Đăng ký/Đăng nhập Google thất bại');
+        } finally {
+          setIsLoading(false);
+        }
+      },
+    });
+
+    window.google.accounts.id.renderButton(googleBtnRef.current, {
+      theme: 'outline',
+      size: 'large',
+      width: 280,
+    });
+  }, [handleSocialAuthSuccess]);
+
+  const triggerGoogleLogin = () => {
+    const realButton = googleBtnRef.current?.querySelector<HTMLElement>('div[role="button"]');
+    realButton?.click();
+  };
+
+  // ----- FACEBOOK -----
+  useEffect(() => {
+    const appId = import.meta.env.VITE_FACEBOOK_APP_ID;
+    if (!appId) return;
+
+    if (!document.getElementById('facebook-jssdk')) {
+      const script = document.createElement('script');
+      script.id = 'facebook-jssdk';
+      script.src = 'https://connect.facebook.net/vi_VN/sdk.js';
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+
+    window.fbAsyncInit = () => {
+      window.FB?.init({ appId, cookie: true, xfbml: false, version: 'v21.0' });
+    };
+  }, []);
+
+  const handleFacebookLogin = () => {
+    if (!window.FB) {
+      setError('Facebook SDK chưa sẵn sàng, vui lòng thử lại sau giây lát.');
+      return;
+    }
+    setError('');
+    setIsLoading(true);
+    window.FB.login(async (response) => {
+      if (response.authResponse) {
+        try {
+          const data = await authService.loginWithFacebook(response.authResponse.accessToken);
+          handleSocialAuthSuccess(data);
+        } catch (err) {
+          handleSocialError(err, 'Đăng ký/Đăng nhập Facebook thất bại');
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setIsLoading(false);
+      }
+    }, { scope: 'public_profile,email' });
+  };
 
   // Hàm xử lý khi bấm Đăng ký
   const handleRegister = async (e: React.FormEvent) => {
@@ -186,6 +285,7 @@ export const RegisterPage = () => {
                       {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                       {isLoading ? 'ĐANG XỬ LÝ...' : 'ĐĂNG KÝ'}
                   </button>
+
               </form>
 
               <div className="mt-6 text-center text-xs text-gray-400">
