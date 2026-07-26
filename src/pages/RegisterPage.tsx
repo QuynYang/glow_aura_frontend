@@ -286,6 +286,33 @@ export const RegisterPage = () => {
                       {isLoading ? 'ĐANG XỬ LÝ...' : 'ĐĂNG KÝ'}
                   </button>
 
+                  <div className="flex items-center gap-3 pt-2">
+                      <div className="flex-1 h-px bg-white/20" />
+                      <span className="text-xs text-gray-400 uppercase tracking-wider">Hoặc</span>
+                      <div className="flex-1 h-px bg-white/20" />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                      <button
+                          type="button"
+                          onClick={triggerGoogleLogin}
+                          disabled={isLoading}
+                          className="flex items-center justify-center gap-2 bg-[#333] text-white py-2 text-xs hover:bg-black transition-colors disabled:opacity-70"
+                      >
+                           <GoogleIcon /> Google
+                      </button>
+                      <button
+                          type="button"
+                          onClick={handleFacebookLogin}
+                          disabled={isLoading}
+                          className="flex items-center justify-center gap-2 bg-[#3b5998] text-white py-2 text-xs hover:opacity-90 transition-colors disabled:opacity-70"
+                      >
+                           <Facebook className="w-4 h-4" /> Facebook
+                      </button>
+                  </div>
+
+                  {/* Nút Google thật của Google, ẩn đi — được "bấm hộ" khi user bấm nút custom phía trên */}
+                  <div ref={googleBtnRef} style={{ position: 'absolute', top: '-9999px', left: '-9999px' }} />
               </form>
 
               <div className="mt-6 text-center text-xs text-gray-400">
