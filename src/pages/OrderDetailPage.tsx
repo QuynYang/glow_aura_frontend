@@ -73,7 +73,8 @@ export const OrderDetailPage = () => {
       const method = forceCod ? 0 : (paymentMethodMap[order.paymentMethod] ?? 2);
       const data = await orderService.payOrder(id!, {
         paymentMethod: method,
-        returnUrl: `${window.location.origin}/payment-result?orderId=${order.id}`,
+        returnUrl: '${window.location.origin}${import.meta.env.BASE_URL}#/payment-result?orderId=${order.id}',
+        cancelUrl: '${window.location.origin}${import.meta.env.BASE_URL}#/payment-result?orderId=${order.id}',
       });
       const redirectUrl = data?.redirectUrl || data?.data?.redirectUrl;
       if (redirectUrl) {

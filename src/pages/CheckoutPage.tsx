@@ -113,7 +113,9 @@ export const CheckoutPage = () => {
       receiverName: formData.fullName,
       paymentMethod: methodString, 
       notes: shippingMethod === 'fast' ? "Giao hàng nhanh" : "Giao hàng tiêu chuẩn",
-      couponCode: promoCode || null
+      couponCode: promoCode || null,
+      returnUrl: '${window.location.origin}${import.meta.env.BASE_URL}#/payment-result',
+      cancelUrl: '${window.location.origin}${import.meta.env.BASE_URL}#/payment-result'
     };
 
     try {

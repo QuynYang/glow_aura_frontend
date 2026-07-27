@@ -23,7 +23,7 @@ export const orderService = {
 
   payOrder: async (
     id: string | number,
-    payload: { paymentMethod: number; returnUrl?: string }
+    payload: { paymentMethod: number; returnUrl?: string; cancelUrl?: string }
   ) => {
     const response = await apiClient.post(`/order/${id}/pay`, payload);
     return response.data;
