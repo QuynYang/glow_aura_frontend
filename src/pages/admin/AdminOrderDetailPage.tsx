@@ -55,55 +55,7 @@ export const AdminOrderDetailPage = () => {
       }
   };
 
-  // Xác nhận thanh toán qua API Cổng Thanh Toán (Confirmed -> Paid)
-  const handlePayOrder = async () => {
-      if (!window.confirm("Xác nhận thanh toán cho đơn hàng này?")) return;
-      setIsProcessing(true);
-      try {
-          const paymentName = (order.paymentMethod || '').toUpperCase();
-          let methodId = 0; 
-          if (paymentName.includes('MOMO')) methodId = 1;
-          else if (paymentName.includes('VNPAY')) methodId = 2;
-          else if (paymentName.includes('ZALOPAY')) methodId = 3;
-
-          const payload = {
-              paymentMethod: methodId,
-              returnUrl: window.location.href
-          };
-
-          // Gọi cổng Pay chính thức
-          const response = await apiClient.post(`/order/${id}/pay`, payload);
-          
-          if (response.data?.redirectUrl) {
-              window.location.href = response.data.redirectUrl;
-          } else {
-              alert("Đã xác nhận thanh toán hợp lệ!");
-              
-              // 1. Gọi API lấy data mới
-              const res = await apiClient.get(`/order/${id}`);
-              let freshData = res.data?.data || res.data;
-
-                // 2. Cập nhật trạng thái Paid nếu API chưa kịp cập nhật (Optimistic UI)
-              const currentStatus = freshData.status || freshData.orderStatus;
-              if (currentStatus === 'Confirmed' || currentStatus === 1) {
-                  freshData = { 
-                      ...freshData, 
-                      status: 'Paid', 
-                      paidAt: new Date().toISOString() 
-                  };
-              }
-              
-              setOrder(freshData); // Cập nhật UI ngay lập tức
-          }
-      } catch (error: any) {
-          console.error(error);
-          alert(error.response?.data?.message || "Lỗi xác nhận thanh toán!");
-      } finally {
-          setIsProcessing(false);
-      }
-  };
-
-  // Hàm chuyển trạng thái (Paid -> Processing -> Shipping -> Delivered)
+  // Hàm chuyển trạng thái (Confirmed -> Processing -> Shipping -> Delivered)
   const handleUpdateStatus = async (newStatus: string) => {
       if (!window.confirm(`Chuyển trạng thái đơn hàng sang: ${newStatus}?`)) return;
       setIsProcessing(true);
@@ -156,6 +108,20 @@ export const AdminOrderDetailPage = () => {
       alert("Đang phát triển API cập nhật Ghi chú nội bộ!");
   };
 
+  const handleRefund = async () => {
+      const reason = window.prompt('Lý do hoàn tiền:');
+      if (!reason) return;
+      setIsProcessing(true);
+      try {
+          await apiClient.post(`/order/${id}/refund`, { reason });
+          await fetchOrderDetails();
+      } catch (error: any) {
+          alert(error.response?.data?.message || 'Hoàn tiền thất bại!');
+      } finally {
+          setIsProcessing(false);
+      }
+  };
+
   // --- LOGIC GIAO DIỆN ---
   if (isLoading || !order) {
       return (
@@ -173,29 +139,31 @@ export const AdminOrderDetailPage = () => {
   const isCancelled = status === 'Cancelled';
   const isPaid = !!order.paidAt || status === 'Paid' || status === 'Processing' || status === 'Shipping' || status === 'Delivered' || status === 'Completed';
   const availableActions: string[] = order.availableActions || ({
-      Pending: ['Confirm', 'Cancel'],
-      Confirmed: ['Pay', 'Cancel'],
-      PaymentFailed: ['Pay', 'Cancel'],
-      Paid: ['StartProcessing', 'Refund'],
+      Pending: ['Confirm'],
+      Paid: ['Confirm', 'Refund'],
+      Confirmed: ['StartProcessing', 'Refund'],
       Processing: ['Ship', 'Refund'],
       Shipping: ['Deliver'],
       Delivered: ['Complete'],
-      Completed: [],
-      Cancelled: [],
+      PaymentFailed: ['Cancel'],
       Refunded: [],
+      Cancelled: [],
   } as Record<string, string[]>)[status] || [];
 
   // Logic hiển thị thanh Progress
   const getStatusProgress = () => {
     if (isCancelled) return { width: '100%', label: 'Đã hủy', color: 'bg-red-500', barColor: 'bg-red-100' };
     switch (status) {
-      case 'Pending': return { width: '15%', label: 'Chờ xác nhận', color: 'bg-gray-800', barColor: 'bg-pink-100' };
-      case 'Confirmed': return { width: '40%', label: 'Đã xác nhận', color: 'bg-yellow-500', barColor: 'bg-pink-100' };
-      case 'Paid': return { width: '50%', label: 'Đã thanh toán', color: 'bg-indigo-500', barColor: 'bg-pink-100' };
+      case 'Pending':
+        return { width: '15%', label: order.paymentMethod === 'COD' ? 'Chờ duyệt (COD)' : 'Chờ thanh toán', color: 'bg-gray-800', barColor: 'bg-pink-100' };
+      case 'PaymentFailed': return { width: '20%', label: 'Thanh toán thất bại', color: 'bg-red-400', barColor: 'bg-pink-100' };
+      case 'Paid': return { width: '35%', label: 'Đã thanh toán — chờ duyệt', color: 'bg-indigo-500', barColor: 'bg-pink-100' };
+      case 'Confirmed': return { width: '50%', label: 'Đã xác nhận', color: 'bg-yellow-500', barColor: 'bg-pink-100' };
       case 'Processing': return { width: '65%', label: 'Đang đóng gói', color: 'bg-orange-500', barColor: 'bg-pink-100' };
       case 'Shipping': return { width: '85%', label: 'Đang giao hàng', color: 'bg-blue-500', barColor: 'bg-pink-100' };
       case 'Delivered': 
       case 'Completed': return { width: '100%', label: 'Đã giao thành công', color: 'bg-green-500', barColor: 'bg-pink-100' };
+      case 'Refunded': return { width: '100%', label: 'Đã hoàn tiền', color: 'bg-amber-500', barColor: 'bg-amber-100' };
       default: return { width: '5%', label: status, color: 'bg-gray-500', barColor: 'bg-gray-200' };
     }
   };
@@ -368,12 +336,6 @@ export const AdminOrderDetailPage = () => {
                         </button>
                     )}
 
-                    {availableActions.includes('Pay') && !isPaid && (
-                        <button onClick={handlePayOrder} disabled={isProcessing} className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-indigo-500 text-white font-bold rounded-xl hover:bg-indigo-600 shadow-md shadow-indigo-200 transition-all disabled:opacity-50">
-                            <CheckCircle2 className="w-5 h-5" /> Xác nhận Đã Nhận Tiền
-                        </button>
-                    )}
-
                     {availableActions.includes('StartProcessing') && (
                         <button onClick={() => handleUpdateStatus('Processing')} disabled={isProcessing} className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 shadow-md shadow-orange-200 transition-all disabled:opacity-50">
                             <Package className="w-5 h-5" /> Bắt đầu đóng gói
@@ -399,7 +361,7 @@ export const AdminOrderDetailPage = () => {
                     )}
 
                     {availableActions.includes('Refund') && (
-                        <button onClick={() => alert('API hoàn tiền chuyên dụng chưa mở ở controller. Vui lòng bổ sung endpoint refund để bật thao tác này.')} disabled={isProcessing} className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-white border border-amber-200 text-amber-700 font-bold rounded-xl hover:bg-amber-50 transition-all disabled:opacity-50">
+                        <button onClick={handleRefund} disabled={isProcessing} className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-white border border-amber-200 text-amber-700 font-bold rounded-xl hover:bg-amber-50 transition-all disabled:opacity-50">
                             Hoàn tiền
                         </button>
                     )}

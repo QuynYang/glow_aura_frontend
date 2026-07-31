@@ -53,15 +53,18 @@ export const OrderDetailPage = () => {
     }
   };
 
-  const getAvailableActions = (status: string) => {
+  const getAvailableActions = (status: string, paidAt?: string | null) => {
     const map: Record<string, string[]> = {
-      Pending: ['Cancel'],
-      Confirmed: ['Cancel', 'Pay'],
+      Pending: ['Cancel', 'Pay'],
       PaymentFailed: ['Cancel', 'Pay'],
-      Paid: ['StartProcessing', 'Refund'],
-      Processing: ['Ship', 'Refund'],
-      Shipping: ['Deliver'],
-      Delivered: ['Complete'],
+      Paid: [],
+      // Đơn Confirmed chỉ còn cho phép Cancel nếu là COD chưa thu tiền (paidAt rỗng).
+      // Nếu đã thanh toán online (paidAt có giá trị), backend sẽ từ chối Cancel và
+      // yêu cầu dùng Refund (chức năng của Admin) -> không hiển thị nút Cancel nữa.
+      Confirmed: paidAt ? [] : ['Cancel'],
+      Processing: [],
+      Shipping: [],
+      Delivered: [],
     };
     return map[status] || [];
   };
@@ -73,8 +76,8 @@ export const OrderDetailPage = () => {
       const method = forceCod ? 0 : (paymentMethodMap[order.paymentMethod] ?? 2);
       const data = await orderService.payOrder(id!, {
         paymentMethod: method,
-        returnUrl: '${window.location.origin}${import.meta.env.BASE_URL}#/payment-result?orderId=${order.id}',
-        cancelUrl: '${window.location.origin}${import.meta.env.BASE_URL}#/payment-result?orderId=${order.id}',
+        returnUrl: `${window.location.origin}${import.meta.env.BASE_URL}#/payment-result?orderId=${order.id}`,
+        cancelUrl: `${window.location.origin}${import.meta.env.BASE_URL}#/payment-result?orderId=${order.id}`,
       });
       const redirectUrl = data?.redirectUrl || data?.data?.redirectUrl;
       if (redirectUrl) {
@@ -119,15 +122,17 @@ export const OrderDetailPage = () => {
     PaymentFailed: 9,
   };
   const statusInt = typeof order.status === 'number' ? order.status : (statusCodeMap[order.status] ?? -1);
-  const availableActions = order.availableActions || getAvailableActions(order.status);
+  const availableActions = order.availableActions || getAvailableActions(order.status, order.paidAt);
   
   // Logic Timeline 
   // 0: Pending, 1: Confirmed, 2: Paid, 3: Processing, 4: Shipping, 5: Delivered, 6: Completed, 7: Cancelled
   const isCancelled = statusInt === 7 || statusInt === 8;
   const stepPlaced = !isCancelled; 
-  const stepProcessing = statusInt >= 2 && !isCancelled;
+  const stepProcessing = statusInt >= 3 && !isCancelled;
   const stepShipping = statusInt >= 4 && !isCancelled;
   const stepDelivered = statusInt >= 5 && !isCancelled;
+  const isPendingPayment = order.status === 'Pending' || order.status === 'PaymentFailed' || statusInt === 0 || statusInt === 9;
+  const needsRefundInsteadOfCancel = order.status === 'Confirmed' && !!order.paidAt;
 
   return (
     <MainLayout>
@@ -171,7 +176,7 @@ export const OrderDetailPage = () => {
                               className="flex items-center gap-2 px-5 py-2.5 bg-[#3D021E] text-white rounded-xl font-bold text-sm hover:bg-[#5a032d] transition-colors shadow-md disabled:opacity-60"
                             >
                               {isPaying ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                              Thanh toán lại
+                              {isPendingPayment && order.status !== 'PaymentFailed' && statusInt !== 9 ? 'Thanh toán' : 'Thanh toán lại'}
                             </button>
                             <button
                               onClick={() => handleRepay(true)}
@@ -187,6 +192,12 @@ export const OrderDetailPage = () => {
                     </button>
                 </div>
             </div>
+
+            {needsRefundInsteadOfCancel && (
+                <div className="mb-8 -mt-4 text-xs text-gray-500 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+                    Đơn hàng đã được thanh toán và xác nhận nên không thể tự hủy. Vui lòng liên hệ CSKH để được hỗ trợ hoàn tiền.
+                </div>
+            )}
 
             {/* 2. TIMELINE THEO DÕI ĐƠN HÀNG */}
             {!isCancelled && (
@@ -263,8 +274,8 @@ export const OrderDetailPage = () => {
                         </div>
                     </div>
                     <div className="mt-auto border-t border-gray-100 pt-4">
-                        <p className={`${statusInt >= 2 ? 'text-[#147A42]' : 'text-orange-600'} text-xs font-bold flex items-center gap-1.5`}>
-                            {statusInt >= 2 ? <><Check className="w-4 h-4" /> Đã thanh toán</> : 'Chưa thanh toán'}
+                        <p className={`${order.paidAt || statusInt >= 2 ? 'text-[#147A42]' : 'text-orange-600'} text-xs font-bold flex items-center gap-1.5`}>
+                            {order.paidAt || statusInt >= 2 ? <><Check className="w-4 h-4" /> Đã thanh toán</> : 'Chưa thanh toán'}
                         </p>
                     </div>
                 </div>

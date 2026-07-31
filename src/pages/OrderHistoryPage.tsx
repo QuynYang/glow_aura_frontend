@@ -42,7 +42,25 @@ const getStatusLabel = (statusValue: number | string) => {
   }
 };
 
-const getOrderStatusLabel = (order: { status?: string | number; statusDescription?: string }) => {
+const ONLINE_PAYMENT_METHODS = ['Momo', 'VNPay', 'ZaloPay', 'PayOS', 'BankTransfer'];
+
+const getOrderStatusLabel = (order: {
+  status?: string | number;
+  statusDescription?: string;
+  paymentMethod?: string;
+  paidAt?: string | null;
+}) => {
+  const status = String(order.status ?? '');
+  const isPending = status === '0' || status === 'Pending';
+  const isCod = order.paymentMethod === 'COD';
+  const isOnline = order.paymentMethod && ONLINE_PAYMENT_METHODS.includes(order.paymentMethod);
+
+  if (isPending && isOnline && !order.paidAt) {
+    return 'Chờ thanh toán';
+  }
+  if (isPending && isCod) {
+    return 'Chờ duyệt (COD)';
+  }
   if (order.statusDescription) return order.statusDescription;
   return getStatusLabel(order.status ?? '');
 };
@@ -67,7 +85,9 @@ const getStatusColor = (statusLabel: string) => {
         return 'bg-red-50 text-red-600 border border-red-100';
     
     // Nhóm Chờ đợi / Xử lý (Vàng/Cam)
-    case 'Chờ xác nhận': 
+    case 'Chờ xác nhận':
+    case 'Chờ thanh toán':
+    case 'Chờ duyệt (COD)':
     case 'Đã xác nhận':
     case 'Đang xử lý': 
         return 'bg-orange-50 text-orange-700 border border-orange-200';

@@ -29,6 +29,11 @@ export const orderService = {
     return response.data;
   },
 
+  refundOrder: async (id: string | number, reason: string) => {
+    const response = await apiClient.post(`/order/${id}/refund`, { reason });
+    return response.data;
+  },
+
   /** Admin / Staff */
   getAllOrders: async (params?: { page?: number; pageSize?: number; status?: string }) => {
     const response = await apiClient.get('/order', { params });
