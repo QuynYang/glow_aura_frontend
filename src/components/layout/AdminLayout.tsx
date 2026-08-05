@@ -21,17 +21,24 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
     navigate('/login');
   };
 
-  // Danh sách menu sidebar
+  // Vai trò hiện tại: Staff chỉ có quyền vận hành sản phẩm/đơn hàng (UC16-UC20, UC26-UC28),
+  // KHÔNG có quyền quản lý tài khoản người dùng ở mức cao nhất hay xem báo cáo thống kê
+  // tổng quan toàn hệ thống — hai quyền đó là của riêng Admin.
+  const isAdmin = String(user?.role).toLowerCase() === 'admin';
+  const roleLabel = isAdmin ? 'Quản trị viên' : 'Nhân viên';
+
+  // Danh sách menu sidebar. Mục có adminOnly=true chỉ hiển thị cho Admin,
+  // vì Staff không có quyền truy cập (RequireRole ở App.tsx cũng chặn ở tầng route).
   const menuItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
-    { label: 'Đơn hàng', icon: ShoppingBag, path: '/admin/orders' },
-    { label: 'Sản phẩm', icon: Package, path: '/admin/products' },
-    { label: 'Tồn kho', icon: Boxes, path: '/admin/inventory' },
-    { label: 'Khách hàng', icon: Users, path: '/admin/customers' },
-    { label: 'Khuyến mãi', icon: Tag, path: '/admin/promotions' }, 
-    { label: 'Thống kê', icon: BarChart2, path: '/admin/analytics' },
-    { label: 'Cài đặt', icon: Settings, path: '/admin/settings' },
-  ];
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/admin', adminOnly: false },
+    { label: 'Đơn hàng', icon: ShoppingBag, path: '/admin/orders', adminOnly: false },
+    { label: 'Sản phẩm', icon: Package, path: '/admin/products', adminOnly: false },
+    { label: 'Tồn kho', icon: Boxes, path: '/admin/inventory', adminOnly: false },
+    { label: 'Khách hàng', icon: Users, path: '/admin/customers', adminOnly: false },
+    { label: 'Khuyến mãi', icon: Tag, path: '/admin/promotions', adminOnly: false },
+    { label: 'Thống kê', icon: BarChart2, path: '/admin/analytics', adminOnly: true },
+    { label: 'Cài đặt', icon: Settings, path: '/admin/settings', adminOnly: true },
+  ].filter((item) => !item.adminOnly || isAdmin);
 
   return (
     <div className="min-h-screen bg-[#F3F4F6] font-sans text-gray-900 flex">
@@ -107,13 +114,15 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
                             <p className="text-sm font-bold text-gray-900">
                               {(user as { fullName?: string; name?: string })?.fullName ||
                                 (user as { name?: string })?.name ||
-                                'Admin User'}
+                                roleLabel}
                             </p>
-                            <p className="text-[10px] text-gray-500 uppercase">Quản trị viên</p>
+                            <p className={`text-[10px] uppercase font-semibold ${isAdmin ? 'text-gray-500' : 'text-blue-600'}`}>
+                              {roleLabel}
+                            </p>
                         </div>
                         <img 
                             src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200" 
-                            alt="Admin" 
+                            alt={roleLabel} 
                             className="w-10 h-10 rounded-full border-2 border-gray-100 object-cover"
                         />
                     </button>

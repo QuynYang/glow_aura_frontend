@@ -6,6 +6,7 @@ import {
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../../services/apiClient';
+import { useAuth } from '../../context/AuthContext';
 
 // Component Thẻ Thống Kê
 const StatCard = ({ label, value, subValue, colorClass }: any) => (
@@ -21,7 +22,13 @@ const StatCard = ({ label, value, subValue, colorClass }: any) => (
 );
 
 export const AdminCustomerPage = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  // Theo báo cáo (Bảng 4.4.1): Staff chỉ được "xem danh sách và thông tin người dùng".
+  // Việc tạo tài khoản, phân quyền, khóa/mở khóa hay xóa tài khoản là quyền riêng của Admin
+  // (khớp với [Authorize(Roles = "Admin")] trên các endpoint POST/PATCH-role/PATCH-status/DELETE
+  // trong UserController.cs) nên các thao tác này phải được ẩn khỏi giao diện của Staff.
+  const isAdmin = String(user?.role).toLowerCase() === 'admin';
   
   // States Quản lý Dữ liệu
   const [customers, setCustomers] = useState<any[]>([]);
@@ -158,12 +165,14 @@ export const AdminCustomerPage = () => {
       <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold text-gray-900">Quản Lý Khách Hàng</h1>
-              <button 
-                  onClick={() => navigate('/admin/customers/add')}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-[#3D021E] text-white rounded-lg text-sm font-bold hover:bg-[#5a032d] transition-all shadow-lg shadow-pink-900/10 transform hover:-translate-y-1"
-              >
-                  <UserPlus className="w-4 h-4" /> Thêm Khách Hàng
-              </button>
+              {isAdmin && (
+                  <button 
+                      onClick={() => navigate('/admin/customers/add')}
+                      className="flex items-center gap-2 px-6 py-2.5 bg-[#3D021E] text-white rounded-lg text-sm font-bold hover:bg-[#5a032d] transition-all shadow-lg shadow-pink-900/10 transform hover:-translate-y-1"
+                  >
+                      <UserPlus className="w-4 h-4" /> Thêm Khách Hàng
+                  </button>
+              )}
           </div>
 
           {/* Stats Grid */}
@@ -223,7 +232,7 @@ export const AdminCustomerPage = () => {
                          <th className="px-6 py-4">Ngày Tham Gia</th>
                          <th className="px-6 py-4">Quyền / Hạng</th>
                          <th className="px-6 py-4">Trạng Thái</th>
-                         <th className="px-6 py-4 text-right">Hành Động</th>
+                         <th className="px-6 py-4 text-right">{isAdmin ? 'Hành Động' : 'Quyền Truy Cập'}</th>
                      </tr>
                  </thead>
                  <tbody className="divide-y divide-gray-100">
@@ -286,29 +295,37 @@ export const AdminCustomerPage = () => {
                                      </span>
                                  </td>
 
-                                 {/* Actions */}
+                                 {/* Actions: khóa/mở, xóa, tạo tài khoản đều thuộc quyền quản lý tài khoản
+                                     ở mức cao nhất -> chỉ Admin được thao tác (UserController.cs: PATCH role/
+                                     status, DELETE đều [Authorize(Roles = "Admin")]). Staff chỉ xem. */}
                                  <td className="px-6 py-4 text-right">
-                                     <div className="flex items-center justify-end gap-2">
-                                         <button 
-                                            onClick={() => navigate(`/admin/customers/edit/${customer.id}`)}
-                                            className="p-2 text-gray-400 hover:text-[#3D021E] hover:bg-purple-50 rounded-lg transition-colors" title="Chỉnh sửa"
-                                         >
-                                             <Edit className="w-4 h-4" />
-                                         </button>
-                                         <button 
-                                            onClick={() => handleToggleStatus(customer.id, customer.status)}
-                                            className={`p-2 rounded-lg transition-colors ${customer.status === 'Hoạt động' ? 'text-gray-400 hover:text-orange-500 hover:bg-orange-50' : 'text-orange-500 bg-orange-50'}`} 
-                                            title={customer.status === 'Hoạt động' ? "Khóa tài khoản" : "Mở khóa tài khoản"}
-                                         >
-                                             {customer.status === 'Hoạt động' ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
-                                         </button>
-                                         <button 
-                                            onClick={() => handleDelete(customer.id)}
-                                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Xóa vĩnh viễn"
-                                         >
-                                             <Trash2 className="w-4 h-4" />
-                                         </button>
-                                     </div>
+                                     {isAdmin ? (
+                                         <div className="flex items-center justify-end gap-2">
+                                             <button 
+                                                onClick={() => navigate(`/admin/customers/edit/${customer.id}`)}
+                                                className="p-2 text-gray-400 hover:text-[#3D021E] hover:bg-purple-50 rounded-lg transition-colors" title="Chỉnh sửa"
+                                             >
+                                                 <Edit className="w-4 h-4" />
+                                             </button>
+                                             <button 
+                                                onClick={() => handleToggleStatus(customer.id, customer.status)}
+                                                className={`p-2 rounded-lg transition-colors ${customer.status === 'Hoạt động' ? 'text-gray-400 hover:text-orange-500 hover:bg-orange-50' : 'text-orange-500 bg-orange-50'}`} 
+                                                title={customer.status === 'Hoạt động' ? "Khóa tài khoản" : "Mở khóa tài khoản"}
+                                             >
+                                                 {customer.status === 'Hoạt động' ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                                             </button>
+                                             <button 
+                                                onClick={() => handleDelete(customer.id)}
+                                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Xóa vĩnh viễn"
+                                             >
+                                                 <Trash2 className="w-4 h-4" />
+                                             </button>
+                                         </div>
+                                     ) : (
+                                         <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-400 uppercase">
+                                             Chỉ xem
+                                         </span>
+                                     )}
                                  </td>
                              </tr>
                          ))
