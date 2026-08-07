@@ -39,17 +39,24 @@ export const AdminOrderDetailPage = () => {
 
   // 2. CÁC HÀM XỬ LÝ API (DUYỆT, THANH TOÁN, ĐỔI TRẠNG THÁI, HỦY)
   
-  // Xác nhận đơn hàng (Pending -> Confirmed)
+  // Xác nhận COD hoặc duyệt đơn online đã thanh toán
   const handleConfirmOrder = async () => {
-      if (!window.confirm("Xác nhận duyệt đơn hàng này?")) return;
+      const isOnlinePaid =
+        order.paymentMethod !== 'COD' &&
+        (order.paymentStatus === 'Paid' || !!order.paidAt);
+
+      const confirmMessage = isOnlinePaid
+        ? 'Duyệt đơn online đã thanh toán và chuyển sang xử lý?'
+        : 'Xác nhận đơn COD này?';
+
+      if (!window.confirm(confirmMessage)) return;
       setIsProcessing(true);
       try {
-          // Gửi fee ship mặc định 30k (hoặc lấy từ order)
-          await apiClient.post(`/order/${id}/confirm`, { shippingFee: 30000 });
-          await fetchOrderDetails(); 
+          await apiClient.post(`/order/${id}/confirm`, {});
+          await fetchOrderDetails();
       } catch (error: any) {
           console.error(error);
-          alert(error.response?.data?.message || "Lỗi khi xác nhận đơn hàng!");
+          alert(error.response?.data?.message || 'Lỗi khi xác nhận/duyệt đơn hàng!');
       } finally {
           setIsProcessing(false);
       }
@@ -109,6 +116,12 @@ export const AdminOrderDetailPage = () => {
   };
 
   const handleRefund = async () => {
+      const isPayOs = order.paymentMethod === 'PayOS';
+      const confirmMsg = isPayOs
+        ? 'PayOS chưa hỗ trợ hoàn tiền tự động. Hệ thống sẽ đánh dấu hoàn tiền thủ công — bạn cần xử lý trên dashboard PayOS. Tiếp tục?'
+        : 'Xác nhận hoàn tiền đơn hàng này?';
+      if (!window.confirm(confirmMsg)) return;
+
       const reason = window.prompt('Lý do hoàn tiền:');
       if (!reason) return;
       setIsProcessing(true);
@@ -136,27 +149,42 @@ export const AdminOrderDetailPage = () => {
 
   // Phân tích trạng thái hiện tại
   const status = order.status || 'Pending';
+  const paymentStatus = order.paymentStatus || 'Unpaid';
+  const isCod = order.paymentMethod === 'COD';
   const isCancelled = status === 'Cancelled';
-  const isPaid = !!order.paidAt || status === 'Paid' || status === 'Processing' || status === 'Shipping' || status === 'Delivered' || status === 'Completed';
-  const availableActions: string[] = order.availableActions || ({
-      Pending: ['Confirm'],
-      Paid: ['Confirm', 'Refund'],
-      Confirmed: ['StartProcessing', 'Refund'],
-      Processing: ['Ship', 'Refund'],
-      Shipping: ['Deliver'],
-      Delivered: ['Complete'],
-      PaymentFailed: ['Cancel'],
-      Refunded: [],
-      Cancelled: [],
-  } as Record<string, string[]>)[status] || [];
+  const isPaid = paymentStatus === 'Paid' || !!order.paidAt;
+  const isPaymentFailed = paymentStatus === 'PaymentFailed';
+
+  const deriveAvailableActions = (): string[] => {
+    if (isCancelled || status === 'Refunded') return [];
+
+    if (status === 'Pending') {
+      if (isPaymentFailed) return ['Cancel'];
+      if (!isCod && isPaid) return ['Confirm', 'Refund'];
+      if (isCod && !isPaid) return ['Confirm', 'Cancel'];
+      if (!isCod && !isPaid) return ['Cancel'];
+      return ['Cancel'];
+    }
+    if (status === 'Confirmed') return ['StartProcessing', 'Cancel'];
+    if (status === 'Processing') return ['Ship', ...(isPaid ? ['Refund'] : [])];
+    if (status === 'Shipping') return ['Deliver'];
+    if (status === 'Delivered') return ['Complete'];
+    if (status === 'Paid') return ['Confirm', 'Refund'];
+    return [];
+  };
+
+  const availableActions = deriveAvailableActions();
+  const confirmButtonLabel =
+    !isCod && isPaid ? 'Duyệt đơn (đã thanh toán)' : 'Xác nhận đơn COD';
 
   // Logic hiển thị thanh Progress
   const getStatusProgress = () => {
     if (isCancelled) return { width: '100%', label: 'Đã hủy', color: 'bg-red-500', barColor: 'bg-red-100' };
     switch (status) {
       case 'Pending':
-        return { width: '15%', label: order.paymentMethod === 'COD' ? 'Chờ duyệt (COD)' : 'Chờ thanh toán', color: 'bg-gray-800', barColor: 'bg-pink-100' };
-      case 'PaymentFailed': return { width: '20%', label: 'Thanh toán thất bại', color: 'bg-red-400', barColor: 'bg-pink-100' };
+        if (isPaid && !isCod) return { width: '35%', label: 'Đã thanh toán — chờ duyệt', color: 'bg-indigo-500', barColor: 'bg-pink-100' };
+        if (isPaymentFailed) return { width: '20%', label: 'Thanh toán thất bại', color: 'bg-red-400', barColor: 'bg-pink-100' };
+        return { width: '15%', label: isCod ? 'Chờ xác nhận (COD)' : 'Chờ thanh toán', color: 'bg-gray-800', barColor: 'bg-pink-100' };
       case 'Paid': return { width: '35%', label: 'Đã thanh toán — chờ duyệt', color: 'bg-indigo-500', barColor: 'bg-pink-100' };
       case 'Confirmed': return { width: '50%', label: 'Đã xác nhận', color: 'bg-yellow-500', barColor: 'bg-pink-100' };
       case 'Processing': return { width: '65%', label: 'Đang đóng gói', color: 'bg-orange-500', barColor: 'bg-pink-100' };
@@ -310,7 +338,7 @@ export const AdminOrderDetailPage = () => {
                 </div>
                 <div className="flex justify-between items-center mb-6">
                     <p className={`text-sm font-bold ${isCancelled ? 'text-red-600' : 'text-[#E11D48]'}`}>{progress.label}</p>
-                    <span className="text-xs text-gray-400 font-mono uppercase">{status}</span>
+                    <span className="text-xs text-gray-400 font-mono uppercase">{order.statusDescription || status}</span>
                 </div>
 
                 {/* Box Thanh Toán Read-only */}
@@ -332,7 +360,7 @@ export const AdminOrderDetailPage = () => {
                     
                     {availableActions.includes('Confirm') && (
                         <button onClick={handleConfirmOrder} disabled={isProcessing} className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-[#E11D48] text-white font-bold rounded-xl hover:bg-[#BE123C] shadow-md shadow-red-200 transition-all disabled:opacity-50">
-                            <CheckCircle className="w-5 h-5" /> Duyệt đơn hàng
+                            <CheckCircle className="w-5 h-5" /> {confirmButtonLabel}
                         </button>
                     )}
 

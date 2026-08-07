@@ -37,8 +37,9 @@ export const CartPage = () => {
 
   // 3. TÍNH TOÁN TIỀN TỰ ĐỘNG
   const subTotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const shippingFee = preview?.shippingFee ?? (subTotal >= 500_000 ? 0 : 30_000);
   const discount = preview?.totalDiscount || 0;
-  const total = preview?.totalAmount || subTotal - discount;
+  const total = preview?.totalAmount ?? subTotal + shippingFee - discount;
 
   useEffect(() => {
     const fetchPreview = async () => {
@@ -51,7 +52,7 @@ export const CartPage = () => {
       try {
         const data = await checkoutService.preview({
           items: cartItems.map((item) => ({
-            productId: Number(item.id),
+            productId: String(item.id),
             quantity: Number(item.quantity),
           })),
           shippingAddress: 'Preview',
@@ -175,7 +176,9 @@ export const CartPage = () => {
                     </div>
                     <div className="flex justify-between">
                       <span>Phí vận chuyển</span>
-                      <span className="font-bold text-[#147A42]">Miễn phí</span>
+                      <span className="font-bold text-[#147A42]">
+                        {shippingFee === 0 ? 'Miễn phí' : formatVND(shippingFee)}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Giảm giá</span>
