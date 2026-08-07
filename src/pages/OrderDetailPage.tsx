@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { orderService } from '../services/orderService';
+import { getOrderDisplayStatus, isOrderPaid, PAYMENT_METHOD_LABELS } from '../utils/orderStatus';
 
 const formatVND = (amount: number) => new Intl.NumberFormat('vi-VN').format(amount || 0) + 'đ';
 
@@ -23,7 +24,8 @@ export const OrderDetailPage = () => {
       if (!id) return;
       try {
         setIsLoading(true);
-        const data = await orderService.getOrderById(id);
+        const raw = await orderService.getOrderById(id);
+        const data = raw?.data ?? raw;
         setOrder(data);
       } catch (error) {
         console.error(error);
@@ -53,41 +55,47 @@ export const OrderDetailPage = () => {
     }
   };
 
-  const getAvailableActions = (status: string, paidAt?: string | null) => {
-    const map: Record<string, string[]> = {
-      Pending: ['Cancel', 'Pay'],
-      PaymentFailed: ['Cancel', 'Pay'],
-      Paid: [],
-      // Đơn Confirmed chỉ còn cho phép Cancel nếu là COD chưa thu tiền (paidAt rỗng).
-      // Nếu đã thanh toán online (paidAt có giá trị), backend sẽ từ chối Cancel và
-      // yêu cầu dùng Refund (chức năng của Admin) -> không hiển thị nút Cancel nữa.
-      Confirmed: paidAt ? [] : ['Cancel'],
-      Processing: [],
-      Shipping: [],
-      Delivered: [],
-    };
-    return map[status] || [];
+  const getAvailableActions = (orderData: {
+    status?: string;
+    paymentStatus?: string;
+    paymentMethod?: string;
+    paidAt?: string | null;
+  }) => {
+    const status = orderData.status ?? 'Pending';
+    const isCod = orderData.paymentMethod === 'COD';
+    const isPaid = isOrderPaid(orderData);
+    const isFailed = String(orderData.paymentStatus ?? '').toLowerCase() === 'paymentfailed';
+
+    if (status === 'Cancelled' || status === 'Refunded') return [];
+    if (status === 'Pending') {
+      if (isFailed) return ['Cancel', 'Pay'];
+      if (!isCod && !isPaid) return ['Cancel', 'Pay'];
+      if (isCod && !isPaid) return ['Cancel'];
+      return [];
+    }
+    if (status === 'Confirmed' && isCod && !isPaid) return ['Cancel'];
+    return [];
   };
 
-  const handleRepay = async (forceCod = false) => {
+  const handleRepay = async () => {
+    if (order.paymentMethod === 'COD') return;
     try {
       setIsPaying(true);
-      const paymentMethodMap: Record<string, number> = { COD: 0, Momo: 1, VNPay: 2, ZaloPay: 3 };
-      const method = forceCod ? 0 : (paymentMethodMap[order.paymentMethod] ?? 2);
       const data = await orderService.payOrder(id!, {
-        paymentMethod: method,
+        paymentMethod: 5,
         returnUrl: `${window.location.origin}${import.meta.env.BASE_URL}#/payment-result?orderId=${order.id}`,
         cancelUrl: `${window.location.origin}${import.meta.env.BASE_URL}#/payment-result?orderId=${order.id}`,
       });
-      const redirectUrl = data?.redirectUrl || data?.data?.redirectUrl;
+      const payload = data?.data ?? data;
+      const redirectUrl = payload?.paymentUrl || payload?.redirectUrl;
       if (redirectUrl) {
         window.location.href = redirectUrl;
         return;
       }
-      const updatedData = await orderService.getOrderById(id!);
-      setOrder(updatedData);
+      const updatedRaw = await orderService.getOrderById(id!);
+      setOrder(updatedRaw?.data ?? updatedRaw);
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Không thể thanh toán lại đơn hàng.');
+      alert(error.response?.data?.message || 'Không thể thanh toán lại đơn hàng. Chỉ hỗ trợ PayOS trong demo.');
     } finally {
       setIsPaying(false);
     }
@@ -122,7 +130,9 @@ export const OrderDetailPage = () => {
     PaymentFailed: 9,
   };
   const statusInt = typeof order.status === 'number' ? order.status : (statusCodeMap[order.status] ?? -1);
-  const availableActions = order.availableActions || getAvailableActions(order.status, order.paidAt);
+  const availableActions = order.availableActions || getAvailableActions(order);
+  const displayStatus = getOrderDisplayStatus(order);
+  const orderIsPaid = isOrderPaid(order);
   
   // Logic Timeline 
   // 0: Pending, 1: Confirmed, 2: Paid, 3: Processing, 4: Shipping, 5: Delivered, 6: Completed, 7: Cancelled
@@ -131,7 +141,10 @@ export const OrderDetailPage = () => {
   const stepProcessing = statusInt >= 3 && !isCancelled;
   const stepShipping = statusInt >= 4 && !isCancelled;
   const stepDelivered = statusInt >= 5 && !isCancelled;
-  const isPendingPayment = order.status === 'Pending' || order.status === 'PaymentFailed' || statusInt === 0 || statusInt === 9;
+  const isPendingPayment =
+    (order.status === 'Pending' || statusInt === 0) &&
+    !orderIsPaid &&
+    order.paymentMethod !== 'COD';
   const needsRefundInsteadOfCancel = order.status === 'Confirmed' && !!order.paidAt;
 
   return (
@@ -154,6 +167,7 @@ export const OrderDetailPage = () => {
                     </h1>
                     <p className="text-gray-600 text-sm">
                         Mã đơn hàng: <span className="font-bold text-gray-900">#{orderNumber}</span> • Ngày đặt: {orderDate}
+                        <span className="ml-2 inline-block px-2 py-0.5 rounded-full bg-gray-100 text-xs font-bold text-gray-700">{displayStatus}</span>
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
@@ -168,24 +182,15 @@ export const OrderDetailPage = () => {
                             Hủy đơn hàng
                         </button>
                     )}
-                    {availableActions.includes('Pay') && (
-                        <>
+                    {availableActions.includes('Pay') && order.paymentMethod !== 'COD' && (
                             <button
-                              onClick={() => handleRepay(false)}
+                              onClick={() => handleRepay()}
                               disabled={isPaying}
                               className="flex items-center gap-2 px-5 py-2.5 bg-[#3D021E] text-white rounded-xl font-bold text-sm hover:bg-[#5a032d] transition-colors shadow-md disabled:opacity-60"
                             >
                               {isPaying ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                              {isPendingPayment && order.status !== 'PaymentFailed' && statusInt !== 9 ? 'Thanh toán' : 'Thanh toán lại'}
+                              {isPendingPayment ? 'Thanh toán PayOS' : 'Thanh toán lại (PayOS)'}
                             </button>
-                            <button
-                              onClick={() => handleRepay(true)}
-                              disabled={isPaying}
-                              className="flex items-center gap-2 px-5 py-2.5 border border-gray-200 bg-white text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-60"
-                            >
-                              Đổi sang COD
-                            </button>
-                        </>
                     )}
                     <button className="flex items-center gap-2 px-5 py-2.5 bg-[#3D021E] text-white rounded-xl font-bold text-sm hover:bg-[#5a032d] transition-colors shadow-md">
                         <RefreshCw className="w-4 h-4" /> Mua lại đơn hàng
@@ -270,12 +275,12 @@ export const OrderDetailPage = () => {
                             {order.paymentMethod || "COD"}
                         </div>
                         <div>
-                            <p className="font-bold text-gray-900">{order.paymentMethod === 'COD' ? 'Thanh toán khi nhận hàng' : order.paymentMethod}</p>
+                            <p className="font-bold text-gray-900">{PAYMENT_METHOD_LABELS[order.paymentMethod] ?? order.paymentMethod}</p>
                         </div>
                     </div>
                     <div className="mt-auto border-t border-gray-100 pt-4">
-                        <p className={`${order.paidAt || statusInt >= 2 ? 'text-[#147A42]' : 'text-orange-600'} text-xs font-bold flex items-center gap-1.5`}>
-                            {order.paidAt || statusInt >= 2 ? <><Check className="w-4 h-4" /> Đã thanh toán</> : 'Chưa thanh toán'}
+                        <p className={`${orderIsPaid ? 'text-[#147A42]' : 'text-orange-600'} text-xs font-bold flex items-center gap-1.5`}>
+                            {orderIsPaid ? <><Check className="w-4 h-4" /> Đã thanh toán</> : 'Chưa thanh toán'}
                         </p>
                     </div>
                 </div>

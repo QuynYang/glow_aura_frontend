@@ -219,10 +219,8 @@ export const CartPage = () => {
                   </button>
 
                   <div className="flex justify-center items-center gap-2 mt-6 opacity-40">
-                     <div className="w-8 h-5 bg-gray-500 rounded flex items-center justify-center text-[8px] text-white font-bold">MOMO</div>
-                     <div className="w-8 h-5 bg-gray-500 rounded flex items-center justify-center text-[8px] text-white font-bold">VNPAY</div>
-                     <div className="w-8 h-5 bg-gray-500 rounded flex items-center justify-center text-[8px] text-white font-bold">COD</div>
-                     <div className="w-8 h-5 bg-gray-500 rounded flex items-center justify-center text-[8px] text-white font-bold">ZALOPAY</div>
+                     <div className="w-10 h-5 bg-gray-500 rounded flex items-center justify-center text-[8px] text-white font-bold">COD</div>
+                     <div className="w-10 h-5 bg-gray-500 rounded flex items-center justify-center text-[8px] text-white font-bold">PayOS</div>
                   </div>
                 </div>
 

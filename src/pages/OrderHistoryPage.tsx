@@ -3,110 +3,20 @@ import { Filter, ChevronLeft, ChevronRight, Check, Loader2, PackageX } from 'luc
 import { MainLayout } from '../components/layout/MainLayout';
 import { ProfileSidebar } from '../features/user/components/ProfileSidebar';
 import { useNavigate } from 'react-router-dom';
-import { orderService } from '../services/orderService'; 
+import { orderService } from '../services/orderService';
+import { getOrderDisplayStatus, getStatusBadgeColor } from '../utils/orderStatus';
 
-const getStatusLabel = (statusValue: number | string) => {
-  switch (String(statusValue)) {
-    case '0':
-    case 'Pending':
-      return 'Chờ xác nhận';
-    case '1':
-    case 'Confirmed':
-      return 'Đã xác nhận';
-    case '2':
-    case 'Paid':
-      return 'Đã thanh toán';
-    case '3':
-    case 'Processing':
-      return 'Đang xử lý';
-    case '4':
-    case 'Shipping':
-      return 'Đang giao hàng';
-    case '5':
-    case 'Delivered':
-      return 'Đã giao hàng';
-    case '6':
-    case 'Completed':
-      return 'Hoàn thành';
-    case '7':
-    case 'Cancelled':
-      return 'Đã hủy';
-    case '8':
-    case 'Refunded':
-      return 'Đã hoàn tiền';
-    case '9':
-    case 'PaymentFailed':
-      return 'Thanh toán thất bại';
-    default:
-      return 'Không xác định';
-  }
-};
-
-const ONLINE_PAYMENT_METHODS = ['Momo', 'VNPay', 'ZaloPay', 'PayOS', 'BankTransfer'];
-
-const getOrderStatusLabel = (order: {
-  status?: string | number;
-  statusDescription?: string;
-  paymentMethod?: string;
-  paidAt?: string | null;
-}) => {
-  const status = String(order.status ?? '');
-  const isPending = status === '0' || status === 'Pending';
-  const isCod = order.paymentMethod === 'COD';
-  const isOnline = order.paymentMethod && ONLINE_PAYMENT_METHODS.includes(order.paymentMethod);
-
-  if (isPending && isOnline && !order.paidAt) {
-    return 'Chờ thanh toán';
-  }
-  if (isPending && isCod) {
-    return 'Chờ duyệt (COD)';
-  }
-  if (order.statusDescription) return order.statusDescription;
-  return getStatusLabel(order.status ?? '');
-};
-
-// CHUẨN HÓA MÀU SẮC CHO CÁC TRẠNG THÁI ĐƠN HÀNG
-const getStatusColor = (statusLabel: string) => {
-  switch (statusLabel) {
-    // Nhóm Thành công / Tích cực (Xanh lá)
-    case 'Đã thanh toán':
-    case 'Đã giao hàng':
-    case 'Hoàn thành': 
-        return 'bg-green-50 text-green-700 border border-green-200';
-    
-    // Nhóm Đang vận chuyển (Xanh dương)
-    case 'Đang giao hàng': 
-        return 'bg-blue-50 text-blue-700 border border-blue-200';
-    
-    // Nhóm Thất bại / Hủy (Đỏ)
-    case 'Đã hủy': 
-    case 'Đã hoàn tiền':
-    case 'Thanh toán thất bại':
-        return 'bg-red-50 text-red-600 border border-red-100';
-    
-    // Nhóm Chờ đợi / Xử lý (Vàng/Cam)
-    case 'Chờ xác nhận':
-    case 'Chờ thanh toán':
-    case 'Chờ duyệt (COD)':
-    case 'Đã xác nhận':
-    case 'Đang xử lý': 
-        return 'bg-orange-50 text-orange-700 border border-orange-200';
-        
-    default: 
-        return 'bg-gray-50 text-gray-700 border border-gray-200';
-  }
-};
-
-// Cập nhật Bộ lọc
 const FILTER_OPTIONS = [
-    'Tất cả', 
-    'Chờ xác nhận', 
-    'Đã xác nhận',
-    'Đã thanh toán',
-    'Đang xử lý', 
-    'Đang giao hàng', 
-    'Hoàn thành', 
-    'Đã hủy'
+  'Tất cả',
+  'Chờ thanh toán',
+  'Chờ xác nhận (COD)',
+  'Đã thanh toán, chờ duyệt',
+  'Đã xác nhận (COD)',
+  'Đang xử lý',
+  'Đang giao hàng',
+  'Hoàn thành',
+  'Thanh toán thất bại',
+  'Đã hủy',
 ];
 
 export const OrderHistoryPage = () => {
@@ -149,7 +59,7 @@ export const OrderHistoryPage = () => {
   const filteredOrders =
     filterStatus === 'Tất cả'
       ? orders
-      : orders.filter((order) => getOrderStatusLabel(order) === filterStatus);
+      : orders.filter((order) => getOrderDisplayStatus(order) === filterStatus);
 
   return (
     <MainLayout>
@@ -238,7 +148,7 @@ export const OrderHistoryPage = () => {
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
                                         {filteredOrders.map((order) => {
-                                            const statusLabel = getOrderStatusLabel(order);
+                                            const statusLabel = getOrderDisplayStatus(order);
                                             return (
                                                 <tr key={order.id} className="hover:bg-gray-50/50 transition-colors">
                                                     <td className="px-6 md:px-8 py-5 font-bold text-gray-900 whitespace-nowrap">
@@ -248,7 +158,7 @@ export const OrderHistoryPage = () => {
                                                         {formatDate(order.createdAt || order.orderDate)}
                                                     </td>
                                                     <td className="px-6 md:px-8 py-5 whitespace-nowrap">
-                                                        <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] font-bold uppercase rounded-md tracking-wider ${getStatusColor(statusLabel)}`}>
+                                                        <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] font-bold uppercase rounded-md tracking-wider border ${getStatusBadgeColor(statusLabel)}`}>
                                                             {statusLabel}
                                                         </span>
                                                     </td>

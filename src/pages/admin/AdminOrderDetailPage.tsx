@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import apiClient from '../../services/apiClient';
+import { getOrderDisplayStatus, isOrderPaid, PAYMENT_METHOD_LABELS } from '../../utils/orderStatus';
 
 export const AdminOrderDetailPage = () => {
   const { id } = useParams(); 
@@ -197,6 +198,7 @@ export const AdminOrderDetailPage = () => {
   };
 
   const progress = getStatusProgress();
+  const headerStatus = getOrderDisplayStatus(order);
 
   return (
     <AdminLayout>
@@ -223,6 +225,7 @@ export const AdminOrderDetailPage = () => {
         <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Đơn hàng {order.orderNumber || `#${order.id}`}</h1>
             <p className="text-sm text-gray-500">Đặt lúc {new Date(order.createdAt).toLocaleString('vi-VN')}</p>
+            <p className="text-sm font-medium text-[#E11D48] mt-1">{headerStatus}</p>
         </div>
         
         {/* NÚT IN HÓA ĐƠN */}
@@ -343,15 +346,26 @@ export const AdminOrderDetailPage = () => {
 
                 {/* Box Thanh Toán Read-only */}
                 <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 mb-6">
-                    <p className="text-xs text-gray-500 uppercase font-bold mb-1">Thanh toán qua: <span className="text-gray-900">{order.paymentMethod || 'COD'}</span></p>
+                    <p className="text-xs text-gray-500 uppercase font-bold mb-1">
+                        Thanh toán: <span className="text-gray-900">{PAYMENT_METHOD_LABELS[order.paymentMethod] ?? order.paymentMethod}</span>
+                    </p>
+                    <p className="text-xs text-gray-500 mb-2">
+                        TT: <span className="font-mono text-gray-700">{order.paymentStatus || 'Unpaid'}</span>
+                    </p>
                     <div className="flex items-center gap-2">
                         {isPaid ? (
                             <><CheckCircle2 className="w-5 h-5 text-green-500" /> <span className="text-sm font-bold text-green-700">Đã thanh toán</span></>
                         ) : (
-                            <><Clock className="w-5 h-5 text-orange-500" /> <span className="text-sm font-bold text-orange-700">Chờ thanh toán</span></>
+                            <><Clock className="w-5 h-5 text-orange-500" /> <span className="text-sm font-bold text-orange-700">Chưa thanh toán</span></>
                         )}
                     </div>
                     {order.paidAt && <p className="text-[10px] text-gray-400 mt-2">Lúc: {new Date(order.paidAt).toLocaleString('vi-VN')}</p>}
+                    <p className="text-xs text-gray-500 mt-3 border-t border-gray-200 pt-2">
+                        Phí ship: <span className="font-bold text-gray-800">{(order.shippingFee || 0).toLocaleString('vi-VN')}đ</span>
+                        {order.shippingFee === 0 && order.subTotal >= 500000 && (
+                            <span className="text-green-600 ml-1">(Miễn phí ≥500k)</span>
+                        )}
+                    </p>
                 </div>
 
                 {/* BẢNG ĐIỀU KHIỂN HÀNH ĐỘNG */}

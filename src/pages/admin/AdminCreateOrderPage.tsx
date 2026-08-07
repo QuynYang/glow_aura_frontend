@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import apiClient from '../../services/apiClient';
+import { calculateShippingFee, PAYMENT_METHOD_LABELS } from '../../utils/orderStatus';
 
 export const AdminCreateOrderPage = () => {
   const navigate = useNavigate();
@@ -20,11 +21,9 @@ export const AdminCreateOrderPage = () => {
   const [customer, setCustomer] = useState({ name: '', phone: '', address: '' });
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<any[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState('COD');
+  const [paymentMethod, setPaymentMethod] = useState<'COD'>('COD');
   
-  // States Giao hàng & Khuyến mãi (Chỉ phục vụ hiển thị UI tạm tính)
   const [shippingProvider, setShippingProvider] = useState('ghtk');
-  const [shippingFee, setShippingFee] = useState(30000);
   const [discount, setDiscount] = useState(0);
   const [couponCode, setCouponCode] = useState('');
   const [orderNote, setOrderNote] = useState('');
@@ -111,6 +110,7 @@ export const AdminCreateOrderPage = () => {
 
   // Tính toán tiền
   const subTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const shippingFee = calculateShippingFee(subTotal);
   const currentShippingFee = subTotal > 0 ? shippingFee : 0;
   const total = Math.max(0, subTotal + currentShippingFee - discount);
 
@@ -125,10 +125,7 @@ export const AdminCreateOrderPage = () => {
     
     setIsSubmitting(true);
     
-    // Map đúng số của Enum PaymentMethod
-    let paymentMethodId = 0; // Mặc định 0 = COD
-    if (paymentMethod === 'Ví MoMo') paymentMethodId = 1; // Momo = 1
-    if (paymentMethod === 'Chuyển khoản (VNPay)') paymentMethodId = 2; // VNPay = 2
+    let paymentMethodId = 0;
 
     const payload = {
         items: cart.map(item => ({
@@ -334,16 +331,11 @@ export const AdminCreateOrderPage = () => {
                     <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <CreditCard className="w-5 h-5 text-[#3D021E]" /> Thanh toán
                     </h2>
-                    <div className="space-y-3">
-                        {['COD', 'Chuyển khoản (VNPay)', 'Ví MoMo'].map(method => (
-                            <label key={method} className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all ${paymentMethod === method ? 'border-[#3D021E] bg-pink-50/30' : 'border-gray-200 hover:border-gray-300'}`}>
-                                <span className="text-sm font-medium text-gray-700">{method}</span>
-                                <input type="radio" name="payment" value={method} 
-                                    checked={paymentMethod === method} onChange={() => setPaymentMethod(method)}
-                                    className="w-4 h-4 text-[#3D021E] focus:ring-[#3D021E]"
-                                />
-                            </label>
-                        ))}
+                    <p className="text-sm text-gray-600 mb-3">
+                        Admin tạo đơn thủ công chỉ hỗ trợ <strong>COD</strong>. Khách đặt online qua PayOS trên storefront.
+                    </p>
+                    <div className="p-4 border border-[#3D021E] rounded-xl bg-pink-50/30">
+                        <span className="text-sm font-medium text-gray-800">{PAYMENT_METHOD_LABELS.COD}</span>
                     </div>
                 </div>
 
