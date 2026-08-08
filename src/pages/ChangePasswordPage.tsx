@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Lock, Eye, EyeOff, Save, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { ProfileSidebar } from '../features/user/components/ProfileSidebar';
-import { authService } from '../services/authService'; // Import service gọi API
+import { authService } from '../services/authService';
+import { userService } from '../services/userService';
 
 export const ChangePasswordPage = () => {
+  const [hasPassword, setHasPassword] = useState<boolean | null>(null);
   // State hiển thị/ẩn mật khẩu
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
@@ -22,6 +24,15 @@ export const ChangePasswordPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  useEffect(() => {
+    userService
+      .getCurrentUser()
+      .then((profile) => setHasPassword(!!profile?.hasPassword))
+      .catch(() => setHasPassword(true));
+  }, []);
+
+  const isSetPasswordMode = hasPassword === false;
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -35,13 +46,18 @@ export const ChangePasswordPage = () => {
     setSuccess('');
 
     // 1. Validate cơ bản ở Frontend
-    if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
+    if (isSetPasswordMode) {
+      if (!formData.newPassword || !formData.confirmPassword) {
+        setError('Vui lòng điền đầy đủ các trường.');
+        return;
+      }
+    } else if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
       setError('Vui lòng điền đầy đủ các trường.');
       return;
     }
 
-    if (formData.newPassword.length < 6) {
-      setError('Mật khẩu mới phải có ít nhất 6 ký tự.');
+    if (formData.newPassword.length < 8) {
+      setError('Mật khẩu mới phải có ít nhất 8 ký tự.');
       return;
     }
 
@@ -50,7 +66,7 @@ export const ChangePasswordPage = () => {
       return;
     }
 
-    if (formData.currentPassword === formData.newPassword) {
+    if (formData.currentPassword === formData.newPassword && !isSetPasswordMode) {
       setError('Mật khẩu mới không được trùng với mật khẩu hiện tại.');
       return;
     }
@@ -58,15 +74,21 @@ export const ChangePasswordPage = () => {
     // 2. Gọi API xử lý
     setIsLoading(true);
     try {
-      
-      await authService.changePassword({
-        currentPassword: formData.currentPassword,
-        newPassword: formData.newPassword,
-        confirmNewPassword: formData.confirmPassword 
-      });
-
-      // Thành công: Hiện thông báo và xóa trắng form
-      setSuccess('Đổi mật khẩu thành công! Hãy sử dụng mật khẩu mới cho lần đăng nhập sau.');
+      if (isSetPasswordMode) {
+        await authService.setPassword({
+          newPassword: formData.newPassword,
+          confirmNewPassword: formData.confirmPassword,
+        });
+        setSuccess('Đặt mật khẩu thành công! Từ nay bạn có thể đăng nhập bằng email/mật khẩu.');
+        setHasPassword(true);
+      } else {
+        await authService.changePassword({
+          currentPassword: formData.currentPassword,
+          newPassword: formData.newPassword,
+          confirmNewPassword: formData.confirmPassword,
+        });
+        setSuccess('Đổi mật khẩu thành công! Hãy sử dụng mật khẩu mới cho lần đăng nhập sau.');
+      }
       setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err: any) {
       console.error("Lỗi đổi mật khẩu:", err);
@@ -109,8 +131,14 @@ export const ChangePasswordPage = () => {
                 
                 {/* --- FORM ĐỔI MẬT KHẨU --- */}
                 <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center">
-                    <h2 className="text-2xl font-serif font-bold text-[#3D021E] mb-2">Đổi mật khẩu</h2>
-                    <p className="text-sm text-gray-500 mb-6">Để bảo mật tài khoản, vui lòng không chia sẻ mật khẩu cho người khác.</p>
+                    <h2 className="text-2xl font-serif font-bold text-[#3D021E] mb-2">
+                      {isSetPasswordMode ? 'Đặt mật khẩu' : 'Đổi mật khẩu'}
+                    </h2>
+                    <p className="text-sm text-gray-500 mb-6">
+                      {isSetPasswordMode
+                        ? 'Tài khoản của bạn được tạo bằng Google/Facebook. Đặt mật khẩu để có thể đăng nhập bằng email.'
+                        : 'Để bảo mật tài khoản, vui lòng không chia sẻ mật khẩu cho người khác.'}
+                    </p>
                     
                     {/* Khu vực thông báo lỗi / thành công */}
                     {error && (
@@ -128,7 +156,7 @@ export const ChangePasswordPage = () => {
                     )}
 
                     <form className="space-y-5" onSubmit={handleSubmit}>
-                        {/* Mật khẩu hiện tại */}
+                        {!isSetPasswordMode && (
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Mật khẩu hiện tại</label>
                             <div className="relative">
@@ -151,8 +179,8 @@ export const ChangePasswordPage = () => {
                                 </button>
                             </div>
                         </div>
+                        )}
 
-                        {/* Mật khẩu mới */}
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Mật khẩu mới</label>
                             <div className="relative">

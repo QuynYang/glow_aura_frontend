@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { authService } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import type { User } from '../context/AuthContext';
+import { getPostLoginPath } from '../utils/authRoles';
 import { Loader2, Eye, EyeOff, Facebook } from 'lucide-react';
 
 const GoogleIcon = () => (
@@ -35,8 +36,7 @@ export const RegisterPage = () => {
       return;
     }
     login(data.user as User);
-    alert('Đăng nhập thành công!');
-    navigate('/');
+    navigate(getPostLoginPath((data.user as User).role));
   }, [login, navigate]);
 
   const handleSocialError = (err: unknown, fallback: string) => {
@@ -149,7 +149,7 @@ export const RegisterPage = () => {
         }
 
         alert('Đăng ký thành công! Chào mừng bạn đến với Glow Aura.');
-        navigate('/');
+        navigate(getPostLoginPath((data.user as User | undefined)?.role));
     } catch (err: any) {
         console.error("Lỗi đăng ký:", err);
         if (err.errors && typeof err.errors === 'object') {

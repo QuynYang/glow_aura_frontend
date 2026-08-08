@@ -137,4 +137,30 @@ export const authService = {
         const response = await apiClient.post('/auth/change-password', data);
         return response.data;
     },
+
+    setPassword: async (data: { newPassword: string; confirmNewPassword: string }) => {
+        const response = await apiClient.post('/auth/set-password', data);
+        if (!response.data?.isSuccess) {
+            throw { message: response.data?.message || 'Đặt mật khẩu thất bại' } satisfies ApiErrorPayload;
+        }
+        return response.data;
+    },
+
+    forgotPassword: async (email: string): Promise<string> => {
+        const response = await apiClient.post('/auth/forgot-password', { email });
+        return response.data?.message || 'Nếu email tồn tại, chúng tôi đã gửi hướng dẫn đặt lại mật khẩu.';
+    },
+
+    resetPassword: async (data: {
+        email: string;
+        token: string;
+        newPassword: string;
+        confirmNewPassword: string;
+    }) => {
+        const response = await apiClient.post('/auth/reset-password', data);
+        if (!response.data?.isSuccess) {
+            throw { message: response.data?.message || 'Đặt lại mật khẩu thất bại' } satisfies ApiErrorPayload;
+        }
+        return response.data;
+    },
 };

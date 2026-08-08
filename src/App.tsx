@@ -6,6 +6,7 @@ import { ProductDetailPage } from './pages/ProductDetailPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { ProfilePage } from './pages/ProfilePage';
 import { OrderHistoryPage } from './pages/OrderHistoryPage';
@@ -38,6 +39,7 @@ import { OrderDetailPage } from './pages/OrderDetailPage';
 import { SearchPage } from './pages/SearchPage';
 import { PaymentResultPage } from './pages/PaymentResultPage';
 import { AdminInventoryPage } from './pages/admin/AdminInventoryPage';
+import { RequireStaffOrAdmin, RequireAdminOnly } from './components/auth/RequireRole';
 
 function App() {
   return (
@@ -48,7 +50,7 @@ function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/admin" element={<AdminDashboard />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/profile/orders" element={<OrderHistoryPage />} />
       <Route path="/profile/wishlist" element={<WishlistPage />} />
@@ -67,19 +69,28 @@ function App() {
       <Route path="/skin-quiz" element={<SkinQuizIntroPage />} />
       <Route path="/skin-quiz/test" element={<SkinQuizTestPage />} />
       <Route path="/skin-quiz/result" element={<SkinQuizResultPage />} />
-      <Route path="/admin/products" element={<AdminProductPage />} />
-      <Route path="/admin/inventory" element={<AdminInventoryPage />} />
-      <Route path="/admin/products/add" element={<AdminAddProductPage />} />
-      <Route path="/admin/orders" element={<AdminOrderPage />} />
-      <Route path="/admin/orders/create" element={<AdminCreateOrderPage />} />
-      <Route path="/admin/orders/:id" element={<AdminOrderDetailPage />} />
-      <Route path="/admin/customers" element={<AdminCustomerPage />} />
-      <Route path="/admin/promotions" element={<AdminPromotionPage />} />
-      <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
-      <Route path="/admin/settings" element={<AdminSettingsPage />} />
-      <Route path="/admin/customers/add" element={<AdminAddCustomerPage />} />
-      <Route path="/admin/promotions/add" element={<AdminAddPromotionPage />} />
       <Route path="/search" element={<SearchPage />} />
+
+      {/* Admin + Staff: vận hành đơn, tồn kho (xem), khách (read-only) */}
+      <Route element={<RequireStaffOrAdmin />}>
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/orders" element={<AdminOrderPage />} />
+        <Route path="/admin/orders/create" element={<AdminCreateOrderPage />} />
+        <Route path="/admin/orders/:id" element={<AdminOrderDetailPage />} />
+        <Route path="/admin/inventory" element={<AdminInventoryPage />} />
+        <Route path="/admin/customers" element={<AdminCustomerPage />} />
+      </Route>
+
+      {/* Admin only: SP/KM, analytics, settings, refund UI */}
+      <Route element={<RequireAdminOnly />}>
+        <Route path="/admin/products" element={<AdminProductPage />} />
+        <Route path="/admin/products/add" element={<AdminAddProductPage />} />
+        <Route path="/admin/promotions" element={<AdminPromotionPage />} />
+        <Route path="/admin/promotions/add" element={<AdminAddPromotionPage />} />
+        <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+        <Route path="/admin/settings" element={<AdminSettingsPage />} />
+        <Route path="/admin/customers/add" element={<AdminAddCustomerPage />} />
+      </Route>
     </Routes>
   );
 }

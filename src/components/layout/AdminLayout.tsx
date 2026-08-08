@@ -32,10 +32,10 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
   const menuItems = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/admin', adminOnly: false },
     { label: 'Đơn hàng', icon: ShoppingBag, path: '/admin/orders', adminOnly: false },
-    { label: 'Sản phẩm', icon: Package, path: '/admin/products', adminOnly: false },
+    { label: 'Sản phẩm', icon: Package, path: '/admin/products', adminOnly: true },
     { label: 'Tồn kho', icon: Boxes, path: '/admin/inventory', adminOnly: false },
     { label: 'Khách hàng', icon: Users, path: '/admin/customers', adminOnly: false },
-    { label: 'Khuyến mãi', icon: Tag, path: '/admin/promotions', adminOnly: false },
+    { label: 'Khuyến mãi', icon: Tag, path: '/admin/promotions', adminOnly: true },
     { label: 'Thống kê', icon: BarChart2, path: '/admin/analytics', adminOnly: true },
     { label: 'Cài đặt', icon: Settings, path: '/admin/settings', adminOnly: true },
   ].filter((item) => !item.adminOnly || isAdmin);

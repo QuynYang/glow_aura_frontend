@@ -6,11 +6,15 @@ import {
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import apiClient from '../../services/apiClient';
-import { getOrderDisplayStatus, isOrderPaid, PAYMENT_METHOD_LABELS } from '../../utils/orderStatus';
+import { getOrderDisplayStatus, PAYMENT_METHOD_LABELS } from '../../utils/orderStatus';
+import { useAuth } from '../../context/AuthContext';
+import { isAdmin } from '../../utils/authRoles';
 
 export const AdminOrderDetailPage = () => {
   const { id } = useParams(); 
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const canRefund = isAdmin(user?.role);
 
   const [order, setOrder] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -159,18 +163,21 @@ export const AdminOrderDetailPage = () => {
   const deriveAvailableActions = (): string[] => {
     if (isCancelled || status === 'Refunded') return [];
 
+    const withRefund = (actions: string[]) =>
+      canRefund ? actions : actions.filter((a) => a !== 'Refund');
+
     if (status === 'Pending') {
       if (isPaymentFailed) return ['Cancel'];
-      if (!isCod && isPaid) return ['Confirm', 'Refund'];
+      if (!isCod && isPaid) return withRefund(['Confirm', 'Refund']);
       if (isCod && !isPaid) return ['Confirm', 'Cancel'];
       if (!isCod && !isPaid) return ['Cancel'];
       return ['Cancel'];
     }
     if (status === 'Confirmed') return ['StartProcessing', 'Cancel'];
-    if (status === 'Processing') return ['Ship', ...(isPaid ? ['Refund'] : [])];
+    if (status === 'Processing') return withRefund(['Ship', ...(isPaid ? ['Refund'] : [])]);
     if (status === 'Shipping') return ['Deliver'];
     if (status === 'Delivered') return ['Complete'];
-    if (status === 'Paid') return ['Confirm', 'Refund'];
+    if (status === 'Paid') return withRefund(['Confirm', 'Refund']);
     return [];
   };
 

@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import type { StoredUser } from '../../services/authService';
 import { useCart } from '../../context/CartContext';
+import { isStaffOrAdmin } from '../../utils/authRoles';
 
 // --- Hàm chuyển đổi số VIP sang Nhãn và Màu sắc ---
 const getVipInfo = (level: number | string | undefined) => {
@@ -207,7 +208,7 @@ export const Header = () => {
                             </div>
 
                             <div className="py-2">
-                                {user.role === 'Admin' && (
+                                {isStaffOrAdmin(user.role) && (
                                     <Link 
                                         to="/admin" 
                                         className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"

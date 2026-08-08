@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { authService } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import type { User } from '../context/AuthContext';
+import { getPostLoginPath } from '../utils/authRoles';
 
 const GoogleIcon = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12.5S6.42 23 12.1 23c5.83 0 8.84-4.15 8.84-10.24 0-.68-.04-1.09-.04-1.09z"/></svg>
@@ -29,8 +30,7 @@ export const LoginPage = () => {
       return;
     }
     login(data.user as User);
-    const role = String((data.user as User).role).toLowerCase();
-    navigate(role === 'admin' ? '/admin' : '/');
+    navigate(getPostLoginPath((data.user as User).role));
   }, [login, navigate]);
 
   const handleError = (err: unknown, fallback: string) => {
