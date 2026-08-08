@@ -87,7 +87,11 @@ export const OrderDetailPage = () => {
         cancelUrl: `${window.location.origin}${import.meta.env.BASE_URL}#/payment-result?orderId=${order.id}`,
       });
       const payload = data?.data ?? data;
-      const redirectUrl = payload?.paymentUrl || payload?.redirectUrl;
+      const redirectUrl =
+        payload?.paymentUrl ??
+        payload?.PaymentUrl ??
+        payload?.redirectUrl ??
+        payload?.RedirectUrl;
       if (redirectUrl) {
         window.location.href = redirectUrl;
         return;

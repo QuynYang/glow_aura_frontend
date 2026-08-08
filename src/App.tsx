@@ -40,10 +40,13 @@ import { SearchPage } from './pages/SearchPage';
 import { PaymentResultPage } from './pages/PaymentResultPage';
 import { AdminInventoryPage } from './pages/admin/AdminInventoryPage';
 import { RequireStaffOrAdmin, RequireAdminOnly } from './components/auth/RequireRole';
+import { FacebookOAuthCallback } from './components/auth/FacebookOAuthCallback';
 
 function App() {
   return (
-    <Routes>
+    <>
+      <FacebookOAuthCallback />
+      <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/best-sellers" element={<ProductListPage />} />
       <Route path="/product/:id" element={<ProductDetailPage />} />
@@ -92,6 +95,7 @@ function App() {
         <Route path="/admin/customers/add" element={<AdminAddCustomerPage />} />
       </Route>
     </Routes>
+    </>
   );
 }
 

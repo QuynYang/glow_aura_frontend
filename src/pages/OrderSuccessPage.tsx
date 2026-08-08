@@ -60,7 +60,11 @@ if (!order) return null;
                             <div className="flex justify-between items-center border-b border-gray-100 pb-4">
                                 <span className="text-gray-500">Phương thức</span>
                                 <span className="font-medium text-gray-900">
-                                    {order.paymentMethod === 0 ? "Thanh toán (COD)" : "Thanh toán Online"}
+                                    {order.paymentMethod === 'cod' || order.paymentMethod === 0
+                                      ? 'Thanh toán khi nhận hàng (COD)'
+                                      : order.paymentMethod === 'payos' || order.paymentMethod === 5
+                                        ? 'PayOS (chưa hoàn tất nếu bạn chưa qua cổng thanh toán)'
+                                        : 'Thanh toán online'}
                                 </span>
                             </div>
                             <div className="flex justify-between items-center border-b border-gray-100 pb-4">

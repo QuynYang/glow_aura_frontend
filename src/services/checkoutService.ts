@@ -38,7 +38,20 @@ export type CheckoutResultResponse = {
   orderNumber?: string;
   totalAmount?: number;
   paymentUrl?: string;
+  /** ASP.NET có thể trả PascalCase nếu chưa cấu hình camelCase */
+  PaymentUrl?: string;
 };
+
+/** Chuẩn hóa field từ API (camelCase hoặc PascalCase). */
+export function getCheckoutPaymentUrl(result: CheckoutResultResponse | null | undefined): string | undefined {
+  const url = result?.paymentUrl ?? result?.PaymentUrl;
+  return typeof url === 'string' && url.trim().length > 0 ? url.trim() : undefined;
+}
+
+export function getCheckoutOrderId(result: CheckoutResultResponse | null | undefined): string | undefined {
+  const id = result?.orderId ?? (result as { OrderId?: string })?.OrderId;
+  return typeof id === 'string' && id.length > 0 ? id : undefined;
+}
 
 export const checkoutService = {
   preview: async (payload: CheckoutPayload): Promise<CheckoutPreviewResponse> => {

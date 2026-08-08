@@ -1,11 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { authService } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import type { User } from '../context/AuthContext';
 import { getPostLoginPath } from '../utils/authRoles';
 import { Loader2, Eye, EyeOff, Facebook } from 'lucide-react';
+import { useSocialAuthActions } from '../hooks/useSocialAuthActions';
 
 const GoogleIcon = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12.5S6.42 23 12.1 23c5.83 0 8.84-4.15 8.84-10.24 0-.68-.04-1.09-.04-1.09z"/></svg>
@@ -27,9 +28,6 @@ export const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const googleBtnRef = useRef<HTMLDivElement>(null);
-
-  // Xử lý chung sau khi có data user + token trả về từ backend (dùng chung cho Google/Facebook)
   const handleSocialAuthSuccess = useCallback((data: { user?: unknown; message?: string }) => {
     if (!data?.user) {
       setError(data?.message || 'Đăng ký/Đăng nhập thất bại. Vui lòng thử lại.');
@@ -39,88 +37,21 @@ export const RegisterPage = () => {
     navigate(getPostLoginPath((data.user as User).role));
   }, [login, navigate]);
 
-  const handleSocialError = (err: unknown, fallback: string) => {
-    const message =
-      err && typeof err === 'object' && 'message' in err
-        ? String((err as { message?: string }).message)
-        : fallback;
-    setError(message || fallback);
-  };
-
-  // ----- GOOGLE -----
-  useEffect(() => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!clientId || !window.google || !googleBtnRef.current) return;
-
-    window.google.accounts.id.initialize({
-      client_id: clientId,
-      callback: async (response) => {
-        setError('');
-        setIsLoading(true);
-        try {
-          const data = await authService.loginWithGoogle(response.credential);
-          handleSocialAuthSuccess(data);
-        } catch (err) {
-          handleSocialError(err, 'Đăng ký/Đăng nhập Google thất bại');
-        } finally {
-          setIsLoading(false);
-        }
-      },
-    });
-
-    window.google.accounts.id.renderButton(googleBtnRef.current, {
-      theme: 'outline',
-      size: 'large',
-      width: 280,
-    });
-  }, [handleSocialAuthSuccess]);
-
-  const triggerGoogleLogin = () => {
-    const realButton = googleBtnRef.current?.querySelector<HTMLElement>('div[role="button"]');
-    realButton?.click();
-  };
-
-  // ----- FACEBOOK -----
-  useEffect(() => {
-    const appId = import.meta.env.VITE_FACEBOOK_APP_ID;
-    if (!appId) return;
-
-    if (!document.getElementById('facebook-jssdk')) {
-      const script = document.createElement('script');
-      script.id = 'facebook-jssdk';
-      script.src = 'https://connect.facebook.net/vi_VN/sdk.js';
-      script.async = true;
-      script.defer = true;
-      document.body.appendChild(script);
-    }
-
-    window.fbAsyncInit = () => {
-      window.FB?.init({ appId, cookie: true, xfbml: false, version: 'v21.0' });
-    };
+  const handleSocialError = useCallback((message: string) => {
+    setError(message);
   }, []);
 
-  const handleFacebookLogin = () => {
-    if (!window.FB) {
-      setError('Facebook SDK chưa sẵn sàng, vui lòng thử lại sau giây lát.');
-      return;
+  const { googleBtnRef, triggerGoogleLogin, handleFacebookLogin } = useSocialAuthActions({
+    onSuccess: handleSocialAuthSuccess,
+    onError: handleSocialError,
+    setLoading: setIsLoading,
+  });
+
+  useEffect(() => {
+    if (sessionStorage.getItem('fb_oauth_pending') === '1') {
+      setIsLoading(true);
     }
-    setError('');
-    setIsLoading(true);
-    window.FB.login(async (response) => {
-      if (response.authResponse) {
-        try {
-          const data = await authService.loginWithFacebook(response.authResponse.accessToken);
-          handleSocialAuthSuccess(data);
-        } catch (err) {
-          handleSocialError(err, 'Đăng ký/Đăng nhập Facebook thất bại');
-        } finally {
-          setIsLoading(false);
-        }
-      } else {
-        setIsLoading(false);
-      }
-    }, { scope: 'public_profile,email' });
-  };
+  }, []);
 
   // Hàm xử lý khi bấm Đăng ký
   const handleRegister = async (e: React.FormEvent) => {
@@ -303,7 +234,7 @@ export const RegisterPage = () => {
                       </button>
                       <button
                           type="button"
-                          onClick={handleFacebookLogin}
+                          onClick={() => void handleFacebookLogin()}
                           disabled={isLoading}
                           className="flex items-center justify-center gap-2 bg-[#3b5998] text-white py-2 text-xs hover:opacity-90 transition-colors disabled:opacity-70"
                       >

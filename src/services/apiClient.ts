@@ -13,6 +13,23 @@ function resolveApiBase(): string {
 
 const API_BASE = resolveApiBase();
 
+/** Các route đăng nhập công khai — không gắn JWT cũ, không auto refresh khi 401 */
+const PUBLIC_AUTH_PATHS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/google',
+  '/auth/facebook',
+  '/auth/refresh-token',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/Auth/refresh-token',
+] as const;
+
+function isPublicAuthRequest(url: string): boolean {
+  const normalized = url.toLowerCase();
+  return PUBLIC_AUTH_PATHS.some((path) => normalized.includes(path));
+}
+
 /** Đường dẫn login tương thích GitHub Pages (HashRouter) */
 export function getLoginUrl(): string {
   const base = import.meta.env.BASE_URL || '/';
@@ -28,11 +45,13 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken'); 
-    
-    if (token) {
+    const url = String(config.url || '');
+    const token = localStorage.getItem('accessToken');
+
+    if (token && !isPublicAuthRequest(url)) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
   },
   (error) => {
@@ -49,13 +68,8 @@ apiClient.interceptors.response.use(
 
     // Nếu lỗi là 401 (Unauthorized) VÀ API này chưa từng được "thử lại" lần nào
     const url = String(originalRequest?.url || '');
-    const isAuthRoute =
-      url.includes('/auth/refresh-token') ||
-      url.includes('/Auth/refresh-token') ||
-      url.includes('/auth/login') ||
-      url.includes('/auth/register');
 
-    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isPublicAuthRequest(url)) {
       originalRequest._retry = true; // Đánh dấu là "Đang thử lại" để tránh lặp vô hạn (Infinite Loop)
 
       try {
@@ -86,18 +100,20 @@ apiClient.interceptors.response.use(
           return apiClient(originalRequest);
         }
       } catch (refreshError) {
-        // Nếu việc làm mới Token cũng thất bại
         console.error("Refresh Token thất bại. Bắt buộc đăng nhập lại.", refreshError);
-        
-        // Dọn dẹp rác
+
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         localStorage.removeItem('glow_user');
-        
-        // Đá người dùng văng ra trang Login
-        window.location.href = getLoginUrl();
-        
+
+        const onAuthPage =
+          window.location.hash.includes('/login') ||
+          window.location.hash.includes('/register');
+        if (!onAuthPage) {
+          window.location.href = getLoginUrl();
+        }
+
         return Promise.reject(refreshError);
       }
     }

@@ -4,7 +4,11 @@ import { ArrowRight, Banknote, Landmark } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { checkoutService } from '../services/checkoutService';
+import {
+  checkoutService,
+  getCheckoutOrderId,
+  getCheckoutPaymentUrl,
+} from '../services/checkoutService';
 import { AddressMapPicker } from '../components/ui/AddressMapPicker';
 
 const formatVND = (amount: number) => new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
@@ -137,13 +141,26 @@ export const CheckoutPage = () => {
     try {
       const result = await checkoutService.checkout(orderPayload);
 
-      if (!result?.isSuccess) {
-        throw new Error(result?.message || 'Đặt hàng thất bại');
+      const isSuccess = result?.isSuccess ?? (result as { IsSuccess?: boolean })?.IsSuccess;
+      if (!isSuccess) {
+        throw new Error(result?.message || (result as { Message?: string })?.Message || 'Đặt hàng thất bại');
       }
 
-      if (result.paymentUrl) {
+      const paymentUrl = getCheckoutPaymentUrl(result);
+      const orderId = getCheckoutOrderId(result);
+      const orderNumber =
+        result?.orderNumber ?? (result as { OrderNumber?: string })?.OrderNumber;
+      const totalAmount =
+        result?.totalAmount ?? (result as { TotalAmount?: number })?.TotalAmount;
+
+      if (paymentMethod === 'payos') {
+        if (!paymentUrl) {
+          throw new Error(
+            'Không nhận được link thanh toán PayOS từ máy chủ. Đơn có thể đã được tạo — kiểm tra Lịch sử đơn hàng và thử "Thanh toán lại".',
+          );
+        }
         clearCart();
-        window.location.href = result.paymentUrl;
+        window.location.href = paymentUrl;
         return;
       }
 
@@ -152,9 +169,12 @@ export const CheckoutPage = () => {
       navigate('/order-success', {
         state: {
           order: {
-            orderNumber: result.orderNumber,
-            totalAmount: result.totalAmount,
+            id: orderId,
+            orderNumber,
+            totalAmount,
             shippingAddress: formData.address,
+            receiverName: formData.fullName,
+            paymentMethod: 'cod',
           },
         },
       });
