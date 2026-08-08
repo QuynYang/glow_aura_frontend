@@ -8,6 +8,9 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
+import { addressService, type DivisionItem, type GeocodeResult } from '../../services/addressService';
+import { buildFullAddress, findBestDivisionMatch } from '../../utils/addressNormalize';
+
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
@@ -23,145 +26,173 @@ const MapFlyTo = ({ center }: { center: [number, number] }) => {
   return null;
 };
 
+export type AddressSelection = {
+  fullAddress: string;
+  street: string;
+  provinceCode: string;
+  provinceName: string;
+  wardCode: string;
+  wardName: string;
+  lat: number;
+  lng: number;
+};
+
 interface AddressMapPickerProps {
   onAddressChange: (fullAddress: string) => void;
+  onSelectionChange?: (selection: AddressSelection) => void;
+  initialStreet?: string;
+  initialProvinceCode?: string;
+  initialWardCode?: string;
+  initialPosition?: [number, number];
 }
 
-interface DivisionItem {
-  code: number | string;
-  name: string;
-}
-
-// Bỏ dấu tiếng Việt + hạ chữ thường + bỏ tiền tố hành chính để so khớp gần đúng
-// giữa tên trả về từ Nominatim (OSM) và tên trong danh sách Tỉnh/Phường của mình.
-const normalize = (str: string = ''): string =>
-  str
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/đ/gi, 'd')
-    .toLowerCase()
-    .replace(/^(thanh pho|tinh|phuong|xa|thi tran|quan|huyen)\s+/g, '')
-    .trim();
-
-function findBestMatch<T extends DivisionItem>(
-  list: T[],
-  candidates: Array<string | undefined>
-): T | null {
-  for (const raw of candidates) {
-    if (!raw) continue;
-    const target = normalize(raw);
-    if (!target) continue;
-    const exact = list.find((item) => normalize(item.name) === target);
-    if (exact) return exact;
+async function applyGeocodeToForm(
+  data: GeocodeResult,
+  provinces: DivisionItem[],
+  selectedProvCode: string,
+  wards: DivisionItem[],
+  setters: {
+    setStreet: (v: string) => void;
+    setSelectedProv: (v: { code: string; name: string }) => void;
+    setSelectedWard: (v: { code: string; name: string }) => void;
+    setWards: (v: DivisionItem[]) => void;
   }
-  // Nếu không có khớp tuyệt đối, thử khớp gần đúng (bao hàm chuỗi)
-  for (const raw of candidates) {
-    if (!raw) continue;
-    const target = normalize(raw);
-    if (!target) continue;
-    const fuzzy = list.find(
-      (item) => normalize(item.name).includes(target) || target.includes(normalize(item.name))
-    );
-    if (fuzzy) return fuzzy;
+) {
+  const addr = data.address;
+  const houseAndRoad = [addr?.houseNumber, addr?.road].filter(Boolean).join(' ');
+  setters.setStreet(houseAndRoad || addr?.suburb || '');
+
+  const matchedProv = findBestDivisionMatch(provinces, [addr?.state, addr?.city]);
+  if (!matchedProv) return;
+
+  let wardList = wards;
+  if (String(matchedProv.code) !== String(selectedProvCode)) {
+    setters.setSelectedProv({ code: String(matchedProv.code), name: matchedProv.name });
+    wardList = await addressService.getWards(String(matchedProv.code));
+    setters.setWards(wardList);
   }
-  return null;
+
+  const matchedWard = findBestDivisionMatch(wardList, [
+    addr?.suburb,
+    addr?.quarter,
+    addr?.village,
+    addr?.town,
+    addr?.cityDistrict,
+    addr?.hamlet,
+  ]);
+  setters.setSelectedWard(
+    matchedWard
+      ? { code: String(matchedWard.code), name: matchedWard.name }
+      : { code: '', name: '' }
+  );
 }
 
-export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({ onAddressChange }) => {
-  // Từ 01/07/2025, Việt Nam chỉ còn 2 cấp hành chính: Tỉnh/Thành phố -> Phường/Xã
-  // (bỏ cấp Quận/Huyện). Vì vậy component chỉ còn 2 danh sách provinces/wards,
-  // dùng API v2 của provinces.open-api.vn (v1 vẫn trả dữ liệu CŨ trước sáp nhập).
+export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({
+  onAddressChange,
+  onSelectionChange,
+  initialStreet = '',
+  initialProvinceCode = '',
+  initialWardCode = '',
+  initialPosition,
+}) => {
   const [provinces, setProvinces] = useState<DivisionItem[]>([]);
   const [wards, setWards] = useState<DivisionItem[]>([]);
+  const [geocodingProvider, setGeocodingProvider] = useState<'Nominatim' | 'Google'>('Nominatim');
 
-  const [selectedProv, setSelectedProv] = useState({ code: '', name: '' });
-  const [selectedWard, setSelectedWard] = useState({ code: '', name: '' });
-  const [street, setStreet] = useState('');
+  const [selectedProv, setSelectedProv] = useState({ code: initialProvinceCode, name: '' });
+  const [selectedWard, setSelectedWard] = useState({ code: initialWardCode, name: '' });
+  const [street, setStreet] = useState(initialStreet);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Tọa độ mặc định: Dinh Độc Lập, TPHCM
-  const [position, setPosition] = useState<[number, number]>([10.7769, 106.6951]);
-  const markerRef = useRef<any>(null);
+  const [position, setPosition] = useState<[number, number]>(initialPosition ?? [10.7769, 106.6951]);
+  const markerRef = useRef<L.Marker | null>(null);
 
-  // Fetch Tỉnh/Thành phố (API v2 - sau sáp nhập)
   useEffect(() => {
-    fetch('https://provinces.open-api.vn/api/v2/p/')
-      .then((res) => res.json())
-      .then((data) => setProvinces(data || []))
-      .catch((err) => console.error('Lỗi tải danh sách Tỉnh/Thành:', err));
+    addressService.getProvinces().then(setProvinces).catch(console.error);
+    addressService.getGeocodingProvider().then(setGeocodingProvider).catch(() => undefined);
   }, []);
 
-  // Fetch Phường/Xã của Tỉnh đã chọn (API v2 trả "wards" trực tiếp dưới tỉnh)
   useEffect(() => {
-    if (selectedProv.code) {
-      fetch(`https://provinces.open-api.vn/api/v2/p/${selectedProv.code}?depth=2`)
-        .then((res) => res.json())
-        .then((data) => {
-          setWards(data.wards || []);
-        })
-        .catch((err) => console.error('Lỗi tải danh sách Phường/Xã:', err));
-    } else {
-      setWards([]);
-    }
-  }, [selectedProv.code]);
+    if (!initialProvinceCode || provinces.length === 0) return;
+    const prov = provinces.find((p) => String(p.code) === String(initialProvinceCode));
+    if (prov) setSelectedProv({ code: String(prov.code), name: prov.name });
+  }, [initialProvinceCode, provinces]);
 
-  // Cập nhật chuỗi địa chỉ đầy đủ về Form cha
   useEffect(() => {
-    const fullAddress = [street, selectedWard.name, selectedProv.name, 'Việt Nam']
-      .filter(Boolean)
-      .join(', ');
+    if (!selectedProv.code) {
+      setWards([]);
+      return;
+    }
+    addressService
+      .getWards(selectedProv.code)
+      .then((list) => {
+        setWards(list);
+        if (initialWardCode) {
+          const ward = list.find((w) => String(w.code) === String(initialWardCode));
+          if (ward) setSelectedWard({ code: String(ward.code), name: ward.name });
+        }
+      })
+      .catch(console.error);
+  }, [selectedProv.code, initialWardCode]);
+
+  useEffect(() => {
+    const fullAddress = buildFullAddress({
+      street,
+      wardName: selectedWard.name,
+      provinceName: selectedProv.name,
+    });
 
     if (selectedWard.name || street) {
       onAddressChange(fullAddress);
+      onSelectionChange?.({
+        fullAddress,
+        street,
+        provinceCode: selectedProv.code,
+        provinceName: selectedProv.name,
+        wardCode: selectedWard.code,
+        wardName: selectedWard.name,
+        lat: position[0],
+        lng: position[1],
+      });
     }
-  }, [selectedProv, selectedWard, street, onAddressChange]);
+  }, [selectedProv, selectedWard, street, position, onAddressChange, onSelectionChange]);
 
-  // GÕ ĐỊA CHỈ -> TÌM & GHIM TRÊN MAP
   const handleSearchAddress = async () => {
     if (!street && !selectedWard.name) return;
     setIsSearching(true);
-    const fullSearchText = [street, selectedWard.name, selectedProv.name, 'Việt Nam']
-      .filter(Boolean)
-      .join(', ');
+
+    const fullSearchText = buildFullAddress({
+      street,
+      wardName: selectedWard.name,
+      provinceName: selectedProv.name,
+    });
 
     try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=vn&limit=1&q=${encodeURIComponent(
-          fullSearchText
-        )}`,
-        { headers: { 'Accept-Language': 'vi' } }
-      );
-      const data = await res.json();
+      let results = await addressService.searchGeocode(fullSearchText);
 
-      if (data && data.length > 0) {
-        setPosition([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
-      } else if (selectedWard.name) {
-        // Nominatim không có số nhà "Vũ Ngọc Quỳnh Giang..." trong dữ liệu bản đồ ->
-        // thử lùi lại tìm theo Phường/Xã + Tỉnh để ít nhất ghim đúng khu vực,
-        // thay vì báo lỗi trắng và không làm gì cả như code cũ.
-        const fallbackText = [selectedWard.name, selectedProv.name, 'Việt Nam']
-          .filter(Boolean)
-          .join(', ');
-        const fallbackRes = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&countrycodes=vn&limit=1&q=${encodeURIComponent(
-            fallbackText
-          )}`,
-          { headers: { 'Accept-Language': 'vi' } }
-        );
-        const fallbackData = await fallbackRes.json();
-        if (fallbackData && fallbackData.length > 0) {
-          setPosition([parseFloat(fallbackData[0].lat), parseFloat(fallbackData[0].lon)]);
+      if (results.length === 0 && selectedWard.name) {
+        const fallbackText = buildFullAddress({
+          wardName: selectedWard.name,
+          provinceName: selectedProv.name,
+        });
+        results = await addressService.searchGeocode(fallbackText);
+        if (results.length > 0) {
           alert(
-            'Không tìm thấy chính xác số nhà/tên đường. Ghim đang trỏ tới khu vực Phường/Xã bạn chọn, vui lòng kéo ghim đỏ đến đúng vị trí nhà bạn.'
+            'Không tìm thấy chính xác số nhà/tên đường. Ghim đang trỏ tới khu vực Phường/Xã bạn chọn — vui lòng kéo ghim đỏ đến đúng vị trí.'
           );
         } else {
           alert('Không tìm thấy vị trí. Vui lòng kiểm tra lại địa chỉ hoặc di chuyển ghim đỏ thủ công.');
         }
-      } else {
+      } else if (results.length === 0) {
         alert('Không tìm thấy vị trí chính xác. Vui lòng di chuyển ghim đỏ thủ công đến đúng nhà của bạn!');
       }
+
+      if (results.length > 0) {
+        const first = results[0];
+        setPosition([first.lat, first.lon]);
+      }
     } catch (error) {
-      console.error('Lỗi:', error);
+      console.error('Geocode search error:', error);
     } finally {
       setIsSearching(false);
     }
@@ -174,7 +205,6 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({ onAddressCha
     }
   };
 
-  // KÉO GHIM MAP -> REVERSE GEOCODING -> CẬP NHẬT SỐ NHÀ/ĐƯỜNG + TỰ ĐỘNG CHỌN TỈNH/PHƯỜNG
   const eventHandlers = useMemo(
     () => ({
       async dragend() {
@@ -186,48 +216,17 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({ onAddressCha
 
         setIsSearching(true);
         try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${newPos.lat}&lon=${newPos.lng}&zoom=18&addressdetails=1`,
-            { headers: { 'Accept-Language': 'vi' } }
-          );
-          const data = await res.json();
-          if (!data || !data.address) return;
+          const data = await addressService.reverseGeocode(newPos.lat, newPos.lng);
+          if (!data) return;
 
-          const addr = data.address;
-
-          // (1) Chỉ lấy số nhà + tên đường cho ô "street".
-          // Code cũ nhét nguyên display_name (đã bao gồm cả Phường/Tỉnh) vào street,
-          // khiến địa chỉ cuối cùng bị lặp lại Phường/Tỉnh 2 lần khi ghép chuỗi.
-          const houseAndRoad = [addr.house_number, addr.road].filter(Boolean).join(' ');
-          setStreet(houseAndRoad || addr.suburb || addr.neighbourhood || '');
-
-          // (2) Tự động tìm & chọn Tỉnh/Thành phố khớp với kết quả reverse geocode
-          const matchedProv = findBestMatch(provinces, [addr.state, addr.city]);
-          if (!matchedProv) return;
-
-          let wardList = wards;
-          if (String(matchedProv.code) !== String(selectedProv.code)) {
-            setSelectedProv({ code: String(matchedProv.code), name: matchedProv.name });
-            const wardRes = await fetch(
-              `https://provinces.open-api.vn/api/v2/p/${matchedProv.code}?depth=2`
-            );
-            const wardData = await wardRes.json();
-            wardList = wardData.wards || [];
-            setWards(wardList);
-          }
-
-          // (3) Tự động tìm & chọn Phường/Xã khớp
-          const matchedWard = findBestMatch(wardList, [
-            addr.suburb,
-            addr.quarter,
-            addr.village,
-            addr.town,
-            addr.city_district,
-            addr.hamlet,
-          ]);
-          setSelectedWard(matchedWard ? { code: String(matchedWard.code), name: matchedWard.name } : { code: '', name: '' });
+          await applyGeocodeToForm(data, provinces, selectedProv.code, wards, {
+            setStreet,
+            setSelectedProv,
+            setSelectedWard,
+            setWards,
+          });
         } catch (error) {
-          console.error('Lỗi lấy địa chỉ:', error);
+          console.error('Reverse geocode error:', error);
         } finally {
           setIsSearching(false);
         }
@@ -238,7 +237,11 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({ onAddressCha
 
   return (
     <div className="space-y-4">
-      {/* Dropdown Tỉnh/Phường - chỉ còn 2 cấp theo đơn vị hành chính mới */}
+      <p className="text-xs text-gray-500">
+        Đơn vị hành chính <strong>2 cấp (API v2)</strong> · Geocoding qua BE (
+        {geocodingProvider === 'Google' ? 'Google Places' : 'Nominatim'})
+      </p>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <select
           className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#3D021E]"
@@ -275,11 +278,10 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({ onAddressCha
         </select>
       </div>
 
-      {/* Input Số nhà + Nút Tìm */}
       <div className="relative flex items-center">
         <input
           type="text"
-          placeholder="Số nhà, Tên đường... (Nhập xong nhấn Enter hoặc Cầm ghim đỏ kéo)"
+          placeholder="Số nhà, Tên đường... (Nhập xong nhấn Enter hoặc kéo ghim đỏ)"
           value={street}
           onChange={(e) => setStreet(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -295,16 +297,15 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({ onAddressCha
         </button>
       </div>
 
-      {/* Bản đồ */}
       <div className="relative">
         <div className="absolute top-2 left-2 z-[400] bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-sm border border-gray-200 text-xs font-medium text-gray-700 pointer-events-none">
-          💡 Mẹo: Kéo thả ghim đỏ để hệ thống tự động điền địa chỉ
+          💡 Kéo thả ghim đỏ để hệ thống tự động điền địa chỉ
         </div>
         <div className="w-full h-72 rounded-xl overflow-hidden border border-gray-200 shadow-sm relative z-0">
           <MapContainer center={position} zoom={16} style={{ width: '100%', height: '100%' }}>
             <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <MapFlyTo center={position} />
-            <Marker draggable={true} eventHandlers={eventHandlers} position={position} ref={markerRef}>
+            <Marker draggable eventHandlers={eventHandlers} position={position} ref={markerRef}>
               <Popup>Nhà tôi ở đây!</Popup>
             </Marker>
           </MapContainer>
