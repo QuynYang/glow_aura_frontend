@@ -2,7 +2,9 @@
 
 ![Tech Stack](.\image\homepage.png)
 
-Giao diện frontend cho nền tảng thương mại điện tử mỹ phẩm **Glow Aura**: UI sang trọng, đăng nhập Google/Facebook, giỏ hàng, checkout nhiều cổng thanh toán (COD/MoMo/ZaloPay/VNPay/PayOS), tra cứu đơn hàng và khảo sát/phân tích da bằng AI.
+Giao diện frontend cho nền tảng thương mại điện tử mỹ phẩm **Glow Aura**: UI sang trọng, đăng nhập Google/Facebook, giỏ hàng, checkout (COD/PayOS), tra cứu đơn hàng, **Skin Quiz** (Gemini) và trang admin.
+
+> **Lưu ý:** UI **camera skin analysis** (YOLO + RAG) được phát triển ở **đồ án/client riêng**, không nằm trong repo này. `client_web` chỉ gọi `/api/skin-quiz/*`, không wire `/api/skin-analysis/*`.
 
 > Khoá luận tốt nghiệp — Vũ Ngọc Quỳnh Giang — MSSV 22DH114506
 
@@ -109,10 +111,17 @@ src/
 └── main.tsx               # Entry point
 ```
 
+## Tính năng AI trên frontend
+
+| Tính năng | API backend | Ghi chú |
+|---|---|---|
+| **Skin Quiz** (trắc nghiệm loại da) | `POST /api/skin-quiz/*` | Có UI trong `client_web` |
+| **Camera skin analysis** | `POST /api/skin-analysis/analyze` | Client riêng — không implement ở đây |
+
 ## Ghi chú kỹ thuật quan trọng
 
 - **Auth:** JWT lưu ở `localStorage` (`accessToken`, `refreshToken`); `apiClient` tự refresh token khi gặp lỗi 401 (trừ các route `/auth/*`).
-- **Checkout:** `CheckoutPage.tsx` gọi `POST /checkout/preview` (debounce 800ms) để tính tổng tiền real-time, và `POST /checkout` khi đặt hàng. `returnUrl`/`cancelUrl` gửi kèm phải dùng **template literal** (dấu backtick `` ` ``), không dùng nháy đơn `'...'` — nếu không sẽ gửi literal `${...}` sai định dạng URL tới các cổng thanh toán online.
+- **Checkout:** Chỉ hiển thị COD và PayOS trên production UI. `CheckoutPage.tsx` gọi `POST /checkout/preview` (debounce 800ms) và `POST /checkout` khi đặt hàng.
 - **Routing:** Dùng `HashRouter` (`#/...`) để tương thích với GitHub Pages (không hỗ trợ server-side rewrite).
 
 ## Tác giả
