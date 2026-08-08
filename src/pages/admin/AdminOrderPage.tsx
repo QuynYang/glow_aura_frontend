@@ -11,9 +11,9 @@ import {
   getOrderDisplayStatus,
   getOrderFilterKey,
   getStatusBadgeColor,
-  OrderFilterKey,
   PAYMENT_METHOD_LABELS,
 } from '../../utils/orderStatus';
+import type { OrderFilterKey } from '../../utils/orderStatus';
 
 const FILTER_TABS: Array<{ key: OrderFilterKey | 'all'; label: string }> = [
   { key: 'all', label: 'Tất cả đơn hàng' },

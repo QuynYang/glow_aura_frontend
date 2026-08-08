@@ -21,7 +21,6 @@ export const AdminCreateOrderPage = () => {
   const [customer, setCustomer] = useState({ name: '', phone: '', address: '' });
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<any[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState<'COD'>('COD');
   
   const [shippingProvider, setShippingProvider] = useState('ghtk');
   const [discount, setDiscount] = useState(0);
@@ -311,9 +310,9 @@ export const AdminCreateOrderPage = () => {
                             <div className="relative">
                                 <input
                                     type="number"
-                                    className="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-[#3D021E] outline-none text-right font-medium"
-                                    value={shippingFee}
-                                    onChange={(e) => setShippingFee(Number(e.target.value))}
+                                    readOnly
+                                    className="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-right font-medium cursor-not-allowed"
+                                    value={currentShippingFee}
                                 />
                                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">đ</span>
                             </div>
