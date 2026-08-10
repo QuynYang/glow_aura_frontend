@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { MainLayout } from '../components/layout/MainLayout';
 import { orderService } from '../services/orderService';
+import { buildPaymentResultUrl } from '../utils/paymentResultUrl';
 import { getOrderDisplayStatus, isOrderPaid, PAYMENT_METHOD_LABELS } from '../utils/orderStatus';
 
 const formatVND = (amount: number) => new Intl.NumberFormat('vi-VN').format(amount || 0) + 'đ';
@@ -83,8 +84,8 @@ export const OrderDetailPage = () => {
       setIsPaying(true);
       const data = await orderService.payOrder(id!, {
         paymentMethod: 5,
-        returnUrl: `${window.location.origin}${import.meta.env.BASE_URL}#/payment-result?orderId=${order.id}`,
-        cancelUrl: `${window.location.origin}${import.meta.env.BASE_URL}#/payment-result?orderId=${order.id}`,
+        returnUrl: buildPaymentResultUrl(order.id),
+        cancelUrl: buildPaymentResultUrl(order.id),
       });
       const payload = data?.data ?? data;
       const redirectUrl =

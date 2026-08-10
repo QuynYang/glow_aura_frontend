@@ -41,11 +41,13 @@ import { PaymentResultPage } from './pages/PaymentResultPage';
 import { AdminInventoryPage } from './pages/admin/AdminInventoryPage';
 import { RequireStaffOrAdmin, RequireAdminOnly } from './components/auth/RequireRole';
 import { FacebookOAuthCallback } from './components/auth/FacebookOAuthCallback';
+import { PayOsReturnRedirect } from './components/auth/PayOsReturnRedirect';
 
 function App() {
   return (
     <>
       <FacebookOAuthCallback />
+      <PayOsReturnRedirect />
       <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/best-sellers" element={<ProductListPage />} />

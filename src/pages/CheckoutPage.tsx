@@ -10,6 +10,7 @@ import {
   getCheckoutPaymentUrl,
 } from '../services/checkoutService';
 import { AddressMapPicker } from '../components/ui/AddressMapPicker';
+import { buildPaymentResultUrl } from '../utils/paymentResultUrl';
 
 const formatVND = (amount: number) => new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
 
@@ -121,7 +122,7 @@ export const CheckoutPage = () => {
     }
 
     setIsSubmitting(true);
-    const resultBaseUrl = `${window.location.origin}${import.meta.env.BASE_URL}#/payment-result`;
+    const resultBaseUrl = buildPaymentResultUrl();
 
     const orderPayload = {
       items: cartItems.map((item) => ({
